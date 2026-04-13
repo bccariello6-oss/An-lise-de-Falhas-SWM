@@ -497,6 +497,7 @@ const App: React.FC = () => {
 </html>
 `;
     try {
+      console.log('Iniciando envio para:', toEmail);
       const { data, error } = await supabase.functions.invoke('send-report-email', {
         body: {
           to: toEmail,
@@ -504,11 +505,13 @@ const App: React.FC = () => {
           html: htmlContent,
         },
       });
+      console.log('Resposta da função:', { data, error });
       if (error) throw error;
       alert('Relatório enviado com sucesso para ' + toEmail);
     } catch (e) {
       console.error('Erro ao enviar e-mail:', e);
-      alert('Erro ao enviar e-mail. Verifique o console.');
+      console.error('Detalhes:', e.message, e.context);
+      alert('Erro ao enviar e-mail: ' + (e.message || e));
     }
   };
 
