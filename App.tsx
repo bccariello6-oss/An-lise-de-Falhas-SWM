@@ -865,9 +865,9 @@ const App: React.FC = () => {
         )}
 
         <main id="main-content" className="flex-1 flex flex-col overflow-hidden relative">
-          <div id="step-scroll-container" className="flex-1 overflow-y-auto px-4 py-2 md:px-6 custom-scrollbar">
+          <div id="step-scroll-container" className="flex-1 overflow-y-auto px-2 md:px-4 py-1 md:py-2 custom-scrollbar">
             <div className="max-w-[1600px] mx-auto flex flex-col">
-              <div className="bg-white rounded-[24px] shadow-xl shadow-slate-200/50 border border-slate-100 p-4 md:p-6 mb-4 mt-2">
+              <div className="bg-white rounded-[24px] shadow-xl shadow-slate-200/50 border border-slate-100 p-3 md:p-5 mb-3 mt-1 md:mt-2">
                 {renderStepContent()}
               </div>
             </div>

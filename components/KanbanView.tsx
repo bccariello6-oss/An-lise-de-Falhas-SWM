@@ -13,9 +13,9 @@ interface KanbanViewProps {
 }
 
 const columns: { title: string; status: Status; color: string; icon: React.ReactNode }[] = [
-  { title: 'Abertas', status: 'Aberta', color: 'bg-slate-50 border-slate-200', icon: <FolderOpen size={18} className="text-slate-500" /> },
-  { title: 'Em Andamento', status: 'Em andamento', color: 'bg-[#e5ebf7] border-[#dce4f5]', icon: <Loader2 size={18} className="text-[#171C8F] animate-spin" /> },
-  { title: 'Concluídas', status: 'Concluída', color: 'bg-emerald-50 border-emerald-100', icon: <CheckCircle2 size={18} className="text-emerald-500" /> },
+  { title: 'Abertas', status: 'Aberta', color: 'bg-slate-50 border-slate-200', icon: <FolderOpen size={16} md:size={18} className="text-slate-500" /> },
+  { title: 'Em Andamento', status: 'Em andamento', color: 'bg-[#e5ebf7] border-[#dce4f5]', icon: <Loader2 size={16} md:size={18} className="text-[#171C8F] animate-spin" /> },
+  { title: 'Concluídas', status: 'Concluída', color: 'bg-emerald-50 border-emerald-100', icon: <CheckCircle2 size={16} md:size={18} className="text-emerald-500" /> },
 ];
 
 interface KanbanCardProps {
@@ -26,33 +26,33 @@ interface KanbanCardProps {
 const KanbanCard: React.FC<KanbanCardProps> = ({ action, isDragging }) => {
   return (
     <div 
-      className={`bg-white p-3 rounded-xl shadow-sm border border-slate-100 transition-all group relative ${
+      className={`bg-white p-2 md:p-3 rounded-xl shadow-sm border border-slate-100 transition-all group relative ${
         isDragging ? 'shadow-xl border-[#171C8F] opacity-90 rotate-2 scale-105 z-50' : 'hover:shadow-lg hover:border-[#171C8F]/30'
       }`}
     >
-      <div className="flex justify-between items-start mb-2">
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+      <div className="flex justify-between items-start mb-1 md:mb-2">
+        <span className={`text-[8px] md:text-[10px] font-bold px-1.5 md:px-2 py-0.5 rounded-full uppercase ${
           action.type === 'Corretiva' ? 'bg-red-100 text-red-700' : 
           action.type === 'Preventiva' ? 'bg-[#e5ebf7] text-[#171C8F]' : 'bg-amber-100 text-amber-700'
         }`}>
           {action.type}
         </span>
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <GripVertical size={14} className="text-slate-400 cursor-grab" />
+          <GripVertical size={12} md:size={14} className="text-slate-400 cursor-grab" />
         </div>
       </div>
       
-      <h4 className="text-sm font-semibold text-slate-800 mb-3 line-clamp-3 leading-relaxed">
+      <h4 className="text-[11px] md:text-sm font-semibold text-slate-800 mb-2 md:mb-3 line-clamp-2 md:line-clamp-3 leading-relaxed">
         {action.description || <span className="italic text-slate-400 font-normal">Sem descrição</span>}
       </h4>
       
-      <div className="flex flex-col gap-2 pt-3 border-t border-slate-50">
-        <div className="flex items-center gap-2 text-xs text-slate-500">
-          <UserCircle size={14} className="opacity-70" />
+      <div className="flex flex-col gap-1 md:gap-2 pt-2 md:pt-3 border-t border-slate-50">
+        <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
+          <UserCircle size={12} md:size={14} className="opacity-70" />
           <span className="font-medium">{action.responsible || 'Não atribuído'}</span>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-500">
-          <Calendar size={14} className="opacity-70" />
+        <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
+          <Calendar size={12} md:size={14} className="opacity-70" />
           <span>{action.dueDate ? new Date(action.dueDate).toLocaleDateString('pt-BR') : 'Sem data'}</span>
         </div>
       </div>
@@ -237,13 +237,13 @@ const KanbanView: React.FC<KanbanViewProps> = ({ analysis, onUpdateAction }) => 
 
   return (
     <div className="flex flex-col h-full animate-fadeIn">
-      <div className="mb-4">
-        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-          <Columns size={20} className="text-[#171C8F]" />
+      <div className="mb-2 md:mb-4">
+        <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
+          <Columns size={18} md:size={20} className="text-[#171C8F]" />
           Quadro Kanban de Ações
         </h2>
-        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">
-          Arraste os cards entre as colunas ou clique nas setas. Use o clique para dispositivos táteis.
+        <p className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase tracking-wide">
+          Arraste os cards entre as colunas ou clique nas setas
         </p>
       </div>
 
