@@ -511,7 +511,11 @@ const App: React.FC = () => {
         },
       });
       console.log('Resposta da função:', { data, error });
-      if (error) throw error;
+      console.log('Data:', data);
+      if (error) {
+        console.error('Error details:', JSON.stringify(error));
+        throw error;
+      }
       alert('Relatório enviado com sucesso para ' + toEmail);
     } catch (e) {
       console.error('Erro ao enviar e-mail:', e);
