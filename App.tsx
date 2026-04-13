@@ -498,24 +498,32 @@ const App: React.FC = () => {
 `;
     try {
       console.log('Iniciando envio para:', toEmail);
-      console.log('Supabase URL:', supabase.supabaseUrl);
       
       const functionUrl = `${supabase.supabaseUrl}/functions/v1/send-report-email`;
       console.log('Function URL:', functionUrl);
       
-      const { data, error } = await supabase.functions.invoke('send-report-email', {
-        body: {
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabase.supabaseKey,
+          'Authorization': `Bearer ${supabase.supabaseKey}`,
+        },
+        body: JSON.stringify({
           to: toEmail,
           subject: `[SWM] Análise de Falha - ${analysis.area || 'N/A'} (${analysis.id})`,
           html: htmlContent,
-        },
+        }),
       });
-      console.log('Resposta da função:', { data, error });
-      console.log('Data:', data);
-      if (error) {
-        console.error('Error details:', JSON.stringify(error));
-        throw error;
+      
+      console.log('Response status:', response.status);
+      const result = await response.json();
+      console.log('Response:', result);
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao enviar email');
       }
+      
       alert('Relatório enviado com sucesso para ' + toEmail);
     } catch (e) {
       console.error('Erro ao enviar e-mail:', e);
