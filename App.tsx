@@ -361,6 +361,7 @@ const App: React.FC = () => {
     .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #171C8F; padding-bottom: 16px; margin-bottom: 20px; }
     .header-left h1 { color: #171C8F; margin: 0; font-size: 22px; }
     .header-left p { color: #13aff0; margin: 4px 0 0; font-size: 11px; font-weight: bold; letter-spacing: 1px; }
+    .signature { color: #666 !important; font-size: 10px !important; font-weight: normal !important; letter-spacing: 0 !important; margin-top: 8px !important; }
     .protocol { text-align: right; }
     .protocol .label { font-size: 9px; color: #666; text-transform: uppercase; }
     .protocol .value { font-size: 18px; color: #171C8F; font-weight: bold; }
@@ -397,7 +398,8 @@ const App: React.FC = () => {
     <div class="header">
       <div class="header-left">
         <h1>${greeting}! Segue Análise de Falha - ${analysis.area || 'Área'} para conhecimento e tratativa.</h1>
-        <p>SWM BRASIL - LIDERANÇA OPEX</p>
+        <p>Obrigado!</p>
+        <p class="signature">Liderança Opex SWM Brasil</p>
       </div>
       <div class="protocol">
         <div class="label">Protocolo</div>
