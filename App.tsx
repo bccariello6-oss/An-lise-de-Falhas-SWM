@@ -343,35 +343,31 @@ const App: React.FC = () => {
     window.print();
   };
 
-  const handleSendEmail = async () => {
+  const handleSendEmail = () => {
     if (!session?.user) return;
     const toEmail = session.user.email || 'bcariello@swmintl.com';
-    const bodyLines = [
-      `Protocolo: ${analysis.id}`,
-      `Equipamento: ${analysis.equipment || 'â€”'}`,
-      `Tag: ${analysis.tag || 'â€”'}`,
-      `Ãrea: ${analysis.area || 'â€”'}`,
-      `Data: ${analysis.failureDate || 'â€”'}`,
-      `ResponsÃ¡vel: ${analysis.responsible || 'â€”'}`,
-      ``,
-      `DescriÃ§Ã£o: ${analysis.description || 'â€”'}`,
-      ``,
-      `Causa Raiz: ${analysis.rootCause || 'â€”'}`,
-    ];
-    try {
-      const { error } = await supabase.functions.invoke('send-report-email', {
-        body: {
-          to: toEmail,
-          subject: `[SWM] RelatÃ³rio de Falha â€“ ${analysis.equipment} (${analysis.id})`,
-          html: `<pre style="font-family:Arial,sans-serif;font-size:13px">${bodyLines.join('\n')}</pre>`,
-        },
-      });
-      if (error) throw error;
-      alert('RelatÃ³rio enviado com sucesso para ' + toEmail);
-    } catch (e) {
-      console.error(e);
-      alert('Erro ao enviar e-mail. Verifique o console.');
-    }
+    const subject = `[SWM] Relatório de Falha – ${analysis.equipment || 'N/A'} (${analysis.id})`;
+    const body = `
+PROTOCOLO: ${analysis.id}
+EQUIPAMENTO: ${analysis.equipment || '—'}
+TAG: ${analysis.tag || '—'}
+ÁREA: ${analysis.area || '—'}
+DATA: ${analysis.failureDate || '—'}
+RESPONSÁVEL: ${analysis.responsible || '—'}
+
+DESCRIÇÃO DA FALHA:
+${analysis.description || '—'}
+
+CAUSA RAIZ:
+${analysis.rootCause || 'Não identificada'}
+
+---
+Relatório gerado via SWM Análise de Falhas
+`.trim();
+    
+    const mailtoUrl = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
+    alert('Cliente de e-mail aberto. Envie o relatório para ' + toEmail);
   };
 
   const renderStepContent = () => {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Action, Status, Analysis } from '../types';
-import { Columns, FolderOpen, Loader2, CheckCircle2, Inbox, ArrowLeft, ArrowRight, UserCircle, Calendar, Lightbulb, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCorners, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { Columns, FolderOpen, Loader2, CheckCircle2, Inbox, ArrowLeft, ArrowRight, UserCircle, Calendar, Lightbulb, GripVertical } from 'lucide-react';
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, useDroppable, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -18,89 +18,51 @@ const columns: { title: string; status: Status; color: string; icon: React.React
   { title: 'Concluídas', status: 'Concluída', color: 'bg-emerald-50 border-emerald-100', icon: <CheckCircle2 size={16} md:size={18} className="text-emerald-500" /> },
 ];
 
-interface KanbanCardProps {
-  action: Action;
-  isDragging?: boolean;
-}
-
-const KanbanCard: React.FC<KanbanCardProps> = ({ action, isDragging }) => {
-  return (
-    <div 
-      className={`bg-white p-2 md:p-3 rounded-xl shadow-sm border border-slate-100 transition-all group relative ${
-        isDragging ? 'shadow-xl border-[#171C8F] opacity-90 rotate-2 scale-105 z-50' : 'hover:shadow-lg hover:border-[#171C8F]/30'
-      }`}
-    >
-      <div className="flex justify-between items-start mb-1 md:mb-2">
-        <span className={`text-[8px] md:text-[10px] font-bold px-1.5 md:px-2 py-0.5 rounded-full uppercase ${
-          action.type === 'Corretiva' ? 'bg-red-100 text-red-700' : 
-          action.type === 'Preventiva' ? 'bg-[#e5ebf7] text-[#171C8F]' : 'bg-amber-100 text-amber-700'
-        }`}>
-          {action.type}
-        </span>
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <GripVertical size={12} md:size={14} className="text-slate-400 cursor-grab" />
-        </div>
+const CardItem: React.FC<{ action: Action; isDragging?: boolean }> = ({ action, isDragging }) => (
+  <div className={`bg-white p-2 md:p-3 rounded-xl shadow-sm border border-slate-100 transition-all group ${
+    isDragging ? 'shadow-xl border-[#171C8F] opacity-90 rotate-2 scale-105 z-50' : 'hover:shadow-lg hover:border-[#171C8F]/30'
+  }`}>
+    <div className="flex justify-between items-start mb-1 md:mb-2">
+      <span className={`text-[8px] md:text-[10px] font-bold px-1.5 md:px-2 py-0.5 rounded-full uppercase ${
+        action.type === 'Corretiva' ? 'bg-red-100 text-red-700' : 
+        action.type === 'Preventiva' ? 'bg-[#e5ebf7] text-[#171C8F]' : 'bg-amber-100 text-amber-700'
+      }`}>
+        {action.type}
+      </span>
+      <GripVertical size={12} md:size={14} className="text-slate-400 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity" />
+    </div>
+    <h4 className="text-[11px] md:text-sm font-semibold text-slate-800 mb-2 md:mb-3 line-clamp-2 md:line-clamp-3 leading-relaxed">
+      {action.description || <span className="italic text-slate-400 font-normal">Sem descrição</span>}
+    </h4>
+    <div className="flex flex-col gap-1 md:gap-2 pt-2 md:pt-3 border-t border-slate-50">
+      <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
+        <UserCircle size={12} md:size={14} className="opacity-70" />
+        <span className="font-medium">{action.responsible || 'Não atribuído'}</span>
       </div>
-      
-      <h4 className="text-[11px] md:text-sm font-semibold text-slate-800 mb-2 md:mb-3 line-clamp-2 md:line-clamp-3 leading-relaxed">
-        {action.description || <span className="italic text-slate-400 font-normal">Sem descrição</span>}
-      </h4>
-      
-      <div className="flex flex-col gap-1 md:gap-2 pt-2 md:pt-3 border-t border-slate-50">
-        <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
-          <UserCircle size={12} md:size={14} className="opacity-70" />
-          <span className="font-medium">{action.responsible || 'Não atribuído'}</span>
-        </div>
-        <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
-          <Calendar size={12} md:size={14} className="opacity-70" />
-          <span>{action.dueDate ? new Date(action.dueDate).toLocaleDateString('pt-BR') : 'Sem data'}</span>
-        </div>
+      <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
+        <Calendar size={12} md:size={14} className="opacity-70" />
+        <span>{action.dueDate ? new Date(action.dueDate).toLocaleDateString('pt-BR') : 'Sem data'}</span>
       </div>
     </div>
-  );
-};
+  </div>
+);
 
-interface SortableCardProps {
-  action: Action;
-  onStatusChange: (id: string, newStatus: Status) => void;
-  columnStatus: Status;
-}
-
-const SortableCard: React.FC<SortableCardProps> = ({ action, onStatusChange, columnStatus }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: action.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
+const SortableItem: React.FC<{ action: Action; onStatusChange: (id: string, newStatus: Status) => void; columnStatus: Status }> = ({ action, onStatusChange, columnStatus }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: action.id });
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const nextStatus = columnStatus === 'Aberta' ? 'Em andamento' : columnStatus === 'Em andamento' ? 'Concluída' : 'Concluída';
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <KanbanCard action={action} isDragging={isDragging} />
+      <CardItem action={action} isDragging={isDragging} />
       <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
         {columnStatus !== 'Aberta' && (
-          <button 
-            onClick={() => onStatusChange(action.id, 'Aberta')}
-            className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600"
-            title="Mover para Aberta"
-          >
+          <button onClick={() => onStatusChange(action.id, 'Aberta')} className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600" title="Mover para Aberta">
             <ArrowLeft size={14} />
           </button>
         )}
         {columnStatus !== 'Concluída' && (
-          <button 
-            onClick={() => onStatusChange(action.id, columnStatus === 'Aberta' ? 'Em andamento' : 'Concluída')}
-            className="p-1 hover:bg-[#e5ebf7] rounded text-[#13aff0] hover:text-[#171C8F]"
-            title="Avançar"
-          >
+          <button onClick={() => onStatusChange(action.id, nextStatus)} className="p-1 hover:bg-[#e5ebf7] rounded text-[#13aff0] hover:text-[#171C8F]" title="Avançar">
             <ArrowRight size={14} />
           </button>
         )}
@@ -109,69 +71,36 @@ const SortableCard: React.FC<SortableCardProps> = ({ action, onStatusChange, col
   );
 };
 
-interface KanbanColumnProps {
-  title: string;
-  status: Status;
-  color: string;
-  icon: React.ReactNode;
-  actions: Action[];
-  onStatusChange: (id: string, newStatus: Status) => void;
-}
-
-const KanbanColumn: React.FC<KanbanColumnProps> = ({ title, status, color, icon, actions, onStatusChange }) => {
-  const getNextStatus = (current: Status): Status => {
-    if (current === 'Aberta') return 'Em andamento';
-    if (current === 'Em andamento') return 'Concluída';
-    return 'Concluída';
-  };
+const DroppableColumn: React.FC<{ status: Status; title: string; color: string; icon: React.ReactNode; actions: Action[]; onStatusChange: (id: string, newStatus: Status) => void }> = ({ status, title, color, icon, actions, onStatusChange }) => {
+  const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
-    <div className={`flex flex-col rounded-xl border-2 ${color} p-3 transition-all duration-300`}>
-      <div className="flex items-center justify-between mb-3 px-1">
+    <div 
+      ref={setNodeRef}
+      className={`flex flex-col rounded-xl border-2 ${color} p-2 md:p-3 transition-all duration-300 ${
+        isOver ? 'ring-2 ring-[#171C8F] ring-opacity-50 bg-[#e5ebf7]' : ''
+      }`}
+    >
+      <div className="flex items-center justify-between mb-2 md:mb-3 px-1">
         <div className="flex items-center gap-2">
           {icon}
-          <h3 className="font-bold text-slate-700 uppercase tracking-wider text-sm">{title}</h3>
+          <h3 className="font-bold text-slate-700 uppercase tracking-wider text-[10px] md:text-sm">{title}</h3>
         </div>
-        <span className="bg-white px-2 py-0.5 rounded-full text-xs font-bold text-slate-500 border border-slate-200 shadow-sm">
+        <span className="bg-white px-2 py-0.5 rounded-full text-[10px] md:text-xs font-bold text-slate-500 border border-slate-200 shadow-sm">
           {actions.length}
         </span>
       </div>
-
-      <div className="flex-1 space-y-3 overflow-y-auto pr-1 custom-scrollbar min-h-[200px]">
+      <div className="flex-1 space-y-2 md:space-y-3 overflow-y-auto pr-1 custom-scrollbar min-h-[180px] md:min-h-[250px]">
         {actions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-lg text-slate-400 text-sm">
-            <Inbox size={24} className="mb-2 opacity-20" />
-            Arraste cards aqui
+          <div className="flex flex-col items-center justify-center h-24 md:h-32 border-2 border-dashed border-slate-200 rounded-lg text-slate-400 text-[10px] md:text-sm">
+            <Inbox size={20} md:size={24} className="mb-2 opacity-20" />
+            Solte aqui
           </div>
         ) : (
           <SortableContext items={actions.map(a => a.id)} strategy={verticalListSortingStrategy}>
             {actions.map((action) => (
               <div key={action.id} className="group">
-                <SortableCard 
-                  action={action} 
-                  onStatusChange={onStatusChange} 
-                  columnStatus={status}
-                />
-                <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                  {status !== 'Aberta' && (
-                    <button 
-                      onClick={() => onStatusChange(action.id, 'Aberta')}
-                      className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600"
-                      title="Mover para Aberta"
-                    >
-                      <ArrowLeft size={14} />
-                    </button>
-                  )}
-                  {status !== 'Concluída' && (
-                    <button 
-                      onClick={() => onStatusChange(action.id, getNextStatus(status))}
-                      className="p-1 hover:bg-[#e5ebf7] rounded text-[#13aff0] hover:text-[#171C8F]"
-                      title="Avançar"
-                    >
-                      <ArrowRight size={14} />
-                    </button>
-                  )}
-                </div>
+                <SortableItem action={action} onStatusChange={onStatusChange} columnStatus={status} />
               </div>
             ))}
           </SortableContext>
@@ -184,48 +113,32 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({ title, status, color, icon,
 const KanbanView: React.FC<KanbanViewProps> = ({ analysis, onUpdateAction }) => {
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  const getActionsByStatus = (status: Status) => {
-    return analysis.actions.filter(action => action.status === status);
-  };
+  const getActionsByStatus = (status: Status) => analysis.actions.filter(action => action.status === status);
 
-  const handleStatusChange = (id: string, newStatus: Status) => {
-    onUpdateAction(id, { status: newStatus });
-  };
+  const handleStatusChange = (id: string, newStatus: Status) => onUpdateAction(id, { status: newStatus });
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
+  const handleDragStart = (event: DragStartEvent) => setActiveId(event.active.id as string);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
-
     if (!over) return;
 
     const actionId = active.id as string;
     const action = analysis.actions.find(a => a.id === actionId);
-    
     if (!action) return;
 
     const overId = over.id as string;
-    
     let newStatus: Status | null = null;
-    
-    if (columns.some(col => col.status === overId)) {
-      newStatus = overId as Status;
+
+    const col = columns.find(c => c.status === overId);
+    if (col) {
+      newStatus = col.status;
     } else {
       const overAction = analysis.actions.find(a => a.id === overId);
-      if (overAction) {
-        newStatus = overAction.status;
-      }
+      if (overAction) newStatus = overAction.status;
     }
 
     if (newStatus && newStatus !== action.status) {
@@ -243,22 +156,17 @@ const KanbanView: React.FC<KanbanViewProps> = ({ analysis, onUpdateAction }) => 
           Quadro Kanban de Ações
         </h2>
         <p className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase tracking-wide">
-          Arraste os cards entre as colunas ou clique nas setas
+          Arraste os cards entre as colunas
         </p>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 min-h-[400px]">
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 flex-1 min-h-[300px] md:min-h-[400px]">
           {columns.map((column) => (
-            <KanbanColumn
+            <DroppableColumn
               key={column.status}
-              title={column.title}
               status={column.status}
+              title={column.title}
               color={column.color}
               icon={column.icon}
               actions={getActionsByStatus(column.status)}
@@ -266,21 +174,18 @@ const KanbanView: React.FC<KanbanViewProps> = ({ analysis, onUpdateAction }) => 
             />
           ))}
         </div>
-
-        <DragOverlay>
-          {activeAction ? <KanbanCard action={activeAction} isDragging /> : null}
-        </DragOverlay>
+        <DragOverlay>{activeAction ? <CardItem action={activeAction} isDragging /> : null}</DragOverlay>
       </DndContext>
       
-      <div className="mt-4 p-4 bg-[#171C8F] rounded-xl text-white shadow-lg overflow-hidden relative">
+      <div className="mt-3 md:mt-4 p-3 md:p-4 bg-[#171C8F] rounded-xl text-white shadow-lg overflow-hidden relative">
         <div className="relative z-10 flex items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-bold mb-0.5">Dica de Gestão</h3>
-            <p className="text-blue-100 text-[10px] max-w-xl">
-              Arraste os cards para mover entre colunas. Ações longas sugerem bloqueios técnicos.
+            <h3 className="text-[10px] md:text-sm font-bold mb-0.5">Dica de Gestão</h3>
+            <p className="text-blue-100 text-[8px] md:text-[10px] max-w-xl">
+              Arraste cards para mover. Ações longas sugerem bloqueios técnicos.
             </p>
           </div>
-          <Lightbulb size={32} className="text-blue-300/30 rotate-12" />
+          <Lightbulb size={24} md:size={32} className="text-blue-300/30 rotate-12" />
         </div>
       </div>
     </div>
