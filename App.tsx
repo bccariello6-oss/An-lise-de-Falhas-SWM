@@ -343,31 +343,41 @@ const App: React.FC = () => {
     window.print();
   };
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     if (!session?.user) return;
-    const toEmail = session.user.email || 'bcariello@swmintl.com';
-    const subject = `[SWM] Relatório de Falha – ${analysis.equipment || 'N/A'} (${analysis.id})`;
-    const body = `
-PROTOCOLO: ${analysis.id}
-EQUIPAMENTO: ${analysis.equipment || '—'}
-TAG: ${analysis.tag || '—'}
-ÁREA: ${analysis.area || '—'}
-DATA: ${analysis.failureDate || '—'}
-RESPONSÁVEL: ${analysis.responsible || '—'}
-
-DESCRIÇÃO DA FALHA:
-${analysis.description || '—'}
-
-CAUSA RAIZ:
-${analysis.rootCause || 'Não identificada'}
-
----
-Relatório gerado via SWM Análise de Falhas
-`.trim();
-    
-    const mailtoUrl = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoUrl;
-    alert('Cliente de e-mail aberto. Envie o relatório para ' + toEmail);
+    const toEmail = 'bcariello@swmintl.com';
+    const htmlContent = `
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
+  <h2 style="color: #171C8F;">Relatório de Análise de Falha</h2>
+  <hr style="border: 1px solid #171C8F; margin: 16px 0;">
+  <p><strong>Protocolo:</strong> ${analysis.id}</p>
+  <p><strong>Equipamento:</strong> ${analysis.equipment || '—'}</p>
+  <p><strong>Tag:</strong> ${analysis.tag || '—'}</p>
+  <p><strong>Área:</strong> ${analysis.area || '—'}</p>
+  <p><strong>Data:</strong> ${analysis.failureDate || '—'}</p>
+  <p><strong>Responsável:</strong> ${analysis.responsible || '—'}</p>
+  <h3 style="margin-top: 20px;">Descrição da Falha</h3>
+  <p>${analysis.description || '—'}</p>
+  <h3 style="margin-top: 20px;">Causa Raiz</h3>
+  <p>${analysis.rootCause || 'Não identificada'}</p>
+  <hr style="border: 1px solid #ddd; margin: 16px 0;">
+  <p style="font-size: 12px; color: #666;">Gerado via SWM Análise de Falhas - LIDERANÇA OPEX</p>
+</div>
+`;
+    try {
+      const { data, error } = await supabase.functions.invoke('send-report-email', {
+        body: {
+          to: toEmail,
+          subject: `[SWM] Relatório de Falha – ${analysis.equipment || 'N/A'} (${analysis.id})`,
+          html: htmlContent,
+        },
+      });
+      if (error) throw error;
+      alert('Relatório enviado com sucesso para ' + toEmail);
+    } catch (e) {
+      console.error('Erro ao enviar e-mail:', e);
+      alert('Erro ao enviar e-mail. Verifique o console.');
+    }
   };
 
   const renderStepContent = () => {
@@ -733,76 +743,131 @@ Relatório gerado via SWM Análise de Falhas
           </div>
         </header>
 
-        <section className="grid grid-cols-2 gap-x-12 gap-y-6 bg-slate-50 p-8 rounded-3xl border border-slate-200 mb-8 break-inside-avoid">
-           <div><p className="text-[9px] font-black text-slate-400 uppercase">Equipamento</p><p className="text-base font-black">{analysis.equipment || '—'}</p></div>
-           <div><p className="text-[9px] font-black text-slate-400 uppercase">Tag / Ativo</p><p className="text-base font-black">{analysis.tag || '—'}</p></div>
-           <div><p className="text-[9px] font-black text-slate-400 uppercase">Área</p><p className="text-base font-bold">{analysis.area || '—'}</p></div>
-           <div><p className="text-[9px] font-black text-slate-400 uppercase">Data Ocorrência</p><p className="text-base font-bold">{analysis.failureDate || '—'}</p></div>
-        </section>
-
-        <section className="mb-10">
-          <h2 className="text-lg font-black border-l-4 border-slate-900 pl-4 uppercase mb-4">Investigação Detalhada</h2>
-          <div className="space-y-6">
-            <div className="bg-white p-6 border rounded-2xl">
-              <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Descrição da Falha</p>
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">{analysis.description || '—'}</p>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-               <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <p className="text-[8px] font-black text-slate-400 uppercase">Sintoma</p>
-                  <p className="text-xs font-bold">{analysis.symptom || '—'}</p>
-               </div>
-               <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <p className="text-[8px] font-black text-slate-400 uppercase">Frequência</p>
-                  <p className="text-xs font-bold">{analysis.frequency}</p>
-               </div>
-               <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <p className="text-[8px] font-black text-slate-400 uppercase">Turno</p>
-                  <p className="text-xs font-bold">{analysis.shift || '—'}</p>
-               </div>
-            </div>
+        <section className="mb-8 break-inside-avoid">
+          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">1. Identificação</h2>
+          <section className="grid grid-cols-2 gap-x-12 gap-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-4">
+             <div><p className="text-[9px] font-black text-slate-400 uppercase">Equipamento</p><p className="text-sm font-bold">{analysis.equipment || '—'}</p></div>
+             <div><p className="text-[9px] font-black text-slate-400 uppercase">Tag / Ativo</p><p className="text-sm font-bold">{analysis.tag || '—'}</p></div>
+             <div><p className="text-[9px] font-black text-slate-400 uppercase">Área</p><p className="text-sm font-bold">{analysis.area || '—'}</p></div>
+             <div><p className="text-[9px] font-black text-slate-400 uppercase">Data Ocorrência</p><p className="text-sm font-bold">{analysis.failureDate || '—'}</p></div>
+             <div><p className="text-[9px] font-black text-slate-400 uppercase">Turno</p><p className="text-sm font-bold">{analysis.shift || '—'}</p></div>
+             <div><p className="text-[9px] font-black text-slate-400 uppercase">Responsável</p><p className="text-sm font-bold">{analysis.responsible || '—'}</p></div>
+          </section>
+          <div className="bg-white p-4 border rounded-xl">
+            <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Descrição da Falha</p>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">{analysis.description || '—'}</p>
           </div>
         </section>
 
-        <section className="mb-10 break-inside-avoid">
-          <h2 className="text-lg font-black border-l-4 border-slate-900 pl-4 uppercase mb-4">Causa Raiz (5 Porquês)</h2>
-          <div className="space-y-4 mb-6">
-            {analysis.whys.map((w, i) => w.trim() && (
-              <div key={i} className="flex gap-4 items-center">
-                <span className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-black">{i+1}</span>
-                <p className="text-sm font-semibold">{w}</p>
+        <section className="mb-8 break-inside-avoid">
+          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">2. 5W1H</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {[['O Que', analysis.what], ['Onde', analysis.where], ['Quando', analysis.when], ['Quem', analysis.who], ['Quanto Custo', analysis.howMuch], ['Como', analysis.how]].map(([label, value]) => (
+              <div key={label} className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <p className="text-[8px] font-black text-slate-400 uppercase">{label as string}</p>
+                <p className="text-xs font-medium">{value || '—'}</p>
               </div>
             ))}
           </div>
-          <div className="bg-[#171C8F] text-white p-8 rounded-3xl">
-             <p className="text-[9px] font-black uppercase opacity-60 mb-1">Causa Raiz Fundamental</p>
-             <p className="text-2xl font-black">{analysis.rootCause || 'NÃO IDENTIFICADA'}</p>
+        </section>
+
+        <section className="mb-8 break-inside-avoid">
+          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">3. Detalhes</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+               <p className="text-[8px] font-black text-slate-400 uppercase">Sintoma</p>
+               <p className="text-xs font-bold">{analysis.symptom || '—'}</p>
+            </div>
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+               <p className="text-[8px] font-black text-slate-400 uppercase">Frequência</p>
+               <p className="text-xs font-bold">{analysis.frequency || '—'}</p>
+            </div>
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 col-span-2">
+               <p className="text-[8px] font-black text-slate-400 uppercase">Condição</p>
+               <p className="text-xs font-bold">{analysis.condition || '—'}</p>
+            </div>
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 col-span-2">
+               <p className="text-[8px] font-black text-slate-400 uppercase">Histórico</p>
+               <p className="text-xs font-bold">{analysis.history || '—'}</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-8 break-inside-avoid">
+          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">4. Causa Raiz (5 Porquês)</h2>
+          <div className="space-y-3 mb-4">
+            {analysis.whys.map((w, i) => w.trim() && (
+              <div key={i} className="flex gap-3 items-center">
+                <span className="w-6 h-6 rounded-full bg-[#171C8F] text-white flex items-center justify-center text-[10px] font-black">{i+1}</span>
+                <p className="text-sm font-medium">{w}</p>
+              </div>
+            ))}
+          </div>
+          <div className="bg-[#171C8F] text-white p-6 rounded-2xl">
+             <p className="text-[9px] font-black uppercase opacity-60 mb-1">Causa Raiz</p>
+             <p className="text-xl font-black">{analysis.rootCause || 'NÃO IDENTIFICADA'}</p>
+          </div>
+        </section>
+
+        <section className="mb-8 break-inside-avoid">
+          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">5. Ishikawa (6M)</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {Object.entries(analysis.ishikawa).map(([category, data]) => (
+              <div key={category} className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <p className="text-[8px] font-black text-slate-400 uppercase mb-1">{category === 'manpower' ? 'Mão de Obra' : category === 'measurement' ? 'Medição' : category === 'environment' ? 'Meio Ambiente' : category.charAt(0).toUpperCase() + category.slice(1)}</p>
+                <p className="text-[10px] font-medium">{data.causes.filter(c => c.trim()).join(', ') || '—'}</p>
+              </div>
+            ))}
           </div>
         </section>
 
         <section className="mb-10 page-break-before">
-          <h2 className="text-lg font-black border-l-4 border-slate-900 pl-4 uppercase mb-4">Plano de Bloqueio</h2>
+          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">6. Plano de Ação</h2>
           <table className="w-full text-left border-collapse border border-slate-200">
-             <thead className="bg-slate-900 text-white text-[10px] font-black uppercase">
+             <thead className="bg-[#171C8F] text-white text-[9px] font-black uppercase">
                 <tr>
-                   <th className="p-4 border-r border-slate-800">Ação Corretiva/Preventiva</th>
-                   <th className="p-4 border-r border-slate-800">Responsável</th>
-                   <th className="p-4">Prazo</th>
+                   <th className="p-3 border-r border-slate-700">Tipo</th>
+                   <th className="p-3 border-r border-slate-700">Descrição</th>
+                   <th className="p-3 border-r border-slate-700">Responsável</th>
+                   <th className="p-3 border-r border-slate-700">Prazo</th>
+                   <th className="p-3">Status</th>
                 </tr>
              </thead>
-             <tbody className="text-xs font-semibold">
-                {analysis.actions.map(a => (
+             <tbody className="text-[10px]">
+                {analysis.actions.length === 0 ? (
+                  <tr><td colSpan={5} className="p-4 text-center text-slate-400">Nenhuma ação registrada</td></tr>
+                ) : analysis.actions.map(a => (
                   <tr key={a.id} className="border-b border-slate-100">
-                    <td className="p-4">{a.description}</td>
-                    <td className="p-4">{a.responsible}</td>
-                    <td className="p-4">{a.dueDate}</td>
+                    <td className="p-3"><span className={`text-[8px] px-2 py-0.5 rounded-full ${a.type === 'Corretiva' ? 'bg-red-100 text-red-700' : a.type === 'Preventiva' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{a.type}</span></td>
+                    <td className="p-3 font-medium">{a.description || '—'}</td>
+                    <td className="p-3">{a.responsible || '—'}</td>
+                    <td className="p-3">{a.dueDate ? new Date(a.dueDate).toLocaleDateString('pt-BR') : '—'}</td>
+                    <td className="p-3"><span className={`text-[8px] px-2 py-0.5 rounded-full ${a.status === 'Concluída' ? 'bg-green-100 text-green-700' : a.status === 'Em andamento' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{a.status}</span></td>
                   </tr>
                 ))}
              </tbody>
           </table>
         </section>
 
-        <footer className="mt-20 pt-10 border-t border-slate-200 flex justify-between items-end">
+        <section className="mb-8">
+          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">7. Verificação</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+               <p className="text-[8px] font-black text-slate-400 uppercase">Reincidência?</p>
+               <p className="text-sm font-bold">{analysis.reoccurred === true ? 'SIM' : analysis.reoccurred === false ? 'NÃO' : '—'}</p>
+            </div>
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+               <p className="text-[8px] font-black text-slate-400 uppercase">Precisa Revisão?</p>
+               <p className="text-sm font-bold">{analysis.needsRevision ? 'SIM' : 'NÃO'}</p>
+            </div>
+          </div>
+          <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+             <p className="text-[8px] font-black text-slate-400 uppercase">Evidências de Eficácia</p>
+             <p className="text-sm font-medium whitespace-pre-wrap">{analysis.effectivenessEvidence || '—'}</p>
+          </div>
+        </section>
+
+        <footer className="mt-16 pt-8 border-t border-slate-200 flex justify-between items-end">
            <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Gerado em {new Date().toLocaleString('pt-BR')}</div>
            <div className="w-64 border-t-2 border-slate-900 text-center pt-2">
               <p className="text-[9px] font-black uppercase">{analysis.responsible || 'Responsável Técnico'}</p>

@@ -13,9 +13,9 @@ interface KanbanViewProps {
 }
 
 const columns: { title: string; status: Status; color: string; icon: React.ReactNode }[] = [
-  { title: 'Abertas', status: 'Aberta', color: 'bg-slate-50 border-slate-200', icon: <FolderOpen size={16} md:size={18} className="text-slate-500" /> },
-  { title: 'Em Andamento', status: 'Em andamento', color: 'bg-[#e5ebf7] border-[#dce4f5]', icon: <Loader2 size={16} md:size={18} className="text-[#171C8F] animate-spin" /> },
-  { title: 'Concluídas', status: 'Concluída', color: 'bg-emerald-50 border-emerald-100', icon: <CheckCircle2 size={16} md:size={18} className="text-emerald-500" /> },
+  { title: 'Abertas', status: 'Aberta', color: 'bg-red-50/60 border-red-200', icon: <FolderOpen size={16} md:size={18} className="text-red-600" /> },
+  { title: 'Em Andamento', status: 'Em andamento', color: 'bg-amber-50/60 border-amber-200', icon: <Loader2 size={16} md:size={18} className="text-amber-600 animate-spin" /> },
+  { title: 'Concluídas', status: 'Concluída', color: 'bg-emerald-50/60 border-emerald-200', icon: <CheckCircle2 size={16} md:size={18} className="text-emerald-600" /> },
 ];
 
 const CardItem: React.FC<{ action: Action; isDragging?: boolean }> = ({ action, isDragging }) => (
