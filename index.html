@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Análise de Falhas SWM Brasil - LIDERANÇA OPEX</title>
+    <script>
+        // Fix for "Uncaught TypeError: Cannot set property fetch of #<Window> which has only a getter"
+        // This happens when polyfills (like formdata-polyfill) try to override window.fetch via a 'global' or 'globalThis' alias.
+        (function() {
+            const proxy = new Proxy(window, {
+                set(target, prop, value) {
+                    if (prop === 'fetch') {
+                        console.warn('Blocked attempt to override read-only fetch');
+                        return true; // Ignore attempts to override fetch
+                    }
+                    target[prop] = value;
+                    return true;
+                },
+                get(target, prop) {
+                    if (prop === 'global' || prop === 'globalThis') return proxy;
+                    const value = target[prop];
+                    if (typeof value === 'function') return value.bind(target);
+                    return value;
+                }
+            });
+            window.global = proxy;
+            // Note: We can't redefine globalThis directly in JS, but we can use Vite's 'define' to replace it in the bundle.
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="assets/animate_5a7f94d18b76.css" rel="stylesheet">
+    <link href="assets/app_515cae5dd028.css" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Century Gothic';
+            src: url('assets/CenturyGothicPro_6f3d1a72aebc.woff2') format('woff2'),
+                 url('assets/CenturyGothicPro_78a776ac463b.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --swm-blue: #171C8F;
+            --swm-light-blue: #13aff0;
+            --swm-bg: #F9F9F9;
+        }
+
+        body { 
+          font-family: 'Century Gothic', Arial, sans-serif; 
+          background-color: var(--swm-bg);
+          color: #333;
+          -webkit-tap-highlight-color: transparent;
+        }
+        
+        *:focus-visible {
+            outline: 3px solid var(--swm-light-blue);
+            outline-offset: 2px;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        button, a, input, select, textarea {
+            touch-action: manipulation;
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+            body {
+                background: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            header, nav, footer, .no-print, button, .mobile-only-nav {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            #root {
+                display: block !important;
+            }
+            .bg-white {
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+            .page-break-before { page-break-before: always; }
+            .break-inside-avoid { break-inside: avoid; }
+        }
+        .print-only {
+            display: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 selection:bg-blue-100 selection:text-blue-900 overflow-x-hidden">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:m-4">Pular para o conteúdo principal</a>
+    <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
