@@ -499,6 +499,10 @@ const App: React.FC = () => {
     try {
       console.log('Iniciando envio para:', toEmail);
       console.log('Supabase URL:', supabase.supabaseUrl);
+      
+      const functionUrl = `${supabase.supabaseUrl}/functions/v1/send-report-email`;
+      console.log('Function URL:', functionUrl);
+      
       const { data, error } = await supabase.functions.invoke('send-report-email', {
         body: {
           to: toEmail,
