@@ -498,6 +498,7 @@ const App: React.FC = () => {
 `;
     try {
       console.log('Iniciando envio para:', toEmail);
+      console.log('Supabase URL:', supabase.supabaseUrl);
       const { data, error } = await supabase.functions.invoke('send-report-email', {
         body: {
           to: toEmail,
