@@ -189,7 +189,8 @@ const App: React.FC = () => {
       if (!confirm("Deseja iniciar uma NOVA análise? Os dados atuais não salvos serão perdidos.")) return;
     }
     
-    setAnalysis(getInitialState());
+    const preservedArea = (profile?.role !== 'ADMIN' && profile?.full_name) ? profile.full_name : '';
+    setAnalysis({ ...getInitialState(), area: preservedArea });
     setCurrentStep(StepId.IDENTIFICATION);
     setShowSummary(false);
   };
@@ -340,6 +341,37 @@ const App: React.FC = () => {
 
   const handlePrintPDF = () => {
     window.print();
+  };
+
+  const handleSendEmail = async () => {
+    if (!session?.user) return;
+    const toEmail = session.user.email || 'bcariello@swmintl.com';
+    const bodyLines = [
+      `Protocolo: ${analysis.id}`,
+      `Equipamento: ${analysis.equipment || 'â€”'}`,
+      `Tag: ${analysis.tag || 'â€”'}`,
+      `Ãrea: ${analysis.area || 'â€”'}`,
+      `Data: ${analysis.failureDate || 'â€”'}`,
+      `ResponsÃ¡vel: ${analysis.responsible || 'â€”'}`,
+      ``,
+      `DescriÃ§Ã£o: ${analysis.description || 'â€”'}`,
+      ``,
+      `Causa Raiz: ${analysis.rootCause || 'â€”'}`,
+    ];
+    try {
+      const { error } = await supabase.functions.invoke('send-report-email', {
+        body: {
+          to: toEmail,
+          subject: `[SWM] RelatÃ³rio de Falha â€“ ${analysis.equipment} (${analysis.id})`,
+          html: `<pre style="font-family:Arial,sans-serif;font-size:13px">${bodyLines.join('\n')}</pre>`,
+        },
+      });
+      if (error) throw error;
+      alert('RelatÃ³rio enviado com sucesso para ' + toEmail);
+    } catch (e) {
+      console.error(e);
+      alert('Erro ao enviar e-mail. Verifique o console.');
+    }
   };
 
   const renderStepContent = () => {
@@ -613,6 +645,9 @@ const App: React.FC = () => {
                   <button onClick={handlePrintPDF} className="bg-[#171C8F] text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-blue-700 transition-all">
                     <FileDown size={14} /> PDF
                   </button>
+                  <button onClick={handleSendEmail} className="col-span-2 bg-emerald-600 text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-emerald-700 transition-all">
+                    <Share2 size={14} /> Enviar por E-mail
+                  </button>
                 </div>
                 <div className="space-y-2">
                   <button onClick={() => updateAnalysis({ needsRevision: !analysis.needsRevision })} className={`w-full flex items-center gap-3 p-2 rounded-lg border transition-all ${analysis.needsRevision ? 'bg-[#e5ebf7] border-blue-200' : 'bg-white border-slate-50'}`}>
@@ -831,7 +866,7 @@ const App: React.FC = () => {
 
         <main id="main-content" className="flex-1 flex flex-col overflow-hidden relative">
           <div id="step-scroll-container" className="flex-1 overflow-y-auto px-4 py-2 md:px-6 custom-scrollbar">
-            <div className="max-w-[1600px] mx-auto h-full flex flex-col justify-center">
+            <div className="max-w-[1600px] mx-auto flex flex-col">
               <div className="bg-white rounded-[24px] shadow-xl shadow-slate-200/50 border border-slate-100 p-4 md:p-6 mb-4 mt-2">
                 {renderStepContent()}
               </div>
