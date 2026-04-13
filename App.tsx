@@ -513,7 +513,6 @@ const App: React.FC = () => {
           to: toEmail,
           subject: `[SWM] Análise de Falha - ${analysis.area || 'N/A'} (${analysis.id})`,
           html: htmlContent,
-          from: 'SWM Brasil <onboarding@resend.dev>',
         }),
       });
       
