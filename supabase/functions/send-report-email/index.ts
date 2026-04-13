@@ -1,11 +1,11 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, content-type, apikey',
-}
+};
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -19,34 +19,34 @@ serve(async (req) => {
     );
   }
 
-  const resendApiKey = Deno.env.get('RESEND_API_KEY');
+  const brevoApiKey = Deno.env.get('BREVO_API_KEY');
 
-  if (!resendApiKey) {
+  if (!brevoApiKey) {
     return new Response(
-      JSON.stringify({ error: 'RESEND_API_KEY not configured' }),
+      JSON.stringify({ error: 'BREVO_API_KEY not configured' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${resendApiKey}`,
+        'api-key': brevoApiKey,
       },
       body: JSON.stringify({
-        from: 'SWM Brasil <onboarding@resend.dev>',
-        to: to,
+        sender: { name: 'SWM Brasil', email: 'swm.brasil@brevo.com' },
+        to: [{ email: to }],
         subject: subject,
-        html: html,
+        htmlContent: html,
       }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('Resend error:', data);
+      console.error('Brevo error:', data);
       return new Response(
         JSON.stringify({ error: data.message || 'Failed to send email' }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
