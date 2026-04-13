@@ -1,15 +1,8 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-ORIGIN': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, content-type',
-}
-
-interface EmailRequest {
-  to: string;
-  subject: string;
-  html: string;
 }
 
 serve(async (req) => {
@@ -17,38 +10,58 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  const { to, subject, html } = await req.json();
+
+  if (!to || !subject) {
+    return new Response(
+      JSON.stringify({ error: 'Missing required fields: to, subject' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const resendApiKey = Deno.env.get('RESEND_API_KEY');
+
+  if (!resendApiKey) {
+    console.log('RESEND_API_KEY not found, trying alternative...');
+    
+    return new Response(
+      JSON.stringify({ error: 'RESEND_API_KEY not configured on Supabase. Please run: supabase secrets set RESEND_API_KEY=re_xxxx' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
-    const { to, subject, html } = await req.json() as EmailRequest;
-
-    if (!to || !subject) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: to, subject' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { data, error } = await supabase.functions.invoke('_internal-send-email', {
-      body: { to, subject, html }
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${resendApiKey}`,
+      },
+      body: JSON.stringify({
+        from: 'SWM Brasil <noreply@swmintl.com>',
+        to: to,
+        subject: subject,
+        html: html,
+      }),
     });
 
-    if (error) {
-      console.error('Email error:', error);
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Resend error:', data);
       return new Response(
-        JSON.stringify({ error: error.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: data.message || 'Failed to send email' }),
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log('Email sent successfully:', data);
     return new Response(
       JSON.stringify({ success: true, data }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Function error:', error);
+    console.error('Send email error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
