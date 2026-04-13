@@ -22,10 +22,8 @@ serve(async (req) => {
   const resendApiKey = Deno.env.get('RESEND_API_KEY');
 
   if (!resendApiKey) {
-    console.log('RESEND_API_KEY not found, trying alternative...');
-    
     return new Response(
-      JSON.stringify({ error: 'RESEND_API_KEY not configured on Supabase. Please run: supabase secrets set RESEND_API_KEY=re_xxxx' }),
+      JSON.stringify({ error: 'RESEND_API_KEY not configured' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
