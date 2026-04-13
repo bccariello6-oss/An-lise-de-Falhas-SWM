@@ -33,7 +33,7 @@ Deno.serve(async (req: Request) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'api-key': brevoApiKey,
+        'Brevo-Api-Key': brevoApiKey,
       },
       body: JSON.stringify({
         sender: { name: 'SWM Brasil', email: 'swm.brasil@brevo.com' },
