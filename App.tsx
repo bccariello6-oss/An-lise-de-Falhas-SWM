@@ -346,29 +346,159 @@ const App: React.FC = () => {
   const handleSendEmail = async () => {
     if (!session?.user) return;
     const toEmail = 'bcariello@swmintl.com';
+    
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+    
     const htmlContent = `
-<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
-  <h2 style="color: #171C8F;">Relatório de Análise de Falha</h2>
-  <hr style="border: 1px solid #171C8F; margin: 16px 0;">
-  <p><strong>Protocolo:</strong> ${analysis.id}</p>
-  <p><strong>Equipamento:</strong> ${analysis.equipment || '—'}</p>
-  <p><strong>Tag:</strong> ${analysis.tag || '—'}</p>
-  <p><strong>Área:</strong> ${analysis.area || '—'}</p>
-  <p><strong>Data:</strong> ${analysis.failureDate || '—'}</p>
-  <p><strong>Responsável:</strong> ${analysis.responsible || '—'}</p>
-  <h3 style="margin-top: 20px;">Descrição da Falha</h3>
-  <p>${analysis.description || '—'}</p>
-  <h3 style="margin-top: 20px;">Causa Raiz</h3>
-  <p>${analysis.rootCause || 'Não identificada'}</p>
-  <hr style="border: 1px solid #ddd; margin: 16px 0;">
-  <p style="font-size: 12px; color: #666;">Gerado via SWM Análise de Falhas - LIDERANÇA OPEX</p>
-</div>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; color: #333; line-height: 1.5; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 24px; border-radius: 8px; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #171C8F; padding-bottom: 16px; margin-bottom: 20px; }
+    .header-left h1 { color: #171C8F; margin: 0; font-size: 22px; }
+    .header-left p { color: #13aff0; margin: 4px 0 0; font-size: 11px; font-weight: bold; letter-spacing: 1px; }
+    .protocol { text-align: right; }
+    .protocol .label { font-size: 9px; color: #666; text-transform: uppercase; }
+    .protocol .value { font-size: 18px; color: #171C8F; font-weight: bold; }
+    .section { margin-bottom: 20px; }
+    .section h2 { color: #171C8F; font-size: 14px; border-left: 3px solid #171C8F; padding-left: 8px; margin-bottom: 12px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .info-box { background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #e0e0e0; }
+    .info-box .label { font-size: 8px; color: #666; text-transform: uppercase; margin-bottom: 4px; }
+    .info-box .value { font-size: 11px; font-weight: bold; }
+    .description { background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #e0e0e0; }
+    .why-list { margin: 12px 0; }
+    .why-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .why-number { background: #171C8F; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
+    .root-cause { background: #171C8F; color: white; padding: 16px; border-radius: 8px; }
+    .root-cause .label { font-size: 9px; opacity: 0.7; margin-bottom: 4px; }
+    .root-cause .value { font-size: 14px; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th { background: #171C8F; color: white; padding: 10px; text-align: left; font-size: 9px; }
+    td { padding: 10px; border-bottom: 1px solid #e0e0e0; font-size: 10px; }
+    .type-tag { font-size: 8px; padding: 2px 6px; border-radius: 4px; }
+    .type-corretiva { background: #fee2e2; color: #991b1b; }
+    .type-preventiva { background: #dbeafe; color: #1e40af; }
+    .type-melhoria { background: #fef3c7; color: #92400e; }
+    .status-tag { font-size: 8px; padding: 2px 6px; border-radius: 4px; }
+    .status-concluida { background: #d1fae5; color: #065f46; }
+    .status-andamento { background: #fef3c7; color: #92400e; }
+    .status-aberta { background: #fee2e2; color: #991b1b; }
+    .footer { margin-top: 20px; padding-top: 12px; border-top: 1px solid #e0e0e0; font-size: 9px; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <h1>${greeting}! Segue Análise de Falha - ${analysis.area || 'Área'} para conhecimento e tratativa.</h1>
+        <p>SWM BRASIL - LIDERANÇA OPEX</p>
+      </div>
+      <div class="protocol">
+        <div class="label">Protocolo</div>
+        <div class="value">${analysis.id}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>1. Identificação</h2>
+      <div class="grid-2">
+        <div class="info-box"><div class="label">Equipamento</div><div class="value">${analysis.equipment || '—'}</div></div>
+        <div class="info-box"><div class="label">Tag / Ativo</div><div class="value">${analysis.tag || '—'}</div></div>
+        <div class="info-box"><div class="label">Área</div><div class="value">${analysis.area || '—'}</div></div>
+        <div class="info-box"><div class="label">Data Ocorrência</div><div class="value">${analysis.failureDate || '—'}</div></div>
+        <div class="info-box"><div class="label">Turno</div><div class="value">${analysis.shift || '—'}</div></div>
+        <div class="info-box"><div class="label">Responsável</div><div class="value">${analysis.responsible || '—'}</div></div>
+      </div>
+      <div class="description" style="margin-top: 12px;">
+        <div class="info-box"><div class="label">Descrição da Falha</div><div class="value">${analysis.description || '—'}</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>2. 5W1H</h2>
+      <div class="grid-2">
+        <div class="info-box"><div class="label">O Que</div><div class="value">${analysis.what || '—'}</div></div>
+        <div class="info-box"><div class="label">Onde</div><div class="value">${analysis.where || '—'}</div></div>
+        <div class="info-box"><div class="label">Quando</div><div class="value">${analysis.when || '—'}</div></div>
+        <div class="info-box"><div class="label">Quem</div><div class="value">${analysis.who || '—'}</div></div>
+        <div class="info-box"><div class="label">Quanto Custo</div><div class="value">${analysis.howMuch || '—'}</div></div>
+        <div class="info-box"><div class="label">Como</div><div class="value">${analysis.how || '—'}</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>3. Detalhes</h2>
+      <div class="grid-3">
+        <div class="info-box"><div class="label">Sintoma</div><div class="value">${analysis.symptom || '—'}</div></div>
+        <div class="info-box"><div class="label">Frequência</div><div class="value">${analysis.frequency || '—'}</div></div>
+        <div class="info-box"><div class="label">Condição</div><div class="value">${analysis.condition || '—'}</div></div>
+      </div>
+      <div class="info-box" style="margin-top: 12px;"><div class="label">Histórico</div><div class="value">${analysis.history || '—'}</div></div>
+    </div>
+
+    <div class="section">
+      <h2>4. Causa Raiz (5 Porquês)</h2>
+      <div class="why-list">
+        ${analysis.whys.filter(w => w.trim()).map((w, i) => `<div class="why-item"><span class="why-number">${i + 1}</span><span>${w}</span></div>`).join('')}
+      </div>
+      <div class="root-cause">
+        <div class="label">Causa Raiz</div>
+        <div class="value">${analysis.rootCause || 'NÃO IDENTIFICADA'}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>5. Ishikawa (6M)</h2>
+      <div class="grid-2">
+        ${Object.entries(analysis.ishikawa).map(([cat, data]) => `<div class="info-box"><div class="label">${cat === 'manpower' ? 'Mão de Obra' : cat === 'measurement' ? 'Medição' : cat === 'environment' ? 'Meio Ambiente' : cat.charAt(0).toUpperCase() + cat.slice(1)}</div><div class="value">${data.causes.filter(c => c.trim()).join(', ') || '—'}</div></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>6. Plano de Ação</h2>
+      <table>
+        <thead><tr><th>Tipo</th><th>Descrição</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr></thead>
+        <tbody>
+          ${analysis.actions.length === 0 ? '<tr><td colspan="5" style="text-align:center;color:#666;">Nenhuma ação registrada</td></tr>' : analysis.actions.map(a => `
+            <tr>
+              <td><span class="type-tag ${a.type === 'Corretiva' ? 'type-corretiva' : a.type === 'Preventiva' ? 'type-preventiva' : 'type-melhoria'}">${a.type}</span></td>
+              <td>${a.description || '—'}</td>
+              <td>${a.responsible || '—'}</td>
+              <td>${a.dueDate ? new Date(a.dueDate).toLocaleDateString('pt-BR') : '—'}</td>
+              <td><span class="status-tag ${a.status === 'Concluída' ? 'status-concluida' : a.status === 'Em andamento' ? 'status-andamento' : 'status-aberta'}">${a.status}</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>7. Verificação</h2>
+      <div class="grid-2">
+        <div class="info-box"><div class="label">Reincidência?</div><div class="value">${analysis.reoccurred === true ? 'SIM' : analysis.reoccurred === false ? 'NÃO' : '—'}</div></div>
+        <div class="info-box"><div class="label">Precisa Revisão?</div><div class="value">${analysis.needsRevision ? 'SIM' : 'NÃO'}</div></div>
+      </div>
+      <div class="info-box" style="margin-top: 12px;"><div class="label">Evidências de Eficácia</div><div class="value">${analysis.effectivenessEvidence || '—'}</div></div>
+    </div>
+
+    <div class="footer">
+      <p>Gerado em ${new Date().toLocaleString('pt-BR')} via SWM Análise de Falhas - LIDERANÇA OPEX</p>
+    </div>
+  </div>
+</body>
+</html>
 `;
     try {
       const { data, error } = await supabase.functions.invoke('send-report-email', {
         body: {
           to: toEmail,
-          subject: `[SWM] Relatório de Falha – ${analysis.equipment || 'N/A'} (${analysis.id})`,
+          subject: `[SWM] Análise de Falha - ${analysis.area || 'N/A'} (${analysis.id})`,
           html: htmlContent,
         },
       });
