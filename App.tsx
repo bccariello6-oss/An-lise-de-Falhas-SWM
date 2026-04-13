@@ -345,7 +345,7 @@ const App: React.FC = () => {
 
   const handleSendEmail = async () => {
     if (!session?.user) return;
-    const toEmail = 'bcariello@swmintl.com';
+    const toEmail = session.user.email || 'bccariello_6@hotmail.com';
     
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
