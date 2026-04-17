@@ -19,7 +19,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  const brevoApiKey = Deno.env.get('BREVO_API_KEY');
+  const brevoApiKey = req.headers.get('x-brevo-api-key') || Deno.env.get('BREVO_API_KEY');
 
   if (!brevoApiKey) {
     return new Response(

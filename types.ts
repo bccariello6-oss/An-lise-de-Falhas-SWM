@@ -18,6 +18,7 @@ export interface Action {
   responsible: string;
   dueDate: string;
   status: Status;
+  evidence?: string;
 }
 
 export interface IshikawaCategory {
@@ -39,10 +40,9 @@ export interface Analysis {
   // Step 1
   area: string;
   equipment: string;
-  tag: string;
+  authorName: string;
+  authorRole: string;
   failureDate: string;
-  shift: string;
-  responsible: string;
   description: string;
   // Step 2 (5W1H)
   what: string;
@@ -51,11 +51,12 @@ export interface Analysis {
   who: string;
   howMuch: string;
   how: string;
+  phenomenon: string;
   // Step 3
   symptom: string;
-  condition: string;
   history: string;
   frequency: FailureFrequency;
+  attachmentUrl?: string;
   // Step 4 (5 Whys)
   whys: string[];
   rootCause: string;

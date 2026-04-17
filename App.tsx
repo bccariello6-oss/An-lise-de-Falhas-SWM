@@ -1,4 +1,4 @@
-﻿
+
 import React, { useState, useEffect } from 'react';
 import { Analysis, StepId, Action, Ishikawa, IshikawaCategory } from './types';
 import { STEPS, TIPS } from './constants';
@@ -59,10 +59,9 @@ const getInitialState = (): Analysis => ({
   id: 'AN-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
   area: '',
   equipment: '',
-  tag: '',
+  authorName: '',
+  authorRole: '',
   failureDate: new Date().toISOString().split('T')[0],
-  shift: '',
-  responsible: '',
   description: '',
   what: '',
   where: '',
@@ -70,9 +69,10 @@ const getInitialState = (): Analysis => ({
   who: '',
   howMuch: '',
   how: '',
+  phenomenon: '',
   symptom: '',
-  condition: '',
   history: '',
+  attachmentUrl: '',
   frequency: 'Eventual',
   whys: ['', '', '', '', ''],
   rootCause: '',
@@ -128,9 +128,9 @@ const App: React.FC = () => {
     const allErrors: { step: string, errors: string[] }[] = [];
 
     const step1Errors: string[] = [];
-    if (!analysis.area.trim()) step1Errors.push("Área / Setor");
+    if (!analysis.area.trim()) step1Errors.push("Área");
     if (!analysis.equipment.trim()) step1Errors.push("Nome do Equipamento");
-    if (!analysis.tag.trim()) step1Errors.push("Tag do Ativo");
+    if (!analysis.authorName.trim()) step1Errors.push("Nome");
     if (!analysis.description.trim()) step1Errors.push("Descrição do problema");
     if (step1Errors.length > 0) allErrors.push({ step: "1. Identificação Geral", errors: step1Errors });
 
@@ -200,10 +200,9 @@ const App: React.FC = () => {
       id: 'AN-DEMO-' + Math.random().toString(36).substr(2, 5).toUpperCase(),
       area: 'Utilidades - Caldeiras',
       equipment: 'Bomba de Alimentação B-102',
-      tag: 'B-102A',
+      authorName: 'Eng. Roberto Silva',
+      authorRole: 'Engenheiro de Manutenção',
       failureDate: new Date().toISOString().split('T')[0],
-      shift: 'Turno A',
-      responsible: 'Eng. Roberto Silva',
       description: 'A bomba parou repentinamente durante a operação normal. Foi observado fumaça saindo do motor elétrico e o disjuntor de proteção desarmou por sobrecorrente.',
       what: 'Queima do enrolamento do motor elétrico da bomba de alimentação de água da caldeira.',
       where: 'Casa de Máquinas - Setor de Utilidades.',
@@ -211,9 +210,10 @@ const App: React.FC = () => {
       who: 'Operador de utilidades e equipe de manutenção elétrica.',
       howMuch: 'Parada total da caldeira por 2 horas, impactando 100% da produção de vapor.',
       how: 'Alarme de baixa pressão de água e desarme do disjuntor no CCM.',
+      phenomenon: 'Sobreaquecimento e desarme por sobrecorrente.',
       symptom: 'Cheiro de queimado, fumaça e alta temperatura na carcaça do motor.',
-      condition: 'Operação em regime de carga máxima devido à alta demanda de vapor.',
       history: 'Motor rebobinado há 6 meses. Rolamentos trocados na última preventiva.',
+      attachmentUrl: '',
       frequency: 'Eventual',
       whys: [
         'O motor queimou por sobreaquecimento.',
@@ -411,11 +411,10 @@ const App: React.FC = () => {
       <h2>1. Identificação</h2>
       <div class="grid-2">
         <div class="info-box"><div class="label">Equipamento</div><div class="value">${analysis.equipment || '—'}</div></div>
-        <div class="info-box"><div class="label">Tag / Ativo</div><div class="value">${analysis.tag || '—'}</div></div>
         <div class="info-box"><div class="label">Área</div><div class="value">${analysis.area || '—'}</div></div>
         <div class="info-box"><div class="label">Data Ocorrência</div><div class="value">${analysis.failureDate || '—'}</div></div>
-        <div class="info-box"><div class="label">Turno</div><div class="value">${analysis.shift || '—'}</div></div>
-        <div class="info-box"><div class="label">Responsável</div><div class="value">${analysis.responsible || '—'}</div></div>
+        <div class="info-box"><div class="label">Nome</div><div class="value">${analysis.authorName || '—'}</div></div>
+        <div class="info-box"><div class="label">Função</div><div class="value">${analysis.authorRole || '—'}</div></div>
       </div>
       <div class="description" style="margin-top: 12px;">
         <div class="info-box"><div class="label">Descrição da Falha</div><div class="value">${analysis.description || '—'}</div></div>
@@ -423,7 +422,7 @@ const App: React.FC = () => {
     </div>
 
     <div class="section">
-      <h2>2. 5W1H</h2>
+      <h2>2. 5W1H e Fenômeno</h2>
       <div class="grid-2">
         <div class="info-box"><div class="label">O Que</div><div class="value">${analysis.what || '—'}</div></div>
         <div class="info-box"><div class="label">Onde</div><div class="value">${analysis.where || '—'}</div></div>
@@ -431,15 +430,15 @@ const App: React.FC = () => {
         <div class="info-box"><div class="label">Quem</div><div class="value">${analysis.who || '—'}</div></div>
         <div class="info-box"><div class="label">Quanto Custo</div><div class="value">${analysis.howMuch || '—'}</div></div>
         <div class="info-box"><div class="label">Como</div><div class="value">${analysis.how || '—'}</div></div>
+        <div class="info-box"><div class="label">Fenômeno</div><div class="value">${analysis.phenomenon || '—'}</div></div>
       </div>
     </div>
 
     <div class="section">
       <h2>3. Detalhes</h2>
-      <div class="grid-3">
+      <div class="grid-2">
         <div class="info-box"><div class="label">Sintoma</div><div class="value">${analysis.symptom || '—'}</div></div>
         <div class="info-box"><div class="label">Frequência</div><div class="value">${analysis.frequency || '—'}</div></div>
-        <div class="info-box"><div class="label">Condição</div><div class="value">${analysis.condition || '—'}</div></div>
       </div>
       <div class="info-box" style="margin-top: 12px;"><div class="label">Histórico</div><div class="value">${analysis.history || '—'}</div></div>
     </div>
@@ -508,6 +507,7 @@ const App: React.FC = () => {
           'Content-Type': 'application/json',
           'apikey': supabase.supabaseKey,
           'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'x-brevo-api-key': import.meta.env.VITE_BREVO_API_KEY || '',
         },
         body: JSON.stringify({
           to: toEmail,
@@ -555,16 +555,12 @@ const App: React.FC = () => {
             </header>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Área / Setor <span className="text-red-500" aria-hidden="true">*</span></label>
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Área <span className="text-red-500" aria-hidden="true">*</span></label>
                 <input type="text" value={analysis.area} onChange={e => updateAnalysis({ area: e.target.value })} className={inputClasses} placeholder="Ex: Produção" aria-required="true" />
               </div>
               <div className="space-y-1">
                 <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Equipamento <span className="text-red-500" aria-hidden="true">*</span></label>
                 <input type="text" value={analysis.equipment} onChange={e => updateAnalysis({ equipment: e.target.value })} className={inputClasses} placeholder="Ex: Bomba de recalque" aria-required="true" />
-              </div>
-              <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Tag do Ativo <span className="text-red-500" aria-hidden="true">*</span></label>
-                <input type="text" value={analysis.tag} onChange={e => updateAnalysis({ tag: e.target.value })} className={inputClasses} placeholder="Ex: B-001" aria-required="true" />
               </div>
               <div className="space-y-1">
                 <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Data da Falha <span className="text-red-500" aria-hidden="true">*</span></label>
@@ -574,12 +570,12 @@ const App: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Turno</label>
-                <input type="text" value={analysis.shift} onChange={e => updateAnalysis({ shift: e.target.value })} className={inputClasses} placeholder="Ex: B - Noturno" />
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Nome <span className="text-red-500" aria-hidden="true">*</span></label>
+                <input type="text" value={analysis.authorName} onChange={e => updateAnalysis({ authorName: e.target.value })} className={inputClasses} placeholder="Seu nome" aria-required="true" />
               </div>
               <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Responsável</label>
-                <input type="text" value={analysis.responsible} onChange={e => updateAnalysis({ responsible: e.target.value })} className={inputClasses} placeholder="Seu nome" />
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Função</label>
+                <input type="text" value={analysis.authorRole} onChange={e => updateAnalysis({ authorRole: e.target.value })} className={inputClasses} placeholder="Sua função" />
               </div>
             </div>
             <div className="space-y-1">
@@ -601,6 +597,7 @@ const App: React.FC = () => {
                 { field: 'who', label: 'QUEM estava envolvido?', required: false, icon: <Users size={12} className="text-[#13aff0]/50" /> },
                 { field: 'howMuch', label: 'QUANTO impacto?', required: false, icon: <LineChart size={12} className="text-[#13aff0]/50" /> },
                 { field: 'how', label: 'COMO percebido?', required: true, icon: <Eye size={12} className="text-[#13aff0]/50" /> },
+                { field: 'phenomenon', label: 'FENÔMENO (O que se observou)?', required: false, icon: <AlertTriangle size={12} className="text-[#13aff0]/50" /> },
               ].map((item) => (
                 <div key={item.field} className="space-y-1">
                   <label className="flex items-center gap-2 text-[9px] font-bold text-slate-500 uppercase tracking-wider">
@@ -641,7 +638,32 @@ const App: React.FC = () => {
               </div>
               <div className="space-y-1">
                 <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Condições do Ativo</label>
-                <input type="text" value={analysis.condition} onChange={e => updateAnalysis({ condition: e.target.value })} className={inputClasses + " h-9"} placeholder="Ex: Sobrecarga, alta umidade..." />
+                <div className="mt-1 flex items-center gap-2">
+                  <label className="bg-[#171C8F] hover:bg-black transition-all text-white text-[10px] font-bold uppercase py-2 px-4 rounded-xl cursor-pointer shadow-sm flex items-center gap-2 h-9 w-full justify-center">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            updateAnalysis({ attachmentUrl: reader.result as string });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }} 
+                    />
+                    <Plus size={14} /> Anexar Imagem
+                  </label>
+                </div>
+                {analysis.attachmentUrl && (
+                  <div className="mt-2 text-xs text-slate-500 flex items-center gap-2 font-medium">
+                    <CheckCircle2 size={14} className="text-green-500" /> Imagem anexada com sucesso
+                    <button onClick={() => updateAnalysis({ attachmentUrl: '' })} className="ml-2 text-red-500 hover:text-red-700 underline text-[10px]">Remover</button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -698,7 +720,7 @@ const App: React.FC = () => {
         return (
           <div className="space-y-4 animate-fadeIn">
             <div className="flex justify-between items-center border-b pb-3">
-              <h2 className="text-lg font-bold text-[#171C8F]">6. Plano de Ação (5W2H)</h2>
+              <h2 className="text-lg font-bold text-[#171C8F]">6. Plano de Ação</h2>
               <button 
                 onClick={addAction}
                 className="bg-[#171C8F] text-white text-[9px] font-black uppercase tracking-widest px-6 py-2 rounded-xl hover:bg-black transition-all shadow-md flex items-center gap-2"
@@ -834,7 +856,7 @@ const App: React.FC = () => {
         );
       
       case StepId.DASHBOARD: return <Dashboard onLoad={loadFromHistory} onDelete={deleteFromHistory} user={session?.user} profile={profile} />;
-      case StepId.KANBAN: return <KanbanView analysis={analysis} onUpdateAction={updateAction} user={session?.user} profile={profile} />;
+      case StepId.KANBAN: return <KanbanView user={session?.user} profile={profile} />;
       default: return null;
     }
   };
