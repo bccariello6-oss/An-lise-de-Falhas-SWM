@@ -82,6 +82,16 @@ const SortableItem: React.FC<{ action: KanbanAction; onStatusChange: (id: string
             <ArrowRight size={14} />
           </button>
         )}
+        {columnStatus === 'Aberta' && (
+          <button onClick={() => onStatusChange(action.id, 'Em andamento')} className="p-1 hover:bg-[#e5ebf7] rounded text-[#13aff0] hover:text-[#171C8F]" title="Mover para Em Andamento">
+            <ArrowRight size={14} />
+          </button>
+        )}
+        {columnStatus === 'Aberta' && (
+          <button onClick={() => onStatusChange(action.id, 'Concluída')} className="p-1 hover:bg-emerald-100 rounded text-emerald-500 hover:text-emerald-700" title="Mover para Concluída">
+            <CheckCircle2 size={14} />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -238,10 +248,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
     const overId = over.id as string;
     let newStatus: Status | null = null;
 
-    const col = columns.find(c => c.status === overId);
-    if (col) {
-      newStatus = col.status;
-    } else if (columns.find(c => c.status === action.status)?.title !== overId) {
+    if (columns.some(c => c.status === overId)) {
+      newStatus = overId as Status;
+    } else {
       const overAction = allActions.find(a => a.id === overId);
       if (overAction) newStatus = overAction.status;
     }
