@@ -241,12 +241,13 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
     const col = columns.find(c => c.status === overId);
     if (col) {
       newStatus = col.status;
-    } else {
+    } else if (columns.find(c => c.status === action.status)?.title !== overId) {
       const overAction = allActions.find(a => a.id === overId);
       if (overAction) newStatus = overAction.status;
     }
 
     if (newStatus && newStatus !== action.status) {
+      console.log('Drag to', newStatus, 'from', action.status, 'evidence:', action.evidence);
       if (newStatus === 'Concluída' && !action.evidence?.trim()) {
         setModalMode('complete');
         setSelectedActionId(actionId);
@@ -254,7 +255,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
         setAlertOpen(true);
         return;
       }
-      handleStatusChange(actionId, newStatus);
+      handleStatusChange(actionId, newStatus, false);
     }
   };
 
