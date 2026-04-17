@@ -326,21 +326,40 @@ const App: React.FC = () => {
     updateAnalysis({ actions: analysis.actions.filter(a => a.id !== id) });
   };
 
-  const handleGenerateSummary = async () => {
-    setIsGeneratingSummary(true);
-    const summary = await generateSummary(analysis);
-    updateAnalysis({ summary });
-    setIsGeneratingSummary(false);
-    setShowSummary(true);
-  };
-
   const handleSuggestCause = async () => {
     const cause = await suggestRootCause(analysis);
     updateAnalysis({ rootCause: cause });
   };
 
   const handlePrintPDF = () => {
-    window.print();
+    const element = document.getElementById('pdf-content-wrapper');
+    if (!element) return;
+    
+    // Create a temporary visible container for html2canvas
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = '0';
+    tempContainer.style.width = '800px';
+    
+    // clone the element so we don't mess up the react DOM
+    const cloned = element.cloneNode(true) as HTMLElement;
+    cloned.style.display = 'block'; // Ensure it's block
+    tempContainer.appendChild(cloned);
+    document.body.appendChild(tempContainer);
+
+    const opt = {
+      margin:       10,
+      filename:     `SWM_ARP_${analysis.id || 'Relatorio'}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // @ts-ignore
+    (window as any).html2pdf().set(opt).from(cloned).save().then(() => {
+      document.body.removeChild(tempContainer);
+    });
   };
 
   const handleSendEmail = async () => {
@@ -498,15 +517,16 @@ const App: React.FC = () => {
     try {
       console.log('Iniciando envio para:', toEmail);
       
-      const functionUrl = `${supabase.supabaseUrl}/functions/v1/send-report-email`;
+      const supabaseObj = supabase as any;
+      const functionUrl = `${supabaseObj.supabaseUrl}/functions/v1/send-report-email`;
       console.log('Function URL:', functionUrl);
       
       const response = await fetch(functionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': supabase.supabaseKey,
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'apikey': supabaseObj.supabaseKey,
+          'Authorization': `Bearer ${supabaseObj.supabaseKey}`,
           'x-brevo-api-key': import.meta.env.VITE_BREVO_API_KEY || '',
         },
         body: JSON.stringify({
@@ -819,13 +839,10 @@ const App: React.FC = () => {
               <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3">
                 <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-widest">Ações Finais</h3>
                 <div className="grid grid-cols-2 gap-2">
-                   <button onClick={handleGenerateSummary} disabled={isGeneratingSummary} className="bg-slate-900 text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-black transition-all">
-                    {isGeneratingSummary ? <Loader2 size={14} className="animate-spin" /> : <Brain size={14} />} IA
+                  <button onClick={handlePrintPDF} className="bg-[#171C8F] text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-blue-700 transition-all shadow-sm">
+                    <FileDown size={14} /> Download PDF
                   </button>
-                  <button onClick={handlePrintPDF} className="bg-[#171C8F] text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-blue-700 transition-all">
-                    <FileDown size={14} /> PDF
-                  </button>
-                  <button onClick={handleSendEmail} className="col-span-2 bg-emerald-600 text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-emerald-700 transition-all">
+                  <button onClick={handleSendEmail} className="bg-emerald-600 text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-emerald-700 transition-all shadow-sm">
                     <Share2 size={14} /> Enviar por E-mail
                   </button>
                 </div>
@@ -902,7 +919,7 @@ const App: React.FC = () => {
       )}
 
       {/* PDF PRINT LAYOUT (Hidden on UI) */}
-      <div className="print-only bg-white p-8 text-slate-900 font-sans">
+      <div id="pdf-content-wrapper" className="hidden bg-white p-8 text-slate-900 font-sans w-[800px] mx-auto">
         <header className="flex justify-between items-center border-b-4 border-[#171C8F] pb-8 mb-10">
           <div className="flex items-center gap-6">
             <img src="/swm-logo.png" alt="SWM Logo" className="h-16 w-auto" />
@@ -921,11 +938,10 @@ const App: React.FC = () => {
           <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">1. Identificação</h2>
           <section className="grid grid-cols-2 gap-x-12 gap-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-4">
              <div><p className="text-[9px] font-black text-slate-400 uppercase">Equipamento</p><p className="text-sm font-bold">{analysis.equipment || '—'}</p></div>
-             <div><p className="text-[9px] font-black text-slate-400 uppercase">Tag / Ativo</p><p className="text-sm font-bold">{analysis.tag || '—'}</p></div>
              <div><p className="text-[9px] font-black text-slate-400 uppercase">Área</p><p className="text-sm font-bold">{analysis.area || '—'}</p></div>
              <div><p className="text-[9px] font-black text-slate-400 uppercase">Data Ocorrência</p><p className="text-sm font-bold">{analysis.failureDate || '—'}</p></div>
-             <div><p className="text-[9px] font-black text-slate-400 uppercase">Turno</p><p className="text-sm font-bold">{analysis.shift || '—'}</p></div>
-             <div><p className="text-[9px] font-black text-slate-400 uppercase">Responsável</p><p className="text-sm font-bold">{analysis.responsible || '—'}</p></div>
+             <div><p className="text-[9px] font-black text-slate-400 uppercase">Nome</p><p className="text-sm font-bold">{analysis.authorName || '—'}</p></div>
+             <div className="col-span-2"><p className="text-[9px] font-black text-slate-400 uppercase">Função</p><p className="text-sm font-bold">{analysis.authorRole || '—'}</p></div>
           </section>
           <div className="bg-white p-4 border rounded-xl">
             <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Descrição da Falha</p>
@@ -934,9 +950,9 @@ const App: React.FC = () => {
         </section>
 
         <section className="mb-8 break-inside-avoid">
-          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">2. 5W1H</h2>
+          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">2. 5W1H e Fenômeno</h2>
           <div className="grid grid-cols-2 gap-3">
-            {[['O Que', analysis.what], ['Onde', analysis.where], ['Quando', analysis.when], ['Quem', analysis.who], ['Quanto Custo', analysis.howMuch], ['Como', analysis.how]].map(([label, value]) => (
+            {[['O Que', analysis.what], ['Onde', analysis.where], ['Quando', analysis.when], ['Quem', analysis.who], ['Quanto Custo', analysis.howMuch], ['Como', analysis.how], ['Fenômeno', analysis.phenomenon]].map(([label, value]) => (
               <div key={label} className="p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <p className="text-[8px] font-black text-slate-400 uppercase">{label as string}</p>
                 <p className="text-xs font-medium">{value || '—'}</p>
@@ -957,13 +973,15 @@ const App: React.FC = () => {
                <p className="text-xs font-bold">{analysis.frequency || '—'}</p>
             </div>
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 col-span-2">
-               <p className="text-[8px] font-black text-slate-400 uppercase">Condição</p>
-               <p className="text-xs font-bold">{analysis.condition || '—'}</p>
-            </div>
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 col-span-2">
                <p className="text-[8px] font-black text-slate-400 uppercase">Histórico</p>
                <p className="text-xs font-bold">{analysis.history || '—'}</p>
             </div>
+            {analysis.attachmentUrl && (
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 col-span-2 flex flex-col items-center">
+                 <p className="text-[8px] font-black text-slate-400 uppercase self-start mb-2">Anexo de Imagem</p>
+                 <img src={analysis.attachmentUrl} alt="Anexo" className="max-h-64 object-contain rounded-lg border border-slate-200 shadow-sm" />
+              </div>
+            )}
           </div>
         </section>
 
@@ -1044,7 +1062,7 @@ const App: React.FC = () => {
         <footer className="mt-16 pt-8 border-t border-slate-200 flex justify-between items-end">
            <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Gerado em {new Date().toLocaleString('pt-BR')}</div>
            <div className="w-64 border-t-2 border-slate-900 text-center pt-2">
-              <p className="text-[9px] font-black uppercase">{analysis.responsible || 'Responsável Técnico'}</p>
+              <p className="text-[9px] font-black uppercase">{analysis.authorName || 'Responsável Técnico'}</p>
               <p className="text-[8px] font-bold text-slate-400">Assinatura Digital</p>
            </div>
         </footer>

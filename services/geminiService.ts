@@ -12,7 +12,7 @@ export async function generateSummary(analysis: Analysis): Promise<string> {
     Destaque a causa raiz e a ação principal recomendada.
 
     DADOS:
-    Equipamento: ${analysis.equipment} (${analysis.tag})
+    Equipamento: ${analysis.equipment}
     Descrição: ${analysis.description}
     5 Porquês: ${analysis.whys.filter(w => w).join(' -> ')}
     Causa Raiz: ${analysis.rootCause}

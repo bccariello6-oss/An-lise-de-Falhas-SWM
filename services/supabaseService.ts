@@ -30,7 +30,6 @@ export const saveAnalysis = async (userId: string, analysis: Analysis) => {
       user_id: userId,
       equipment: analysis.equipment,
       area: analysis.area,
-      tag: analysis.tag,
       data: analysis
     })
     .select();

@@ -78,7 +78,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, user, profile }
     return history.filter(item => {
       const matchesSearch = 
         item.equipment.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.tag.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.authorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.id.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesArea = areaFilter === 'Todas' || item.area === areaFilter;
@@ -210,7 +210,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, user, profile }
                     </div>
                     <h4 className="text-xs font-black text-slate-800 leading-tight truncate group-hover:text-[#171C8F] transition-colors">{item.equipment || "Equipamento s/ Nome"}</h4>
                     <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
-                      {item.area || "Sem Área"} <span className="text-slate-200 mx-1">|</span> <span className="text-slate-400 font-black">{item.tag || "Sem Tag"}</span>
+                      {item.area || "Sem Área"} <span className="text-slate-200 mx-1">|</span> <span className="text-slate-400 font-black">{item.authorName || "Sem Nome"}</span>
                     </p>
                   </div>
                 </div>

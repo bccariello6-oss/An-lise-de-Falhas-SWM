@@ -61,7 +61,7 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
   const renderCategory = (category: keyof Analysis['ishikawa'], label: string, Icon: React.ElementType) => (
     <section className="bg-[#fcfdff] p-2 md:p-3 rounded-2xl border border-[#dce4f5] flex flex-col gap-1 md:gap-2 shadow-sm h-full hover:shadow-md transition-all">
       <div className="flex items-center gap-2 md:gap-3 pb-1 md:pb-2 border-b border-[#e5ebf7]">
-        <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-[#e5ebf7] flex items-center justify-center text-[#171C8F] shadow-sm"><Icon size={14} md:size={16} /></div>
+        <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-[#e5ebf7] flex items-center justify-center text-[#171C8F] shadow-sm"><Icon size={14} /></div>
         <h3 className="font-black text-slate-800 uppercase text-[8px] md:text-[9px] tracking-widest">{label}</h3>
       </div>
       <p className="text-[7px] md:text-[8px] text-slate-400 italic leading-tight px-1 font-medium">{ISHIKAWA_QUESTIONS[category]}</p>
@@ -77,7 +77,7 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
               placeholder="Digite..."
             />
             <button onClick={() => removeCause(category, idx)} className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors bg-white rounded-lg border border-slate-50" aria-label="Remover">
-              <XCircle size={14} md:size={16} />
+              <XCircle size={14} />
             </button>
           </div>
         ))}
@@ -85,7 +85,7 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
           <div className="pt-2 md:pt-3 flex flex-wrap gap-1 md:gap-2">
             {analysis.ishikawa[category].attachments.map(file => (
               <span key={file.id} className="text-[8px] md:text-[9px] font-black bg-[#e5ebf7] text-[#171C8F] px-2 md:px-3 py-1 md:py-1.5 rounded-lg flex items-center gap-1 md:gap-2 border border-[#171C8F]">
-                <Paperclip size={10} md:size={12} /> {file.name.slice(0, 12)}...
+                <Paperclip size={10} /> {file.name.slice(0, 12)}...
               </span>
             ))}
           </div>
@@ -94,10 +94,10 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
 
       <div className="grid grid-cols-2 gap-1 md:gap-2 pt-1 md:pt-2 border-t border-white">
         <button onClick={() => addCause(category)} className="text-[7px] md:text-[8px] text-[#171C8F] font-black bg-white border border-[#dce4f5] py-1.5 md:py-2 rounded-xl hover:bg-[#e5ebf7] transition-all uppercase tracking-widest shadow-sm flex items-center justify-center gap-1">
-          <Plus size={10} md:size={12} /> Causa
+          <Plus size={10} /> Causa
         </button>
         <button onClick={() => fileInputRefs[category].current?.click()} className="text-[7px] md:text-[8px] text-[#171C8F] font-black bg-white border border-slate-100 py-1.5 md:py-2 rounded-xl hover:bg-slate-50 transition-all uppercase tracking-widest shadow-sm flex items-center justify-center gap-1">
-          <Paperclip size={10} md:size={12} /> Anexar
+          <Paperclip size={10} /> Anexar
         </button>
         <input type="file" ref={fileInputRefs[category]} onChange={(e) => handleFileUpload(category, e)} className="hidden" />
       </div>

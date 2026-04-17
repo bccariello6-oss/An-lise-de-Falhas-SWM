@@ -19,9 +19,9 @@ interface KanbanAction extends Action {
 }
 
 const columns: { title: string; status: Status; color: string; icon: React.ReactNode }[] = [
-  { title: 'Abertas', status: 'Aberta', color: 'bg-red-50/60 border-red-200', icon: <FolderOpen size={16} md:size={18} className="text-red-600" /> },
-  { title: 'Em Andamento', status: 'Em andamento', color: 'bg-amber-50/60 border-amber-200', icon: <Loader2 size={16} md:size={18} className="text-amber-600 animate-spin" /> },
-  { title: 'Concluídas', status: 'Concluída', color: 'bg-emerald-50/60 border-emerald-200', icon: <CheckCircle2 size={16} md:size={18} className="text-emerald-600" /> },
+  { title: 'Abertas', status: 'Aberta', color: 'bg-red-50/60 border-red-200', icon: <FolderOpen size={16} className="text-red-600" /> },
+  { title: 'Em Andamento', status: 'Em andamento', color: 'bg-amber-50/60 border-amber-200', icon: <Loader2 size={16} className="text-amber-600 animate-spin" /> },
+  { title: 'Concluídas', status: 'Concluída', color: 'bg-emerald-50/60 border-emerald-200', icon: <CheckCircle2 size={16} className="text-emerald-600" /> },
 ];
 
 const CardItem: React.FC<{ action: KanbanAction; isDragging?: boolean; onAskEvidence?: () => void }> = ({ action, isDragging, onAskEvidence }) => (
@@ -35,7 +35,7 @@ const CardItem: React.FC<{ action: KanbanAction; isDragging?: boolean; onAskEvid
       }`}>
         {action.type}
       </span>
-      <GripVertical size={12} md:size={14} className="text-slate-400 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity" />
+      <GripVertical size={12} className="text-slate-400 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity" />
     </div>
     <div className="mb-2 flex flex-col gap-0.5">
       <span className="text-[9px] font-black uppercase text-[#171C8F] tracking-widest">{action.analysisEquipment || 'S/ EQUIPAMENTO'}</span>
@@ -51,11 +51,11 @@ const CardItem: React.FC<{ action: KanbanAction; isDragging?: boolean; onAskEvid
     )}
     <div className="flex flex-col gap-1 md:gap-2 pt-2 md:pt-3 border-t border-slate-50">
       <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
-        <UserCircle size={12} md:size={14} className="opacity-70" />
+        <UserCircle size={12} className="opacity-70" />
         <span className="font-medium">{action.responsible || 'Não atribuído'}</span>
       </div>
       <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
-        <Calendar size={12} md:size={14} className="opacity-70" />
+        <Calendar size={12} className="opacity-70" />
         <span>{action.dueDate ? new Date(action.dueDate).toLocaleDateString('pt-BR') : 'Sem data'}</span>
       </div>
     </div>
@@ -108,7 +108,7 @@ const DroppableColumn: React.FC<{ status: Status; title: string; color: string; 
       <div className="flex-1 space-y-2 md:space-y-3 overflow-y-auto pr-1 custom-scrollbar min-h-[180px] md:min-h-[250px]">
         {actions.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-24 md:h-32 border-2 border-dashed border-slate-200 rounded-lg text-slate-400 text-[10px] md:text-sm">
-            <Inbox size={20} md:size={24} className="mb-2 opacity-20" />
+            <Inbox size={20} className="mb-2 opacity-20" />
             Solte aqui
           </div>
         ) : (
@@ -276,7 +276,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
     <div className="flex flex-col h-full animate-fadeIn">
       <div className="mb-2 md:mb-4">
         <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
-          <Columns size={18} md:size={20} className="text-[#171C8F]" />
+          <Columns size={18} className="text-[#171C8F]" />
           Quadro Kanban Corporativo
         </h2>
         <p className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase tracking-wide">
@@ -310,7 +310,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
               Clique numa task para alterar sua evidência! Evidência é obrigatória para finalizar uma atividade.
             </p>
           </div>
-          <Lightbulb size={24} md:size={32} className="text-blue-300/30 rotate-12" />
+          <Lightbulb size={24} className="text-blue-300/30 rotate-12" />
         </div>
       </div>
     </div>
