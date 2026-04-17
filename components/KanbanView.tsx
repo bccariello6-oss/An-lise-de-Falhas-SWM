@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Action, Status, Analysis } from '../types';
-import { Columns, FolderOpen, Loader2, CheckCircle2, Inbox, ArrowLeft, ArrowRight, UserCircle, Calendar, Lightbulb, GripVertical, FileText } from 'lucide-react';
+import { Columns, FolderOpen, Loader2, CheckCircle2, Inbox, ArrowLeft, ArrowRight, UserCircle, Calendar, Lightbulb, GripVertical, FileText, AlertTriangle } from 'lucide-react';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, useDroppable, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -133,6 +133,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'complete'>('add');
   const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
@@ -140,7 +143,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
     if (user?.id) {
       loadData();
     }
-  }, [user, profile]);
+  }, [user, profile, refreshKey]);
 
   const loadData = async () => {
     try {
@@ -185,26 +188,29 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
       return;
     }
 
-    let updatedEvidence = action.evidence;
-
     const parentAnalysis = analyses.find(a => a.id === action.analysisId);
     if (!parentAnalysis) return;
 
     const updatedAnalysis = {
       ...parentAnalysis,
       actions: parentAnalysis.actions.map(a => 
-        a.id === id ? { ...a, status: newStatus, evidence: updatedEvidence } : a
+        a.id === id ? { ...a, status: newStatus } : a
       )
     };
 
-    setAnalyses(prev => prev.map(a => a.id === updatedAnalysis.id ? updatedAnalysis : a));
+    const tempActions = allActions.map(a => a.id === id ? { ...a, status: newStatus } : a);
+    
+    setAnalyses(prev => {
+      const newAnalyses = prev.map(a => a.id === updatedAnalysis.id ? updatedAnalysis : a);
+      return newAnalyses;
+    });
 
     try {
       await db.saveAnalysis(action.analysisUserId, updatedAnalysis);
     } catch (error) {
       console.error('Failed to save status change:', error);
       alert('Houve um erro ao atualizar a ação no servidor.');
-      setAnalyses(prev => prev.map(a => a.id === parentAnalysis.id ? parentAnalysis : a));
+      loadData();
     }
   };
 
@@ -237,6 +243,13 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
     }
 
     if (newStatus && newStatus !== action.status) {
+      if (newStatus === 'Concluída' && !action.evidence?.trim()) {
+        setModalMode('complete');
+        setSelectedActionId(actionId);
+        setAlertMessage('Para mover esta tarefa para Concluídas, é necessário adicionar uma evidência.');
+        setAlertOpen(true);
+        return;
+      }
       handleStatusChange(actionId, newStatus);
     }
   };
@@ -340,6 +353,96 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
         title={modalMode === 'complete' ? 'Finalizar Tarefa' : 'Adicionar Evidência'}
         mode={modalMode}
       />
+
+      {alertOpen && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fadeIn"
+          style={{ 
+            background: 'rgba(23, 28, 143, 0.4)',
+            backdropFilter: 'blur(4px)'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setAlertOpen(false);
+          }}
+        >
+          <div 
+            className="bg-white rounded-[20px] shadow-2xl w-full max-w-md animate-scaleIn overflow-hidden"
+            style={{
+              border: '1px solid rgba(23, 28, 143, 0.1)',
+              boxShadow: '0 25px 50px -12px rgba(23, 28, 143, 0.25)'
+            }}
+          >
+            <div 
+              className="px-6 py-4 flex items-center justify-between"
+              style={{ background: '#eab308' }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  <AlertTriangle size={18} className="text-white" />
+                </div>
+                <h2 className="text-white font-black text-sm uppercase tracking-wide">
+                  Atenção
+                </h2>
+              </div>
+              <button 
+                onClick={() => setAlertOpen(false)}
+                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              >
+                <FileText size={18} className="text-white" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <p className="text-sm font-medium text-slate-700 mb-6">
+                {alertMessage}
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setAlertOpen(false)}
+                  className="flex-1 py-3 px-4 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-wider hover:bg-slate-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    setAlertOpen(false);
+                    setModalOpen(true);
+                  }}
+                  className="flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2"
+                  style={{ background: '#13aff0', color: '#171C8F' }}
+                >
+                  <FileText size={14} />
+                  <span className="font-black text-[10px] uppercase tracking-wider">Adicionar Evidência</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <style>{`
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes scaleIn {
+              from { 
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+              }
+              to { 
+                opacity: 1;
+                transform: scale(1) translateY(0);
+              }
+            }
+            .animate-fadeIn {
+              animation: fadeIn 0.2s ease-out;
+            }
+            .animate-scaleIn {
+              animation: scaleIn 0.25s ease-out;
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 };
