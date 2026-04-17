@@ -85,11 +85,17 @@ const getInitialState = (): Analysis => ({
   needsTraining: false,
 });
 
+const getSavedStep = (): StepId => {
+  if (typeof window === 'undefined') return StepId.IDENTIFICATION;
+  const saved = localStorage.getItem('swm_current_step');
+  return saved ? parseInt(saved, 10) : StepId.IDENTIFICATION;
+};
+
 const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [analysis, setAnalysis] = useState<Analysis>(getInitialState);
-  const [currentStep, setCurrentStep] = useState<StepId>(StepId.IDENTIFICATION);
+  const [currentStep, setCurrentStep] = useState<StepId>(getSavedStep);
   const [showSummary, setShowSummary] = useState(false);
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{step: string, errors: string[]}[]>([]);
@@ -120,6 +126,10 @@ const App: React.FC = () => {
       setAnalysis(prev => ({ ...prev, area: profile.full_name }));
     }
   }, [profile]);
+
+  useEffect(() => {
+    localStorage.setItem('swm_current_step', currentStep.toString());
+  }, [currentStep]);
 
   const updateAnalysis = (data: Partial<Analysis>) => {
     setAnalysis(prev => ({ ...prev, ...data }));
