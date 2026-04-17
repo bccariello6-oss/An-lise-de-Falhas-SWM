@@ -356,19 +356,21 @@ const App: React.FC = () => {
     tempContainer.style.position = 'absolute';
     tempContainer.style.left = '-9999px';
     tempContainer.style.top = '0';
-    tempContainer.style.width = '800px';
+    tempContainer.style.width = '210mm';
+    tempContainer.style.padding = '0';
     
     // clone the element so we don't mess up the react DOM
     const cloned = element.cloneNode(true) as HTMLElement;
-    cloned.style.display = 'block'; // Ensure it's block
+    cloned.style.display = 'block';
+    cloned.style.width = '210mm';
     tempContainer.appendChild(cloned);
     document.body.appendChild(tempContainer);
 
     const opt = {
-      margin:       10,
+      margin:       5,
       filename:     `SWM_ARP_${analysis.id || 'Relatorio'}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      html2canvas:  { scale: 2, useCORS: true, logging: false, letterRendering: true },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
@@ -993,33 +995,39 @@ const App: React.FC = () => {
       )}
 
       {/* PDF PRINT LAYOUT (Hidden on UI) */}
-      <div id="pdf-content-wrapper" className="hidden bg-white p-8 text-slate-900 font-sans w-[800px] mx-auto">
-        <header className="flex justify-between items-center border-b-4 border-[#171C8F] pb-8 mb-10">
+      <div id="pdf-content-wrapper" className="hidden bg-white p-8 text-slate-900 font-sans w-[210mm] mx-auto" style={{ minHeight: '297mm', pageBreakAfter: 'always' }}>
+        <style>{`
+          #pdf-content-wrapper * { box-sizing: border-box; }
+          #pdf-content-wrapper section { break-inside: avoid; page-break-inside: avoid; }
+          #pdf-content-wrapper .break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
+          #pdf-content-wrapper .page-break-before { page-break-before: always; }
+        `}</style>
+        <header className="flex justify-between items-center border-b-4 border-[#171C8F] pb-6 mb-8">
           <div className="flex items-center gap-6">
-            <img src="/swm-logo.png" alt="SWM Logo" className="h-16 w-auto" />
+            <img src="/swm-logo.png" alt="SWM Logo" className="h-14 w-auto" />
             <div>
-              <h1 className="text-3xl font-black uppercase text-[#171C8F]">Relatório de Análise de Falha</h1>
-              <p className="text-[#13aff0] font-extrabold uppercase tracking-[0.15em] text-sm">SWM Brasil - LIDERANÇA OPEX</p>
+              <h1 className="text-2xl font-black uppercase text-[#171C8F]">Relatório de Análise de Falha</h1>
+              <p className="text-[#13aff0] font-extrabold uppercase tracking-[0.15em] text-xs">SWM Brasil - LIDERANÇA OPEX</p>
             </div>
           </div>
           <div className="text-right">
-             <p className="text-[10px] font-black text-slate-400 uppercase">Protocolo</p>
-             <p className="text-xl font-black text-[#171C8F]">{analysis.id}</p>
+             <p className="text-[9px] font-black text-slate-400 uppercase">Protocolo</p>
+             <p className="text-lg font-black text-[#171C8F]">{analysis.id}</p>
           </div>
         </header>
 
-        <section className="mb-8 break-inside-avoid">
-          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">1. Identificação</h2>
-          <section className="grid grid-cols-2 gap-x-12 gap-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-4">
-             <div><p className="text-[9px] font-black text-slate-400 uppercase">Equipamento</p><p className="text-sm font-bold">{analysis.equipment || '—'}</p></div>
-             <div><p className="text-[9px] font-black text-slate-400 uppercase">Área</p><p className="text-sm font-bold">{analysis.area || '—'}</p></div>
-             <div><p className="text-[9px] font-black text-slate-400 uppercase">Data Ocorrência</p><p className="text-sm font-bold">{analysis.failureDate || '—'}</p></div>
-             <div><p className="text-[9px] font-black text-slate-400 uppercase">Nome</p><p className="text-sm font-bold">{analysis.authorName || '—'}</p></div>
-             <div className="col-span-2"><p className="text-[9px] font-black text-slate-400 uppercase">Função</p><p className="text-sm font-bold">{analysis.authorRole || '—'}</p></div>
+        <section className="mb-6 break-inside-avoid">
+          <h2 className="text-base font-black border-l-4 border-[#171C8F] pl-3 uppercase mb-3">1. Identificação</h2>
+          <section className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-3">
+             <div><p className="text-[8px] font-black text-slate-400 uppercase">Equipamento</p><p className="text-xs font-bold truncate">{analysis.equipment || '—'}</p></div>
+             <div><p className="text-[8px] font-black text-slate-400 uppercase">Área</p><p className="text-xs font-bold">{analysis.area || '—'}</p></div>
+             <div><p className="text-[8px] font-black text-slate-400 uppercase">Data Ocorrência</p><p className="text-xs font-bold">{analysis.failureDate || '—'}</p></div>
+             <div><p className="text-[8px] font-black text-slate-400 uppercase">Nome</p><p className="text-xs font-bold">{analysis.authorName || '—'}</p></div>
+             <div className="col-span-2"><p className="text-[8px] font-black text-slate-400 uppercase">Função</p><p className="text-xs font-bold">{analysis.authorRole || '—'}</p></div>
           </section>
-          <div className="bg-white p-4 border rounded-xl">
-            <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Descrição da Falha</p>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">{analysis.description || '—'}</p>
+          <div className="bg-white p-3 border rounded-lg">
+            <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Descrição da Falha</p>
+            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{analysis.description || '—'}</p>
           </div>
         </section>
 
