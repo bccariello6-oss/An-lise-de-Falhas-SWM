@@ -5,6 +5,7 @@ import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, u
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import * as db from '../services/supabaseService';
+import EvidenceModal from './EvidenceModal';
 
 interface KanbanViewProps {
   user?: any;
@@ -129,6 +130,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'add' | 'complete'>('add');
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
@@ -174,16 +178,14 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
     const action = allActions.find(a => a.id === id);
     if (!action) return;
 
-    let updatedEvidence = action.evidence;
-
-    if (newStatus === 'Concluída' && promptEvidence) {
-      const evidence = window.prompt("Para mover para 'Concluídas', você deve fornecer a evidência da ação:");
-      if (!evidence || evidence.trim() === '') {
-        alert("A ação não pode ser concluída sem fornecer uma evidência.");
-        return; // cancel status change
-      }
-      updatedEvidence = evidence;
+    if (newStatus === 'Concluída' && promptEvidence && !action.evidence?.trim()) {
+      setModalMode('complete');
+      setSelectedActionId(id);
+      setModalOpen(true);
+      return;
     }
+
+    let updatedEvidence = action.evidence;
 
     const parentAnalysis = analyses.find(a => a.id === action.analysisId);
     if (!parentAnalysis) return;
@@ -202,37 +204,14 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
     } catch (error) {
       console.error('Failed to save status change:', error);
       alert('Houve um erro ao atualizar a ação no servidor.');
-      // Revert if error
       setAnalyses(prev => prev.map(a => a.id === parentAnalysis.id ? parentAnalysis : a));
     }
   };
 
   const handleAskEvidence = async (id: string) => {
-    const action = allActions.find(a => a.id === id);
-    if (!action) return;
-
-    const newEvidence = window.prompt("Atualizar ou adicionar evidência da task:", action.evidence || "");
-    if (newEvidence === null) return; // cancelled
-
-    const parentAnalysis = analyses.find(a => a.id === action.analysisId);
-    if (!parentAnalysis) return;
-
-    const updatedAnalysis = {
-      ...parentAnalysis,
-      actions: parentAnalysis.actions.map(a => 
-        a.id === id ? { ...a, evidence: newEvidence } : a
-      )
-    };
-
-    setAnalyses(prev => prev.map(a => a.id === updatedAnalysis.id ? updatedAnalysis : a));
-
-    try {
-      await db.saveAnalysis(action.analysisUserId, updatedAnalysis);
-    } catch (error) {
-      console.error('Failed to save evidence:', error);
-      // Revert
-      setAnalyses(prev => prev.map(a => a.id === parentAnalysis.id ? parentAnalysis : a));
-    }
+    setModalMode('add');
+    setSelectedActionId(id);
+    setModalOpen(true);
   };
 
   const handleDragStart = (event: DragStartEvent) => setActiveId(event.active.id as string);
@@ -313,6 +292,54 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
           <Lightbulb size={24} className="text-blue-300/30 rotate-12" />
         </div>
       </div>
+
+      <EvidenceModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setSelectedActionId(null);
+        }}
+        onSave={(evidence) => {
+          if (selectedActionId) {
+            const action = allActions.find(a => a.id === selectedActionId);
+            if (!action) return;
+            
+            const parentAnalysis = analyses.find(a => a.id === action.analysisId);
+            if (!parentAnalysis) return;
+
+            const updatedAnalysis = {
+              ...parentAnalysis,
+              actions: parentAnalysis.actions.map(a => 
+                a.id === selectedActionId ? { ...a, evidence } : a
+              )
+            };
+
+            setAnalyses(prev => prev.map(a => a.id === updatedAnalysis.id ? updatedAnalysis : a));
+
+            if (modalMode === 'complete') {
+              const updatedAnalysisWithStatus = {
+                ...updatedAnalysis,
+                actions: updatedAnalysis.actions.map(a => 
+                  a.id === selectedActionId ? { ...a, status: 'Concluída' as Status } : a
+                )
+              };
+              
+              setAnalyses(prev => prev.map(a => a.id === updatedAnalysisWithStatus.id ? updatedAnalysisWithStatus : a));
+              
+              db.saveAnalysis(action.analysisUserId, updatedAnalysisWithStatus).catch(err => {
+                console.error('Failed to save:', err);
+              });
+            } else {
+              db.saveAnalysis(action.analysisUserId, updatedAnalysis).catch(err => {
+                console.error('Failed to save:', err);
+              });
+            }
+          }
+        }}
+        initialEvidence={selectedActionId ? allActions.find(a => a.id === selectedActionId)?.evidence || '' : ''}
+        title={modalMode === 'complete' ? 'Finalizar Tarefa' : 'Adicionar Evidência'}
+        mode={modalMode}
+      />
     </div>
   );
 };
