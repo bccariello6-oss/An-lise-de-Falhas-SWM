@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Action, Status, Analysis } from '../types';
-import { Columns, FolderOpen, Loader2, CheckCircle2, Inbox, ArrowLeft, ArrowRight, UserCircle, Calendar, Lightbulb, GripVertical, FileText, AlertTriangle } from 'lucide-react';
+import { Columns, FolderOpen, Loader2, CheckCircle2, Inbox, ArrowLeft, ArrowRight, UserCircle, Calendar, Lightbulb, GripVertical, FileText, AlertTriangle, ChevronUp, Filter, X } from 'lucide-react';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, useDroppable, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -146,6 +146,15 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    search: '',
+    type: '',
+    area: '',
+    equipment: '',
+    responsible: ''
+  });
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
@@ -154,6 +163,14 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
       loadData();
     }
   }, [user, profile, refreshKey]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const loadData = async () => {
     try {
@@ -185,7 +202,22 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
 
   const allActions = getAllActions();
 
-  const getActionsByStatus = (status: Status) => allActions.filter(action => action.status === status);
+  const filteredActions = allActions.filter(action => {
+    if (filters.search && !action.description?.toLowerCase().includes(filters.search.toLowerCase()) && 
+        !action.analysisEquipment?.toLowerCase().includes(filters.search.toLowerCase()) &&
+        !action.analysisArea?.toLowerCase().includes(filters.search.toLowerCase())) return false;
+    if (filters.type && action.type !== filters.type) return false;
+    if (filters.area && action.analysisArea !== filters.area) return false;
+    if (filters.equipment && action.analysisEquipment !== filters.equipment) return false;
+    if (filters.responsible && !action.responsible?.toLowerCase().includes(filters.responsible.toLowerCase())) return false;
+    return true;
+  });
+
+  const getActionsByStatus = (status: Status) => filteredActions.filter(action => action.status === status);
+
+  const uniqueAreas = [...new Set(allActions.map(a => a.analysisArea).filter(Boolean))];
+  const uniqueEquipments = [...new Set(allActions.map(a => a.analysisEquipment).filter(Boolean))];
+  const uniqueResponsibles = [...new Set(allActions.map(a => a.responsible).filter(Boolean))];
 
   const handleStatusChange = async (id: string, newStatus: Status, promptEvidence: boolean = true) => {
     const action = allActions.find(a => a.id === id);
@@ -280,15 +312,93 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
 
   return (
     <div className="flex flex-col h-full animate-fadeIn">
-      <div className="mb-2 md:mb-4">
-        <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
-          <Columns size={18} className="text-[#171C8F]" />
-          Quadro Kanban Corporativo
-        </h2>
-        <p className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase tracking-wide">
-          Visão de {profile?.role === 'ADMIN' ? 'todas as ações registradas' : 'suas ações'} - Arraste para mover
-        </p>
+      <div className="mb-2 md:mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        <div>
+          <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
+            <Columns size={18} className="text-[#171C8F]" />
+            Quadro Kanban Corporativo
+          </h2>
+          <p className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase tracking-wide">
+            Visão de {profile?.role === 'ADMIN' ? 'todas as ações registradas' : 'suas ações'} - Arraste para mover
+          </p>
+        </div>
+        {profile?.role === 'ADMIN' && (
+          <button
+            onClick={() => setFilterOpen(!filterOpen)}
+            className="flex items-center gap-2 px-3 py-2 bg-[#171C8F] text-white rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider hover:bg-[#131478] transition-colors"
+          >
+            <Filter size={14} />
+            Filtrar
+            {(filters.search || filters.type || filters.area || filters.equipment || filters.responsible) && (
+              <span className="w-2 h-2 bg-[#13aff0] rounded-full"></span>
+            )}
+          </button>
+        )}
       </div>
+
+      {filterOpen && (
+        <div className="mb-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="Buscar descrição, equipamento ou área..."
+                value={filters.search}
+                onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-[#13aff0]"
+              />
+            </div>
+            <select
+              value={filters.type}
+              onChange={(e) => setFilters(f => ({ ...f, type: e.target.value }))}
+              className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-[#13aff0]"
+            >
+              <option value="">Tipo</option>
+              <option value="Corretiva">Corretiva</option>
+              <option value="Preventiva">Preventiva</option>
+              <option value="Melhoria">Melhoria</option>
+            </select>
+            <select
+              value={filters.area}
+              onChange={(e) => setFilters(f => ({ ...f, area: e.target.value }))}
+              className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-[#13aff0]"
+            >
+              <option value="">Área</option>
+              {uniqueAreas.map(area => (
+                <option key={area} value={area}>{area}</option>
+              ))}
+            </select>
+            <select
+              value={filters.equipment}
+              onChange={(e) => setFilters(f => ({ ...f, equipment: e.target.value }))}
+              className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-[#13aff0]"
+            >
+              <option value="">Equipamento</option>
+              {uniqueEquipments.map(eq => (
+                <option key={eq} value={eq}>{eq}</option>
+              ))}
+            </select>
+            <select
+              value={filters.responsible}
+              onChange={(e) => setFilters(f => ({ ...f, responsible: e.target.value }))}
+              className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-[#13aff0]"
+            >
+              <option value="">Responsável</option>
+              {uniqueResponsibles.map(resp => (
+                <option key={resp} value={resp}>{resp}</option>
+              ))}
+            </select>
+            {(filters.search || filters.type || filters.area || filters.equipment || filters.responsible) && (
+              <button
+                onClick={() => setFilters({ search: '', type: '', area: '', equipment: '', responsible: '' })}
+                className="px-3 py-2 bg-red-100 text-red-600 rounded-lg text-xs font-bold uppercase hover:bg-red-200 transition-colors"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 flex-1 min-h-[300px] md:min-h-[400px]">
@@ -459,6 +569,15 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
             }
           `}</style>
         </div>
+      )}
+
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 w-12 h-12 bg-[#171C8F] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#131478] transition-all hover:scale-110 z-50"
+        >
+          <ChevronUp size={24} />
+        </button>
       )}
     </div>
   );
