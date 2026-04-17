@@ -337,65 +337,81 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
       </div>
 
       {filterOpen && (
-        <div className="mb-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="flex-1">
+        <div className="mb-4 p-4 bg-gradient-to-br from-slate-50 to-white rounded-2xl border border-slate-200 shadow-lg">
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-[#171C8F] rounded-lg flex items-center justify-center">
+                <Filter size={16} className="text-white" />
+              </div>
+              <h3 className="text-xs font-black text-[#171C8F] uppercase tracking-wider">Filtros Avançados</h3>
+            </div>
+            <span className="text-[9px] font-medium text-slate-400">
+              {(filters.search || filters.type || filters.area || filters.equipment || filters.responsible) 
+                ? `${Object.values(filters).filter(v => v).length} filtro(s) ativo(s)` 
+                : 'Nenhum filtro aplicado'}
+            </span>
+          </div>
+          <div className="flex flex-col lg:flex-row gap-3">
+            <div className="flex-1 min-w-[200px]">
               <input
                 type="text"
                 placeholder="Buscar descrição, equipamento ou área..."
                 value={filters.search}
                 onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-[#13aff0]"
+                className="w-full px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-xs font-medium text-slate-700 outline-none focus:border-[#13aff0] focus:bg-blue-50/30 transition-all placeholder:text-slate-400"
               />
             </div>
-            <select
-              value={filters.type}
-              onChange={(e) => setFilters(f => ({ ...f, type: e.target.value }))}
-              className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-[#13aff0]"
-            >
-              <option value="">Tipo</option>
-              <option value="Corretiva">Corretiva</option>
-              <option value="Preventiva">Preventiva</option>
-              <option value="Melhoria">Melhoria</option>
-            </select>
-            <select
-              value={filters.area}
-              onChange={(e) => setFilters(f => ({ ...f, area: e.target.value }))}
-              className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-[#13aff0]"
-            >
-              <option value="">Área</option>
-              {uniqueAreas.map(area => (
-                <option key={area} value={area}>{area}</option>
-              ))}
-            </select>
-            <select
-              value={filters.equipment}
-              onChange={(e) => setFilters(f => ({ ...f, equipment: e.target.value }))}
-              className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-[#13aff0]"
-            >
-              <option value="">Equipamento</option>
-              {uniqueEquipments.map(eq => (
-                <option key={eq} value={eq}>{eq}</option>
-              ))}
-            </select>
-            <select
-              value={filters.responsible}
-              onChange={(e) => setFilters(f => ({ ...f, responsible: e.target.value }))}
-              className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-[#13aff0]"
-            >
-              <option value="">Responsável</option>
-              {uniqueResponsibles.map(resp => (
-                <option key={resp} value={resp}>{resp}</option>
-              ))}
-            </select>
-            {(filters.search || filters.type || filters.area || filters.equipment || filters.responsible) && (
-              <button
-                onClick={() => setFilters({ search: '', type: '', area: '', equipment: '', responsible: '' })}
-                className="px-3 py-2 bg-red-100 text-red-600 rounded-lg text-xs font-bold uppercase hover:bg-red-200 transition-colors"
+            <div className="flex flex-wrap gap-2">
+              <select
+                value={filters.type}
+                onChange={(e) => setFilters(f => ({ ...f, type: e.target.value }))}
+                className="px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-[#13aff0] focus:bg-blue-50/30 transition-all appearance-none cursor-pointer min-w-[110px]"
               >
-                <X size={14} />
-              </button>
-            )}
+                <option value="">Tipo</option>
+                <option value="Corretiva">Corretiva</option>
+                <option value="Preventiva">Preventiva</option>
+                <option value="Melhoria">Melhoria</option>
+              </select>
+              <select
+                value={filters.area}
+                onChange={(e) => setFilters(f => ({ ...f, area: e.target.value }))}
+                className="px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-[#13aff0] focus:bg-blue-50/30 transition-all appearance-none cursor-pointer min-w-[110px]"
+              >
+                <option value="">Área</option>
+                {uniqueAreas.map(area => (
+                  <option key={area} value={area}>{area}</option>
+                ))}
+              </select>
+              <select
+                value={filters.equipment}
+                onChange={(e) => setFilters(f => ({ ...f, equipment: e.target.value }))}
+                className="px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-[#13aff0] focus:bg-blue-50/30 transition-all appearance-none cursor-pointer min-w-[130px]"
+              >
+                <option value="">Equipamento</option>
+                {uniqueEquipments.map(eq => (
+                  <option key={eq} value={eq}>{eq}</option>
+                ))}
+              </select>
+              <select
+                value={filters.responsible}
+                onChange={(e) => setFilters(f => ({ ...f, responsible: e.target.value }))}
+                className="px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-[#13aff0] focus:bg-blue-50/30 transition-all appearance-none cursor-pointer min-w-[130px]"
+              >
+                <option value="">Responsável</option>
+                {uniqueResponsibles.map(resp => (
+                  <option key={resp} value={resp}>{resp}</option>
+                ))}
+              </select>
+              {(filters.search || filters.type || filters.area || filters.equipment || filters.responsible) && (
+                <button
+                  onClick={() => setFilters({ search: '', type: '', area: '', equipment: '', responsible: '' })}
+                  className="px-4 py-2.5 bg-red-50 text-red-600 border-2 border-red-100 rounded-xl text-xs font-black uppercase hover:bg-red-100 hover:border-red-200 transition-all flex items-center gap-1.5"
+                >
+                  <X size={14} />
+                  Limpar
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -574,9 +590,10 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 w-12 h-12 bg-[#171C8F] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#131478] transition-all hover:scale-110 z-50"
+          className="fixed bottom-8 right-8 w-14 h-14 bg-[#171C8F] text-white rounded-2xl shadow-2xl flex items-center justify-center hover:bg-[#131478] transition-all hover:scale-110 z-50 border-2 border-white/20"
+          title="Voltar ao topo"
         >
-          <ChevronUp size={24} />
+          <ChevronUp size={28} strokeWidth={3} />
         </button>
       )}
     </div>
