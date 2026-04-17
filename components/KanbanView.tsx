@@ -184,7 +184,8 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
     if (newStatus === 'Concluída' && promptEvidence && !action.evidence?.trim()) {
       setModalMode('complete');
       setSelectedActionId(id);
-      setModalOpen(true);
+      setAlertMessage('Para mover esta tarefa para Concluídas, é necessário adicionar uma evidência.');
+      setAlertOpen(true);
       return;
     }
 
