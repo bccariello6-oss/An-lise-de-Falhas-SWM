@@ -14,7 +14,7 @@ export async function generateSummary(analysis: Analysis): Promise<string> {
     DADOS:
     Equipamento: ${analysis.equipment}
     Descrição: ${analysis.description}
-    5 Porquês: ${analysis.whys.filter(w => w).join(' -> ')}
+    5 Porquês: ${Array.isArray(analysis.whys) ? analysis.whys.filter(w => w).join(' -> ') : Object.entries(analysis.whys).map(([col, values]) => values.some(v=>v) ? `[Col ${col}: ${values.filter(v=>v).join(' -> ')}]` : '').filter(Boolean).join(' | ')}
     Causa Raiz: ${analysis.rootCause}
     Ishikawa (Máquina): ${analysis.ishikawa.machine.causes.join(', ')}
     Plano de Ação: ${analysis.actions.map(a => a.description).join('; ')}

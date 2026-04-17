@@ -26,6 +26,7 @@ import {
   ArrowRight,
   Eraser,
   Calendar,
+  Filter,
   HelpCircle,
   MapPin,
   Clock,
@@ -74,7 +75,7 @@ const getInitialState = (): Analysis => ({
   history: '',
   attachmentUrl: '',
   frequency: 'Eventual',
-  whys: ['', '', '', '', ''],
+  whys: { A: ['', '', '', '', ''], B: ['', '', '', '', ''], C: ['', '', '', '', ''], D: ['', '', '', '', ''] },
   rootCause: '',
   ishikawa: INITIAL_ISHIKAWA,
   actions: [],
@@ -146,8 +147,13 @@ const App: React.FC = () => {
     if (step3Errors.length > 0) allErrors.push({ step: "3. Detalhamento", errors: step3Errors });
 
     const step4Errors: string[] = [];
-    if (!analysis.whys[0].trim()) step4Errors.push("1º Porquê fundamental");
-    if (!analysis.rootCause.trim()) step4Errors.push("Causa Raiz fundamental");
+    if (Array.isArray(analysis.whys)) {
+      if (!analysis.whys[0]?.trim()) step4Errors.push("1º Porquê fundamental (Legado)");
+    } else {
+      if (!analysis.whys.A[0]?.trim()) step4Errors.push("Sintoma inicial (Coluna A)");
+      if (!analysis.whys.A[4]?.trim()) step4Errors.push("Causa Raiz (Coluna A)");
+    }
+    if (!analysis.rootCause.trim()) step4Errors.push("Causa Raiz Geral");
     if (step4Errors.length > 0) allErrors.push({ step: "4. Matriz dos 5 Porquês", errors: step4Errors });
 
     const step6Errors: string[] = [];
@@ -465,7 +471,35 @@ const App: React.FC = () => {
     <div class="section">
       <h2>4. Causa Raiz (5 Porquês)</h2>
       <div class="why-list">
-        ${analysis.whys.filter(w => w.trim()).map((w, i) => `<div class="why-item"><span class="why-number">${i + 1}</span><span>${w}</span></div>`).join('')}
+        ${Array.isArray(analysis.whys) 
+          ? analysis.whys.filter(w => w.trim()).map((w, i) => `<div class="why-item"><span class="why-number">${i + 1}</span><span>${w}</span></div>`).join('')
+          : `<table style="width:100%; border-collapse:collapse; margin-bottom:10px; font-size:12px;">
+              <thead>
+                <tr style="background:#171C8F; color:white;">
+                  <th style="padding:6px; border:1px solid #ddd;">Nº</th>
+                  <th style="padding:6px; border:1px solid #ddd;">A</th>
+                  <th style="padding:6px; border:1px solid #ddd;">B</th>
+                  <th style="padding:6px; border:1px solid #ddd;">C</th>
+                  <th style="padding:6px; border:1px solid #ddd;">D</th>
+                  <th style="padding:6px; border:1px solid #ddd;">Categoria</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${['Sintoma', 'Desculpa', 'Culpado', 'Causa', 'Causa Raiz'].map((label, rowIndex) => {
+                  const m = analysis.whys as import('./types').WhysMatrix;
+                  return `
+                  <tr>
+                    <td style="padding:6px; border:1px solid #ddd; text-align:center; background:#f8fafc; font-weight:bold;">${rowIndex + 1}</td>
+                    <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m.A?.[rowIndex] || '-'}</td>
+                    <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m.B?.[rowIndex] || '-'}</td>
+                    <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m.C?.[rowIndex] || '-'}</td>
+                    <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m.D?.[rowIndex] || '-'}</td>
+                    <td style="padding:6px; border:1px solid #ddd; text-align:center; background:#f8fafc; font-weight:bold; color:#171C8F; text-transform:uppercase; font-size:10px;">${label}</td>
+                  </tr>
+                `}).join('')}
+              </tbody>
+             </table>`
+        }
       </div>
       <div class="root-cause">
         <div class="label">Causa Raiz</div>
@@ -508,7 +542,7 @@ const App: React.FC = () => {
     </div>
 
     <div class="footer">
-      <p>Gerado em ${new Date().toLocaleString('pt-BR')} via SWM Análise de Falhas - LIDERANÇA OPEX</p>
+      <p>Gerado em ${new Date().toLocaleString('pt-BR')} via ARP - SWM Brasil - LIDERANÇA OPEX</p>
     </div>
   </div>
 </body>
@@ -698,34 +732,64 @@ const App: React.FC = () => {
               <p className="text-[10px] text-[#171C8F] font-medium leading-relaxed">Responda a cada pergunta com base na resposta anterior para chegar à causa física final.</p>
             </div>
             
-            <div className="space-y-2">
-              {analysis.whys.map((why, idx) => (
-                <div key={idx} className="flex gap-4 items-center animate-fadeIn" style={{ animationDelay: `${idx * 100}ms` }}>
-                  <div className="w-6 h-6 rounded-full bg-white border-2 border-[#13aff0] flex items-center justify-center text-[10px] font-black text-[#171C8F] flex-shrink-0 shadow-sm">{idx + 1}</div>
-                  <input
-                    type="text"
-                    value={why}
-                    onChange={(e) => {
-                      const newWhys = [...analysis.whys];
-                      newWhys[idx] = e.target.value;
-                      updateAnalysis({ whys: newWhys });
-                    }}
-                    className={`${inputClasses} py-2`}
-                    placeholder={`Por que o problema ${idx === 0 ? 'ocorreu' : 'anterior aconteceu'}?`}
-                  />
+            <div className="overflow-x-auto pb-4">
+              <div className="min-w-[700px] border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm mt-4">
+                <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_100px] bg-[#171C8F] text-white text-[10px] font-black uppercase tracking-widest text-center divide-x divide-white/20">
+                  <div className="p-3 flex flex-col items-center justify-center gap-1">
+                    <Filter size={16} className="rotate-180 opacity-80" />
+                    <span>5 PQ's</span>
+                  </div>
+                  <div className="p-3 flex items-center justify-center">A</div>
+                  <div className="p-3 flex items-center justify-center">B</div>
+                  <div className="p-3 flex items-center justify-center">C</div>
+                  <div className="p-3 flex items-center justify-center">D</div>
+                  <div className="p-3"></div>
                 </div>
-              ))}
+                
+                <div className="divide-y divide-slate-100">
+                  {['Sintoma', 'Desculpa', 'Culpado', 'Causa', 'Causa Raiz'].map((label, rowIndex) => (
+                    <div key={label} className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_100px] divide-x divide-slate-100 hover:bg-slate-50 transition-colors group">
+                      <div className="p-2 flex items-center justify-center">
+                        <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-400 font-black text-[9px] flex items-center justify-center group-hover:bg-[#13aff0] group-hover:text-white transition-colors">{rowIndex + 1}.</span>
+                      </div>
+                      {(['A', 'B', 'C', 'D'] as const).map(col => (
+                        <div key={col} className="p-1">
+                          <input
+                            type="text"
+                            value={Array.isArray(analysis.whys) ? (col === 'A' ? analysis.whys[rowIndex] : '') : analysis.whys[col]?.[rowIndex]}
+                            onChange={(e) => {
+                              const newWhys = Array.isArray(analysis.whys) 
+                                ? { A: [...analysis.whys], B: ['', '', '', '', ''], C: ['', '', '', '', ''], D: ['', '', '', '', ''] }
+                                : { ...analysis.whys };
+                              
+                              const targetArr = [...(newWhys[col] || ['', '', '', '', ''])];
+                              targetArr[rowIndex] = e.target.value;
+                              newWhys[col] = targetArr;
+                              updateAnalysis({ whys: newWhys as unknown as string[] });
+                            }}
+                            className="w-full h-full min-h-[36px] bg-transparent text-[11px] text-slate-700 outline-none px-2 focus:bg-[#e5ebf7] rounded transition-colors placeholder-slate-300 font-medium"
+                            placeholder="..."
+                          />
+                        </div>
+                      ))}
+                      <div className="p-2 flex items-center justify-center bg-slate-50 font-black text-[9px] text-[#171C8F] uppercase tracking-wider text-center border-l border-slate-100">
+                        {label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="pt-3 border-t">
-              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Causa Raiz Identificada</label>
+              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Causa Raiz Geral Identificada (Opcional)</label>
               <div className="relative">
                 <input 
                   type="text" 
                   value={analysis.rootCause} 
                   onChange={e => updateAnalysis({ rootCause: e.target.value })} 
                   className={`${inputClasses} pl-10 bg-[#e5ebf7] border-[#171C8F]/20 border-2 font-bold text-[#171C8F]`} 
-                  placeholder="A falha final foi causada por..." 
+                  placeholder="Resumo ou união da falha final (se precisar complementar a Matriz)" 
                 />
                 <Target size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#171C8F]" />
               </div>
@@ -986,17 +1050,34 @@ const App: React.FC = () => {
         </section>
 
         <section className="mb-8 break-inside-avoid">
-          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">4. Causa Raiz (5 Porquês)</h2>
-          <div className="space-y-3 mb-4">
-            {analysis.whys.map((w, i) => w.trim() && (
-              <div key={i} className="flex gap-3 items-center">
-                <span className="w-6 h-6 rounded-full bg-[#171C8F] text-white flex items-center justify-center text-[10px] font-black">{i+1}</span>
-                <p className="text-sm font-medium">{w}</p>
-              </div>
-            ))}
+          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">4. Causa Raiz (Matriz 5 Porquês)</h2>
+          <div className="border border-slate-200 rounded-xl overflow-hidden mb-4 bg-white shadow-sm">
+            <div className="grid grid-cols-[30px_1fr_1fr_1fr_1fr_80px] bg-[#171C8F] text-white text-[8px] font-black uppercase tracking-widest text-center divide-x divide-white/20">
+              <div className="p-2 flex items-center justify-center">Nº</div>
+              <div className="p-2">A</div>
+              <div className="p-2">B</div>
+              <div className="p-2">C</div>
+              <div className="p-2">D</div>
+              <div className="p-2"></div>
+            </div>
+            <div className="divide-y divide-slate-100">
+              {['Sintoma', 'Desculpa', 'Culpado', 'Causa', 'Causa Raiz'].map((label, rowIndex) => (
+                <div key={label} className="grid grid-cols-[30px_1fr_1fr_1fr_1fr_80px] divide-x divide-slate-100">
+                  <div className="p-1 flex items-center justify-center font-black text-slate-400 text-[8px] bg-slate-50">{rowIndex + 1}</div>
+                  {(['A', 'B', 'C', 'D'] as const).map(col => (
+                    <div key={col} className="p-1.5 flex items-center justify-center text-[9px] font-medium text-slate-700 text-center break-words min-h-[30px]">
+                      {Array.isArray(analysis.whys) ? (col === 'A' ? analysis.whys[rowIndex] : '') : (analysis.whys[col]?.[rowIndex] || '-')}
+                    </div>
+                  ))}
+                  <div className="p-1 flex items-center justify-center bg-slate-50 font-black text-[#171C8F] text-[7px] uppercase text-center border-l border-slate-100">
+                    {label}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="bg-[#171C8F] text-white p-6 rounded-2xl">
-             <p className="text-[9px] font-black uppercase opacity-60 mb-1">Causa Raiz</p>
+             <p className="text-[9px] font-black uppercase opacity-60 mb-1">Causa Raiz Geral</p>
              <p className="text-xl font-black">{analysis.rootCause || 'NÃO IDENTIFICADA'}</p>
           </div>
         </section>
@@ -1076,8 +1157,8 @@ const App: React.FC = () => {
               <img src="/swm-logo.png" alt="SWM Logo" className="h-12 md:h-14 w-auto" />
               <div className="hidden lg:block h-10 w-px bg-slate-200"></div>
               <div className="hidden sm:block">
-                <h1 className="font-black text-lg tracking-tight uppercase leading-none text-[#171C8F]">Análise de Falhas</h1>
-                <p className="text-[11px] text-[#13aff0] font-bold tracking-[0.2em] uppercase mt-1">LIDERANÇA OPEX</p>
+                <h1 className="font-black text-lg tracking-tight uppercase leading-none text-[#171C8F]">ARP</h1>
+                <p className="text-[9px] text-[#13aff0] font-bold tracking-[0.25em] uppercase mt-1">Análise e Resolução de Problemas</p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-6">

@@ -61,9 +61,12 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
             </div>
             <div className="text-center">
               <h1 className="text-2xl font-black text-[#171C8F] uppercase tracking-tighter mb-1">
-                Análise de Falhas
+                ARP
               </h1>
-              <p className="text-[10px] font-black text-[#13aff0] uppercase tracking-widest opacity-80">
+              <p className="text-[8px] font-bold text-[#13aff0] uppercase tracking-[0.2em] opacity-90">
+                Análise e Resolução de Problemas
+              </p>
+              <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">
                 SWM Brasil • Liderança Opex
               </p>
             </div>

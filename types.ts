@@ -3,6 +3,13 @@ export type Status = 'Aberta' | 'Em andamento' | 'Concluída';
 export type FailureFrequency = 'Eventual' | 'Recorrente' | 'Crônica';
 export type ActionType = 'Corretiva' | 'Preventiva' | 'Melhoria';
 
+export interface WhysMatrix {
+  A: string[]; // 5 strings: 0=Sintoma, 1=Desculpa, 2=Culpado, 3=Causa, 4=Causa Raiz
+  B: string[];
+  C: string[];
+  D: string[];
+}
+
 export interface Attachment {
   id: string;
   name: string;
@@ -58,7 +65,7 @@ export interface Analysis {
   frequency: FailureFrequency;
   attachmentUrl?: string;
   // Step 4 (5 Whys)
-  whys: string[];
+  whys: string[] | WhysMatrix;
   rootCause: string;
   // Step 5 (Ishikawa)
   ishikawa: Ishikawa;
