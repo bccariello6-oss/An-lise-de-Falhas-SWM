@@ -189,8 +189,11 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
       return;
     }
 
-    const parentAnalysis = analyses.find(a => a.id === action.analysisId);
-    if (!parentAnalysis) return;
+    const parentAnalysis = analyses.find(a => String(a.id) === String(action.analysisId));
+    if (!parentAnalysis) {
+      console.error('Parent analysis not found', { analysesIds: analyses.map(a => a.id), actionAnalysisId: action.analysisId });
+      return;
+    }
 
     const updatedAnalysis = {
       ...parentAnalysis,
@@ -202,7 +205,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
     const tempActions = allActions.map(a => a.id === id ? { ...a, status: newStatus } : a);
     
     setAnalyses(prev => {
-      const newAnalyses = prev.map(a => a.id === updatedAnalysis.id ? updatedAnalysis : a);
+      const newAnalyses = prev.map(a => String(a.id) === String(updatedAnalysis.id) ? updatedAnalysis : a);
       return newAnalyses;
     });
 
@@ -318,8 +321,11 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
             const action = allActions.find(a => a.id === selectedActionId);
             if (!action) return;
             
-            const parentAnalysis = analyses.find(a => a.id === action.analysisId);
-            if (!parentAnalysis) return;
+            const parentAnalysis = analyses.find(a => String(a.id) === String(action.analysisId));
+            if (!parentAnalysis) {
+              console.error('Parent analysis not found in modal', { analysesIds: analyses.map(a => a.id), actionAnalysisId: action.analysisId });
+              return;
+            }
 
             const updatedAnalysis = {
               ...parentAnalysis,
@@ -328,7 +334,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
               )
             };
 
-            setAnalyses(prev => prev.map(a => a.id === updatedAnalysis.id ? updatedAnalysis : a));
+            setAnalyses(prev => prev.map(a => String(a.id) === String(updatedAnalysis.id) ? updatedAnalysis : a));
 
             if (modalMode === 'complete') {
               const updatedAnalysisWithStatus = {
@@ -338,7 +344,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
                 )
               };
               
-              setAnalyses(prev => prev.map(a => a.id === updatedAnalysisWithStatus.id ? updatedAnalysisWithStatus : a));
+              setAnalyses(prev => prev.map(a => String(a.id) === String(updatedAnalysisWithStatus.id) ? updatedAnalysisWithStatus : a));
               
               db.saveAnalysis(action.analysisUserId, updatedAnalysisWithStatus).catch(err => {
                 console.error('Failed to save:', err);
