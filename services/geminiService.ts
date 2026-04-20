@@ -1,10 +1,22 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { Analysis } from "../types";
+import { Analysis, isNewWhysMatrix, WhysMatrix } from "../types";
 
 // Corrected: Use import.meta.env for Vite or define a fallback for safety.
 const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || "";
 const ai = new GoogleGenAI({ apiKey: apiKey });
+
+const serializeWhys = (whys: Analysis['whys']): string => {
+  if (isNewWhysMatrix(whys)) {
+    return (whys as WhysMatrix).rows
+      .filter(r => r.rounds.some(c => c.answer.trim()))
+      .map(r => `[${r.id}: ${r.rounds.filter(c => c.answer.trim()).map(c => `${c.answer}${c.validated ? `(${c.validated})` : ''}`).join(' → ')}${r.improvement ? ` | Melhoria: ${r.improvement}` : ''}]`)
+      .join(' | ');
+  } else if (Array.isArray(whys)) {
+    return whys.filter(w => w).join(' → ');
+  }
+  return '-';
+};
 
 export async function generateSummary(analysis: Analysis): Promise<string> {
   const prompt = `
@@ -14,7 +26,7 @@ export async function generateSummary(analysis: Analysis): Promise<string> {
     DADOS:
     Equipamento: ${analysis.equipment}
     Descrição: ${analysis.description}
-    5 Porquês: ${Array.isArray(analysis.whys) ? analysis.whys.filter(w => w).join(' -> ') : Object.entries(analysis.whys).map(([col, values]) => values.some(v=>v) ? `[Col ${col}: ${values.filter(v=>v).join(' -> ')}]` : '').filter(Boolean).join(' | ')}
+    Tabela Porque Porque: ${serializeWhys(analysis.whys)}
     Causa Raiz: ${analysis.rootCause}
     Ishikawa (Máquina): ${analysis.ishikawa.machine.causes.join(', ')}
     Plano de Ação: ${analysis.actions.map(a => a.description).join('; ')}

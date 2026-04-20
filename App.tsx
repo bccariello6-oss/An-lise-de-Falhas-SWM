@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Analysis, StepId, Action, Ishikawa, IshikawaCategory } from './types';
+import { Analysis, StepId, Action, Ishikawa, IshikawaCategory, WhysMatrix, WhysRow, WhyCell, isNewWhysMatrix, createEmptyRow, createInitialWhysMatrix, ROW_IDS } from './types';
 import { STEPS, TIPS } from './constants';
 import IshikawaComponent from './components/IshikawaComponent';
 import Dashboard from './components/Dashboard';
@@ -75,7 +75,7 @@ const getInitialState = (): Analysis => ({
   history: '',
   attachmentUrl: '',
   frequency: 'Eventual',
-  whys: { A: ['', '', '', '', ''], B: ['', '', '', '', ''], C: ['', '', '', '', ''], D: ['', '', '', '', ''] },
+  whys: createInitialWhysMatrix(),
   rootCause: '',
   ishikawa: INITIAL_ISHIKAWA,
   actions: [],
@@ -157,14 +157,14 @@ const App: React.FC = () => {
     if (step3Errors.length > 0) allErrors.push({ step: "3. Detalhamento", errors: step3Errors });
 
     const step4Errors: string[] = [];
-    if (Array.isArray(analysis.whys)) {
+    if (isNewWhysMatrix(analysis.whys)) {
+      const firstRow = analysis.whys.rows[0];
+      if (!firstRow?.rounds[0]?.answer?.trim()) step4Errors.push("1º Round da linha A");
+    } else if (Array.isArray(analysis.whys)) {
       if (!analysis.whys[0]?.trim()) step4Errors.push("1º Porquê fundamental (Legado)");
-    } else {
-      if (!analysis.whys.A[0]?.trim()) step4Errors.push("Sintoma inicial (Coluna A)");
-      if (!analysis.whys.A[4]?.trim()) step4Errors.push("Causa Raiz (Coluna A)");
     }
     if (!analysis.rootCause.trim()) step4Errors.push("Causa Raiz Geral");
-    if (step4Errors.length > 0) allErrors.push({ step: "4. Matriz dos 5 Porquês", errors: step4Errors });
+    if (step4Errors.length > 0) allErrors.push({ step: "4. Tabela Porque Porque", errors: step4Errors });
 
     const step6Errors: string[] = [];
     if (analysis.actions.length === 0) {
@@ -231,13 +231,65 @@ const App: React.FC = () => {
       history: 'Motor rebobinado há 6 meses. Rolamentos trocados na última preventiva.',
       attachmentUrl: '',
       frequency: 'Eventual',
-      whys: [
-        'O motor queimou por sobreaquecimento.',
-        'Houve um aumento súbito na corrente elétrica.',
-        'A bomba trabalhou em regime de cavitação severa.',
-        'O nível do tanque de alimentação baixou além do limite crítico.',
-        'A boia de controle de nível travou devido ao acúmulo de incrustações.'
-      ],
+      whys: {
+        rows: [
+          {
+            id: 'A',
+            rounds: [
+              { answer: 'Motor queimou por sobreaquecimento', validated: 'V' },
+              { answer: 'Aumento súbito de corrente elétrica', validated: 'V' },
+              { answer: 'Cavitação severa na bomba', validated: 'V' },
+              { answer: 'Nível do tanque abaixou além do limite', validated: 'V' },
+              { answer: 'Boia de controle travou por incrustações', validated: 'V' }
+            ],
+            improvement: 'Implementar limpeza quinzenal dos sensores de boia'
+          },
+          {
+            id: 'B',
+            rounds: [
+              { answer: 'Vibração excessiva na carcaça', validated: 'V' },
+              { answer: 'Rolamento com desgaste prematuro', validated: 'V' },
+              { answer: 'Lubrificação insuficiente', validated: 'F' },
+              { answer: '', validated: null },
+              { answer: '', validated: null }
+            ],
+            improvement: ''
+          },
+          {
+            id: 'C',
+            rounds: [
+              { answer: 'Temperatura elevada na carcaça', validated: 'V' },
+              { answer: 'Refrigeração inadequada', validated: 'F' },
+              { answer: '', validated: null },
+              { answer: '', validated: null },
+              { answer: '', validated: null }
+            ],
+            improvement: ''
+          },
+          {
+            id: 'D',
+            rounds: [
+              { answer: '', validated: null },
+              { answer: '', validated: null },
+              { answer: '', validated: null },
+              { answer: '', validated: null },
+              { answer: '', validated: null }
+            ],
+            improvement: ''
+          },
+          {
+            id: 'E',
+            rounds: [
+              { answer: '', validated: null },
+              { answer: '', validated: null },
+              { answer: '', validated: null },
+              { answer: '', validated: null },
+              { answer: '', validated: null }
+            ],
+            improvement: ''
+          }
+        ]
+      },
       rootCause: 'Falha no sistema de controle de nível por falta de limpeza preventiva nos sensores de boia.',
       ishikawa: {
         machine: { causes: ['Desgaste prematuro dos rolamentos', 'Falta de refrigeração adequada'], attachments: [] },
@@ -481,37 +533,44 @@ const App: React.FC = () => {
     </div>
 
     <div class="section">
-      <h2>4. Causa Raiz (5 Porquês)</h2>
+      <h2>4. Tabela de Análise Porque Porque</h2>
       <div class="why-list">
-        ${Array.isArray(analysis.whys) 
-          ? analysis.whys.filter(w => w.trim()).map((w, i) => `<div class="why-item"><span class="why-number">${i + 1}</span><span>${w}</span></div>`).join('')
-          : `<table style="width:100%; border-collapse:collapse; margin-bottom:10px; font-size:12px;">
+        ${(() => {
+          if (isNewWhysMatrix(analysis.whys)) {
+            const m = analysis.whys as WhysMatrix;
+            return `<table style="width:100%; border-collapse:collapse; margin-bottom:10px; font-size:11px;">
               <thead>
                 <tr style="background:#171C8F; color:white;">
-                  <th style="padding:6px; border:1px solid #ddd;">Nº</th>
-                  <th style="padding:6px; border:1px solid #ddd;">A</th>
-                  <th style="padding:6px; border:1px solid #ddd;">B</th>
-                  <th style="padding:6px; border:1px solid #ddd;">C</th>
-                  <th style="padding:6px; border:1px solid #ddd;">D</th>
-                  <th style="padding:6px; border:1px solid #ddd;">Categoria</th>
+                  <th style="padding:6px; border:1px solid #ddd; width:30px;"></th>
+                  <th style="padding:6px; border:1px solid #ddd;">1º Round</th>
+                  <th style="padding:6px; border:1px solid #ddd;">2º Round</th>
+                  <th style="padding:6px; border:1px solid #ddd;">3º Round</th>
+                  <th style="padding:6px; border:1px solid #ddd;">4º Round</th>
+                  <th style="padding:6px; border:1px solid #ddd;">5º Round</th>
+                  <th style="padding:6px; border:1px solid #ddd;">Ideias de Melhorias</th>
                 </tr>
               </thead>
               <tbody>
-                ${['Sintoma', 'Desculpa', 'Culpado', 'Causa', 'Causa Raiz'].map((label, rowIndex) => {
-                  const m = analysis.whys as import('./types').WhysMatrix;
-                  return `
+                ${m.rows.filter(r => r.rounds.some(c => c.answer.trim())).map(row => `
                   <tr>
-                    <td style="padding:6px; border:1px solid #ddd; text-align:center; background:#f8fafc; font-weight:bold;">${rowIndex + 1}</td>
-                    <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m.A?.[rowIndex] || '-'}</td>
-                    <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m.B?.[rowIndex] || '-'}</td>
-                    <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m.C?.[rowIndex] || '-'}</td>
-                    <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m.D?.[rowIndex] || '-'}</td>
-                    <td style="padding:6px; border:1px solid #ddd; text-align:center; background:#f8fafc; font-weight:bold; color:#171C8F; text-transform:uppercase; font-size:10px;">${label}</td>
+                    <td style="padding:6px; border:1px solid #ddd; text-align:center; background:#f8fafc; font-weight:bold;">${row.id}</td>
+                    ${row.rounds.map(cell => `
+                      <td style="padding:6px; border:1px solid #ddd; text-align:center; ${cell.validated === 'F' ? 'background:#fee2e2;' : cell.validated === 'V' ? 'background:#d1fae5;' : ''}">
+                        ${cell.answer || '-'}
+                        ${cell.validated ? ` <span style="font-weight:bold; color:${cell.validated === 'V' ? '#065f46' : '#991b1b'};">(${cell.validated})</span>` : ''}
+                      </td>
+                    `).join('')}
+                    <td style="padding:6px; border:1px solid #ddd; text-align:center; background:#eff6ff; font-style:italic;">${row.improvement || '-'}</td>
                   </tr>
-                `}).join('')}
+                `).join('')}
               </tbody>
-             </table>`
-        }
+            </table>`;
+          } else if (Array.isArray(analysis.whys)) {
+            return analysis.whys.filter(w => w.trim()).map((w, i) => `<div class="why-item"><span class="why-number">${i + 1}</span><span>${w}</span></div>`).join('');
+          } else {
+            return '-';
+          }
+        })()}
       </div>
       <div class="root-cause">
         <div class="label">Causa Raiz</div>
@@ -735,57 +794,149 @@ const App: React.FC = () => {
           </div>
         );
 
-      case StepId.FIVE_WHYS:
+      case StepId.FIVE_WHYS: {
+        // Ensure whys is the new matrix format
+        const whysMatrix: WhysMatrix = isNewWhysMatrix(analysis.whys) 
+          ? analysis.whys 
+          : createInitialWhysMatrix();
+
+        const updateWhysCell = (rowId: string, roundIdx: number, field: 'answer' | 'validated', value: any) => {
+          const newRows = whysMatrix.rows.map(row => {
+            if (row.id !== rowId) return row;
+            const newRounds = row.rounds.map((cell, idx) => {
+              if (idx !== roundIdx) return cell;
+              return { ...cell, [field]: value };
+            });
+            return { ...row, rounds: newRounds };
+          });
+          updateAnalysis({ whys: { rows: newRows } });
+        };
+
+        const updateWhysImprovement = (rowId: string, value: string) => {
+          const newRows = whysMatrix.rows.map(row => 
+            row.id === rowId ? { ...row, improvement: value } : row
+          );
+          updateAnalysis({ whys: { rows: newRows } });
+        };
+
+        const addWhysRow = () => {
+          const usedIds = whysMatrix.rows.map(r => r.id);
+          const nextId = ROW_IDS.find(id => !usedIds.includes(id));
+          if (!nextId) return;
+          updateAnalysis({ whys: { rows: [...whysMatrix.rows, createEmptyRow(nextId)] } });
+        };
+
+        const removeWhysRow = (rowId: string) => {
+          if (whysMatrix.rows.length <= 1) return;
+          updateAnalysis({ whys: { rows: whysMatrix.rows.filter(r => r.id !== rowId) } });
+        };
+
+        const toggleValidation = (rowId: string, roundIdx: number) => {
+          const row = whysMatrix.rows.find(r => r.id === rowId);
+          if (!row) return;
+          const cell = row.rounds[roundIdx];
+          const next = cell.validated === null ? 'V' : cell.validated === 'V' ? 'F' : null;
+          updateWhysCell(rowId, roundIdx, 'validated', next);
+        };
+
         return (
           <div className="space-y-4 animate-fadeIn">
-            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">4. Os 5 Porquês (Causa Raiz)</h2>
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-3">
+              <div>
+                <h2 className="text-lg font-bold text-[#171C8F]">4. Tabela de Análise Porque Porque</h2>
+                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Análise de causa raiz por hipóteses</p>
+              </div>
+              <button 
+                onClick={addWhysRow}
+                disabled={whysMatrix.rows.length >= ROW_IDS.length}
+                className="bg-[#171C8F] text-white text-[9px] font-black uppercase tracking-widest px-5 py-2 rounded-lg hover:bg-black transition-all shadow-sm flex items-center gap-2 disabled:opacity-30"
+              >
+                <Plus size={12} /> Nova Linha
+              </button>
+            </header>
+
             <div className="bg-[#e5ebf7] p-3 rounded-xl border border-blue-100 flex items-start gap-3">
-              <Info size={16} className="text-[#171C8F] mt-0.5" />
-              <p className="text-[10px] text-[#171C8F] font-medium leading-relaxed">Responda a cada pergunta com base na resposta anterior para chegar à causa física final.</p>
+              <Info size={16} className="text-[#171C8F] mt-0.5 shrink-0" />
+              <div className="text-[10px] text-[#171C8F] font-medium leading-relaxed">
+                <p className="mb-1"><strong>(V)</strong> Verdadeiro — a hipótese foi confirmada e a análise terá prosseguimento.</p>
+                <p><strong>(F)</strong> Falso — a hipótese não se confirmou. Clique no badge V/F para alternar.</p>
+              </div>
             </div>
             
             <div className="overflow-x-auto pb-4">
-              <div className="min-w-[700px] border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm mt-4">
-                <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_100px] bg-[#171C8F] text-white text-[10px] font-black uppercase tracking-widest text-center divide-x divide-white/20">
-                  <div className="p-3 flex flex-col items-center justify-center gap-1">
-                    <Filter size={16} className="rotate-180 opacity-80" />
-                    <span>5 PQ's</span>
-                  </div>
-                  <div className="p-3 flex items-center justify-center">A</div>
-                  <div className="p-3 flex items-center justify-center">B</div>
-                  <div className="p-3 flex items-center justify-center">C</div>
-                  <div className="p-3 flex items-center justify-center">D</div>
-                  <div className="p-3"></div>
+              <div className="min-w-[900px] border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                {/* Header */}
+                <div className="grid grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_minmax(120px,1fr)_36px] bg-[#171C8F] text-white text-[9px] font-black uppercase tracking-widest text-center divide-x divide-white/20">
+                  <div className="p-2.5 flex items-center justify-center"></div>
+                  <div className="p-2.5 flex items-center justify-center">1º Round</div>
+                  <div className="p-2.5 flex items-center justify-center">2º Round</div>
+                  <div className="p-2.5 flex items-center justify-center">3º Round</div>
+                  <div className="p-2.5 flex items-center justify-center">4º Round</div>
+                  <div className="p-2.5 flex items-center justify-center">5º Round</div>
+                  <div className="p-2.5 flex items-center justify-center text-[8px]">Ideias de Melhorias</div>
+                  <div className="p-2.5"></div>
                 </div>
                 
+                {/* Rows */}
                 <div className="divide-y divide-slate-100">
-                  {['Sintoma', 'Desculpa', 'Culpado', 'Causa', 'Causa Raiz'].map((label, rowIndex) => (
-                    <div key={label} className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_100px] divide-x divide-slate-100 hover:bg-slate-50 transition-colors group">
-                      <div className="p-2 flex items-center justify-center">
-                        <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-400 font-black text-[9px] flex items-center justify-center group-hover:bg-[#13aff0] group-hover:text-white transition-colors">{rowIndex + 1}.</span>
+                  {whysMatrix.rows.map((row) => (
+                    <div key={row.id} className="grid grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_minmax(120px,1fr)_36px] divide-x divide-slate-100 hover:bg-slate-50/50 transition-colors group">
+                      {/* Row Label */}
+                      <div className="p-2 flex items-center justify-center bg-slate-50">
+                        <span className="w-6 h-6 rounded-lg bg-[#171C8F] text-white font-black text-[10px] flex items-center justify-center shadow-sm">
+                          {row.id}
+                        </span>
                       </div>
-                      {(['A', 'B', 'C', 'D'] as const).map(col => (
-                        <div key={col} className="p-1">
-                          <input
-                            type="text"
-                            value={Array.isArray(analysis.whys) ? (col === 'A' ? analysis.whys[rowIndex] : '') : analysis.whys[col]?.[rowIndex]}
-                            onChange={(e) => {
-                              const newWhys = Array.isArray(analysis.whys) 
-                                ? { A: [...analysis.whys], B: ['', '', '', '', ''], C: ['', '', '', '', ''], D: ['', '', '', '', ''] }
-                                : { ...analysis.whys };
-                              
-                              const targetArr = [...(newWhys[col] || ['', '', '', '', ''])];
-                              targetArr[rowIndex] = e.target.value;
-                              newWhys[col] = targetArr;
-                              updateAnalysis({ whys: newWhys as unknown as string[] });
-                            }}
-                            className="w-full h-full min-h-[36px] bg-transparent text-[11px] text-slate-700 outline-none px-2 focus:bg-[#e5ebf7] rounded transition-colors placeholder-slate-300 font-medium"
-                            placeholder="..."
-                          />
+                      
+                      {/* 5 Rounds */}
+                      {row.rounds.map((cell, roundIdx) => (
+                        <div key={roundIdx} className="p-1 flex flex-col gap-0.5">
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              value={cell.answer}
+                              onChange={(e) => updateWhysCell(row.id, roundIdx, 'answer', e.target.value)}
+                              className="w-full min-h-[32px] bg-transparent text-[10px] text-slate-700 outline-none px-1.5 py-1 focus:bg-[#e5ebf7] rounded transition-colors placeholder-slate-300 font-medium"
+                              placeholder="Hipótese..."
+                            />
+                          </div>
+                          {cell.answer.trim() && (
+                            <button
+                              onClick={() => toggleValidation(row.id, roundIdx)}
+                              className={`self-end text-[8px] font-black px-2 py-0.5 rounded-md border transition-all ${
+                                cell.validated === 'V' 
+                                  ? 'bg-green-100 border-green-300 text-green-700 hover:bg-green-200' 
+                                  : cell.validated === 'F' 
+                                    ? 'bg-red-100 border-red-300 text-red-700 hover:bg-red-200' 
+                                    : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
+                              }`}
+                            >
+                              {cell.validated === 'V' ? 'V' : cell.validated === 'F' ? 'F' : '?'}
+                            </button>
+                          )}
                         </div>
                       ))}
-                      <div className="p-2 flex items-center justify-center bg-slate-50 font-black text-[9px] text-[#171C8F] uppercase tracking-wider text-center border-l border-slate-100">
-                        {label}
+                      
+                      {/* Improvement Ideas */}
+                      <div className="p-1">
+                        <input
+                          type="text"
+                          value={row.improvement}
+                          onChange={(e) => updateWhysImprovement(row.id, e.target.value)}
+                          className="w-full min-h-[32px] bg-transparent text-[10px] text-slate-600 outline-none px-1.5 py-1 focus:bg-blue-50 rounded transition-colors placeholder-slate-300 font-medium italic"
+                          placeholder="Melhoria..."
+                        />
+                      </div>
+                      
+                      {/* Remove */}
+                      <div className="p-1 flex items-center justify-center">
+                        <button 
+                          onClick={() => removeWhysRow(row.id)} 
+                          disabled={whysMatrix.rows.length <= 1}
+                          className="text-slate-300 hover:text-red-500 transition-colors disabled:opacity-20"
+                        >
+                          <Trash2 size={12} />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -801,13 +952,14 @@ const App: React.FC = () => {
                   value={analysis.rootCause} 
                   onChange={e => updateAnalysis({ rootCause: e.target.value })} 
                   className={`${inputClasses} pl-10 bg-[#e5ebf7] border-[#171C8F]/20 border-2 font-bold text-[#171C8F]`} 
-                  placeholder="Resumo ou união da falha final (se precisar complementar a Matriz)" 
+                  placeholder="Resumo ou união da falha final (se precisar complementar a Tabela)" 
                 />
                 <Target size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#171C8F]" />
               </div>
             </div>
           </div>
         );
+      }
 
       case StepId.ISHIKAWA:
         return <IshikawaComponent analysis={analysis} updateAnalysis={updateAnalysis} />;
@@ -1068,31 +1220,37 @@ const App: React.FC = () => {
         </section>
 
         <section className="mb-8 break-inside-avoid">
-          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">4. Causa Raiz (Matriz 5 Porquês)</h2>
+          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">4. Tabela de Análise Porque Porque</h2>
           <div className="border border-slate-200 rounded-xl overflow-hidden mb-4 bg-white shadow-sm">
-            <div className="grid grid-cols-[30px_1fr_1fr_1fr_1fr_80px] bg-[#171C8F] text-white text-[8px] font-black uppercase tracking-widest text-center divide-x divide-white/20">
-              <div className="p-2 flex items-center justify-center">Nº</div>
-              <div className="p-2">A</div>
-              <div className="p-2">B</div>
-              <div className="p-2">C</div>
-              <div className="p-2">D</div>
-              <div className="p-2"></div>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {['Sintoma', 'Desculpa', 'Culpado', 'Causa', 'Causa Raiz'].map((label, rowIndex) => (
-                <div key={label} className="grid grid-cols-[30px_1fr_1fr_1fr_1fr_80px] divide-x divide-slate-100">
-                  <div className="p-1 flex items-center justify-center font-black text-slate-400 text-[8px] bg-slate-50">{rowIndex + 1}</div>
-                  {(['A', 'B', 'C', 'D'] as const).map(col => (
-                    <div key={col} className="p-1.5 flex items-center justify-center text-[9px] font-medium text-slate-700 text-center break-words min-h-[30px]">
-                      {Array.isArray(analysis.whys) ? (col === 'A' ? analysis.whys[rowIndex] : '') : (analysis.whys[col]?.[rowIndex] || '-')}
+            {isNewWhysMatrix(analysis.whys) ? (
+              <>
+                <div className="grid grid-cols-[30px_1fr_1fr_1fr_1fr_1fr_1fr] bg-[#171C8F] text-white text-[7px] font-black uppercase tracking-widest text-center divide-x divide-white/20">
+                  <div className="p-2 flex items-center justify-center"></div>
+                  <div className="p-2">1º Round</div>
+                  <div className="p-2">2º Round</div>
+                  <div className="p-2">3º Round</div>
+                  <div className="p-2">4º Round</div>
+                  <div className="p-2">5º Round</div>
+                  <div className="p-2">Melhorias</div>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {(analysis.whys as WhysMatrix).rows.filter(r => r.rounds.some(c => c.answer.trim())).map(row => (
+                    <div key={row.id} className="grid grid-cols-[30px_1fr_1fr_1fr_1fr_1fr_1fr] divide-x divide-slate-100">
+                      <div className="p-1.5 flex items-center justify-center font-black text-[#171C8F] text-[9px] bg-slate-50">{row.id}</div>
+                      {row.rounds.map((cell, idx) => (
+                        <div key={idx} className={`p-1.5 flex items-center justify-center text-[8px] font-medium text-slate-700 text-center break-words min-h-[28px] ${cell.validated === 'V' ? 'bg-green-50' : cell.validated === 'F' ? 'bg-red-50' : ''}`}>
+                          {cell.answer || '-'}
+                          {cell.validated && <span className={`ml-1 font-black ${cell.validated === 'V' ? 'text-green-600' : 'text-red-600'}`}>({cell.validated})</span>}
+                        </div>
+                      ))}
+                      <div className="p-1.5 flex items-center justify-center text-[8px] font-medium text-slate-600 text-center italic bg-blue-50">{row.improvement || '-'}</div>
                     </div>
                   ))}
-                  <div className="p-1 flex items-center justify-center bg-slate-50 font-black text-[#171C8F] text-[7px] uppercase text-center border-l border-slate-100">
-                    {label}
-                  </div>
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <div className="p-4 text-center text-slate-400 text-sm">Formato legado</div>
+            )}
           </div>
           <div className="bg-[#171C8F] text-white p-6 rounded-2xl">
              <p className="text-[9px] font-black uppercase opacity-60 mb-1">Causa Raiz Geral</p>

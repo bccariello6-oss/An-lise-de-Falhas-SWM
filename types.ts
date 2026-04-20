@@ -3,12 +3,23 @@ export type Status = 'Aberta' | 'Em andamento' | 'Concluída';
 export type FailureFrequency = 'Eventual' | 'Recorrente' | 'Crônica';
 export type ActionType = 'Corretiva' | 'Preventiva' | 'Melhoria';
 
-export interface WhysMatrix {
-  A: string[]; // 5 strings: 0=Sintoma, 1=Desculpa, 2=Culpado, 3=Causa, 4=Causa Raiz
-  B: string[];
-  C: string[];
-  D: string[];
+export interface WhyCell {
+  answer: string;
+  validated: 'V' | 'F' | null; // V = Verdadeiro (confirmado), F = Falso (não confirmado), null = não avaliado
 }
+
+export interface WhysRow {
+  id: string; // A, B, C, D, E, F, G, H, I...
+  rounds: WhyCell[]; // 5 rounds
+  improvement: string; // IDEIAS DE MELHORIAS
+}
+
+export interface WhysMatrix {
+  rows: WhysRow[];
+}
+
+// Legacy support: old format was string[] or { A: string[], B: string[], C: string[], D: string[] }
+export type WhysData = string[] | WhysMatrix | { A: string[]; B: string[]; C: string[]; D: string[] };
 
 export interface Attachment {
   id: string;
@@ -64,8 +75,8 @@ export interface Analysis {
   history: string;
   frequency: FailureFrequency;
   attachmentUrl?: string;
-  // Step 4 (5 Whys)
-  whys: string[] | WhysMatrix;
+  // Step 4 (Porque Porque)
+  whys: WhysData;
   rootCause: string;
   // Step 5 (Ishikawa)
   ishikawa: Ishikawa;
@@ -80,6 +91,35 @@ export interface Analysis {
   summary?: string;
   lastUpdated?: string;
 }
+
+// Helper to check if whys is the new matrix format
+export function isNewWhysMatrix(whys: WhysData): whys is WhysMatrix {
+  return whys !== null && typeof whys === 'object' && !Array.isArray(whys) && 'rows' in whys;
+}
+
+// Helper to create an empty WhyCell
+export function createEmptyCell(): WhyCell {
+  return { answer: '', validated: null };
+}
+
+// Helper to create an empty row
+export function createEmptyRow(id: string): WhysRow {
+  return {
+    id,
+    rounds: [createEmptyCell(), createEmptyCell(), createEmptyCell(), createEmptyCell(), createEmptyCell()],
+    improvement: ''
+  };
+}
+
+// Helper to create the default initial matrix (rows A-E)
+export function createInitialWhysMatrix(): WhysMatrix {
+  return {
+    rows: ['A', 'B', 'C', 'D', 'E'].map(id => createEmptyRow(id))
+  };
+}
+
+// Row IDs follow alphabetical order
+export const ROW_IDS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
 export enum StepId {
   IDENTIFICATION = 0,

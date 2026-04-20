@@ -26,14 +26,12 @@ const columns: { title: string; status: Status; color: string; icon: React.React
 ];
 
 const CardItem: React.FC<{ action: KanbanAction; isDragging?: boolean; onAskEvidence?: () => void }> = ({ action, isDragging, onAskEvidence }) => (
-  <div onClick={onAskEvidence} className={`cursor-pointer bg-white p-2 md:p-3 rounded-xl shadow-sm border border-slate-100 transition-all group ${
-    isDragging ? 'shadow-xl border-[#171C8F] opacity-90 rotate-2 scale-105 z-50' : 'hover:shadow-lg hover:border-[#171C8F]/30'
-  }`}>
+  <div onClick={onAskEvidence} className={`cursor-pointer bg-white p-2 md:p-3 rounded-xl shadow-sm border border-slate-100 transition-all group ${isDragging ? 'shadow-xl border-[#171C8F] opacity-90 rotate-2 scale-105 z-50' : 'hover:shadow-lg hover:border-[#171C8F]/30'
+    }`}>
     <div className="flex justify-between items-start mb-1 md:mb-2">
-      <span className={`text-[8px] md:text-[10px] font-bold px-1.5 md:px-2 py-0.5 rounded-full uppercase ${
-        action.type === 'Corretiva' ? 'bg-red-100 text-red-700' : 
-        action.type === 'Preventiva' ? 'bg-[#e5ebf7] text-[#171C8F]' : 'bg-amber-100 text-amber-700'
-      }`}>
+      <span className={`text-[8px] md:text-[10px] font-bold px-1.5 md:px-2 py-0.5 rounded-full uppercase ${action.type === 'Corretiva' ? 'bg-red-100 text-red-700' :
+          action.type === 'Preventiva' ? 'bg-[#e5ebf7] text-[#171C8F]' : 'bg-amber-100 text-amber-700'
+        }`}>
         {action.type}
       </span>
       <GripVertical size={12} className="text-slate-400 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -101,11 +99,10 @@ const DroppableColumn: React.FC<{ status: Status; title: string; color: string; 
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
-    <div 
+    <div
       ref={setNodeRef}
-      className={`flex flex-col rounded-xl border-2 ${color} p-2 md:p-3 transition-all duration-300 ${
-        isOver ? 'ring-2 ring-[#171C8F] ring-opacity-50 bg-[#e5ebf7]' : ''
-      }`}
+      className={`flex flex-col rounded-xl border-2 ${color} p-2 md:p-3 transition-all duration-300 ${isOver ? 'ring-2 ring-[#171C8F] ring-opacity-50 bg-[#e5ebf7]' : ''
+        }`}
     >
       <div className="flex items-center justify-between mb-2 md:mb-3 px-1">
         <div className="flex items-center gap-2">
@@ -203,9 +200,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
   const allActions = getAllActions();
 
   const filteredActions = allActions.filter(action => {
-    if (filters.search && !action.description?.toLowerCase().includes(filters.search.toLowerCase()) && 
-        !action.analysisEquipment?.toLowerCase().includes(filters.search.toLowerCase()) &&
-        !action.analysisArea?.toLowerCase().includes(filters.search.toLowerCase())) return false;
+    if (filters.search && !action.description?.toLowerCase().includes(filters.search.toLowerCase()) &&
+      !action.analysisEquipment?.toLowerCase().includes(filters.search.toLowerCase()) &&
+      !action.analysisArea?.toLowerCase().includes(filters.search.toLowerCase())) return false;
     if (filters.type && action.type !== filters.type) return false;
     if (filters.area && action.analysisArea !== filters.area) return false;
     if (filters.equipment && action.analysisEquipment !== filters.equipment) return false;
@@ -239,13 +236,13 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
 
     const updatedAnalysis = {
       ...parentAnalysis,
-      actions: parentAnalysis.actions.map(a => 
+      actions: parentAnalysis.actions.map(a =>
         a.id === id ? { ...a, status: newStatus } : a
       )
     };
 
     const tempActions = allActions.map(a => a.id === id ? { ...a, status: newStatus } : a);
-    
+
     setAnalyses(prev => {
       const newAnalyses = prev.map(a => String(a.id) === String(updatedAnalysis.id) ? updatedAnalysis : a);
       return newAnalyses;
@@ -346,8 +343,8 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
               <h3 className="text-xs font-black text-[#171C8F] uppercase tracking-wider">Filtros Avançados</h3>
             </div>
             <span className="text-[9px] font-medium text-slate-400">
-              {(filters.search || filters.type || filters.area || filters.equipment || filters.responsible) 
-                ? `${Object.values(filters).filter(v => v).length} filtro(s) ativo(s)` 
+              {(filters.search || filters.type || filters.area || filters.equipment || filters.responsible)
+                ? `${Object.values(filters).filter(v => v).length} filtro(s) ativo(s)`
                 : 'Nenhum filtro aplicado'}
             </span>
           </div>
@@ -433,7 +430,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
         </div>
         <DragOverlay>{activeAction ? <CardItem action={activeAction} isDragging /> : null}</DragOverlay>
       </DndContext>
-      
+
       <div className="mt-3 md:mt-4 p-3 md:p-4 bg-[#171C8F] rounded-xl text-white shadow-lg overflow-hidden relative">
         <div className="relative z-10 flex items-center justify-between gap-4">
           <div>
@@ -456,7 +453,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
           if (selectedActionId) {
             const action = allActions.find(a => a.id === selectedActionId);
             if (!action) return;
-            
+
             const parentAnalysis = analyses.find(a => String(a.id) === String(action.analysisId));
             if (!parentAnalysis) {
               console.error('Parent analysis not found in modal', { analysesIds: analyses.map(a => a.id), actionAnalysisId: action.analysisId });
@@ -465,7 +462,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
 
             const updatedAnalysis = {
               ...parentAnalysis,
-              actions: parentAnalysis.actions.map(a => 
+              actions: parentAnalysis.actions.map(a =>
                 a.id === selectedActionId ? { ...a, evidence } : a
               )
             };
@@ -475,13 +472,13 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
             if (modalMode === 'complete') {
               const updatedAnalysisWithStatus = {
                 ...updatedAnalysis,
-                actions: updatedAnalysis.actions.map(a => 
+                actions: updatedAnalysis.actions.map(a =>
                   a.id === selectedActionId ? { ...a, status: 'Concluída' as Status } : a
                 )
               };
-              
+
               setAnalyses(prev => prev.map(a => String(a.id) === String(updatedAnalysisWithStatus.id) ? updatedAnalysisWithStatus : a));
-              
+
               db.saveAnalysis(action.analysisUserId, updatedAnalysisWithStatus).catch(err => {
                 console.error('Failed to save:', err);
               });
@@ -498,9 +495,9 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
       />
 
       {alertOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fadeIn"
-          style={{ 
+          style={{
             background: 'rgba(23, 28, 143, 0.4)',
             backdropFilter: 'blur(4px)'
           }}
@@ -508,14 +505,14 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
             if (e.target === e.currentTarget) setAlertOpen(false);
           }}
         >
-          <div 
+          <div
             className="bg-white rounded-[20px] shadow-2xl w-full max-w-md animate-scaleIn overflow-hidden"
             style={{
               border: '1px solid rgba(23, 28, 143, 0.1)',
               boxShadow: '0 25px 50px -12px rgba(23, 28, 143, 0.25)'
             }}
           >
-            <div 
+            <div
               className="px-6 py-4 flex items-center justify-between"
               style={{ background: '#eab308' }}
             >
@@ -527,7 +524,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
                   Atenção
                 </h2>
               </div>
-              <button 
+              <button
                 onClick={() => setAlertOpen(false)}
                 className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
               >
