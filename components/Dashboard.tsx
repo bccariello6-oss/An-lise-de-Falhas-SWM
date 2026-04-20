@@ -13,6 +13,7 @@ interface DashboardProps {
 }
 
 import * as db from '../services/supabaseService';
+import { sendAnalysisNotification } from '../services/notificationService';
 
 const COLORS = ['#171C8F', '#13aff0', '#10b981', '#5c6eb1'];
 
@@ -24,6 +25,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
   const [refreshKey, setRefreshKey] = useState(0);
   const [notifications, setNotifications] = useState<Analysis[]>([]);
   const [showNotification, setShowNotification] = useState(false);
+  const [testingEmail, setTestingEmail] = useState(false);
   const lastCountRef = useRef(0);
 
   const isAdmin = profile?.role === 'ADMIN';
@@ -93,6 +95,39 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
       byRootCause: Object.entries(causes).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 4)
     };
   }, [history]);
+
+  const testEmailNotification = async () => {
+    setTestingEmail(true);
+    try {
+      const mockAnalysis = {
+        id: 'TEST-' + Date.now(),
+        equipment: 'TESTE - Equipamento de Teste',
+        area: 'Teste',
+        description: 'Esta é uma mensagem de teste para verificar a configuração do Resend.',
+        failureDate: new Date().toLocaleDateString('pt-BR'),
+        authorName: profile?.full_name || 'Teste Admin',
+        rootCause: 'Teste de configuração',
+        sequentialNumber: 999,
+        actions: [],
+      } as Analysis;
+      
+      const result = await sendAnalysisNotification({
+        analysis: mockAnalysis,
+        authorName: profile?.full_name || 'Teste Admin',
+      });
+      
+      if (result) {
+        alert('✅ E-mail de teste enviado com sucesso! Verifique sua caixa de entrada.');
+      } else {
+        alert('❌ Falha ao enviar. Verifique o console para detalhes.');
+      }
+    } catch (error) {
+      console.error('Test error:', error);
+      alert('❌ Erro: ' + (error as Error).message);
+    } finally {
+      setTestingEmail(false);
+    }
+  };
 
   const areas = useMemo(() => {
     const uniqueAreas = new Set(history.map(a => a.area).filter(Boolean));
@@ -238,6 +273,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
             </h3>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            {isAdmin && (
+              <button 
+                onClick={testEmailNotification}
+                disabled={testingEmail}
+                className="px-3 py-2 bg-amber-100 text-amber-700 border border-amber-200 rounded-xl text-[10px] font-black uppercase hover:bg-amber-200 transition-colors disabled:opacity-50"
+              >
+                {testingEmail ? 'Enviando...' : 'Testar E-mail'}
+              </button>
+            )}
             <div className="relative flex-1 sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
               <input 
