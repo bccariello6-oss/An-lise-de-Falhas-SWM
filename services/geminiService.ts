@@ -10,7 +10,7 @@ const serializeWhys = (whys: Analysis['whys']): string => {
   if (isNewWhysMatrix(whys)) {
     return (whys as WhysMatrix).rows
       .filter(r => r.rounds.some(c => c.answer.trim()))
-      .map(r => `[${r.id}: ${r.rounds.filter(c => c.answer.trim()).map(c => `${c.answer}${c.validated ? `(${c.validated})` : ''}`).join(' → ')}${r.improvement ? ` | Melhoria: ${r.improvement}` : ''}]`)
+      .map(r => `[${r.id}: ${r.rounds.filter(c => c.answer.trim() || c.question.trim()).map(c => `${c.question ? `Q: ${c.question} ` : ''}A: ${c.answer}${c.validated ? `(${c.validated})` : ''}`).join(' → ')}${r.improvement ? ` | Melhoria: ${r.improvement}` : ''}]`)
       .join(' | ');
   } else if (Array.isArray(whys)) {
     return whys.filter(w => w).join(' → ');

@@ -236,55 +236,55 @@ const App: React.FC = () => {
           {
             id: 'A',
             rounds: [
-              { answer: 'Motor queimou por sobreaquecimento', validated: 'V' },
-              { answer: 'Aumento súbito de corrente elétrica', validated: 'V' },
-              { answer: 'Cavitação severa na bomba', validated: 'V' },
-              { answer: 'Nível do tanque abaixou além do limite', validated: 'V' },
-              { answer: 'Boia de controle travou por incrustações', validated: 'V' }
+              { question: 'Por que ocorre alto índice de falhas no motor?', answer: 'Motor queimou por sobreaquecimento', validated: 'V' },
+              { question: 'Por que o motor sobreaqueceu?', answer: 'Aumento súbito de corrente elétrica', validated: 'V' },
+              { question: 'Por que a corrente aumentou?', answer: 'Cavitação severa na bomba', validated: 'V' },
+              { question: 'Por que ocorreu cavitação?', answer: 'Nível do tanque abaixou além do limite', validated: 'V' },
+              { question: 'Por que o nível baixou?', answer: 'Boia de controle travou por incrustações', validated: 'V' }
             ],
             improvement: 'Implementar limpeza quinzenal dos sensores de boia'
           },
           {
             id: 'B',
             rounds: [
-              { answer: 'Vibração excessiva na carcaça', validated: 'V' },
-              { answer: 'Rolamento com desgaste prematuro', validated: 'V' },
-              { answer: 'Lubrificação insuficiente', validated: 'F' },
-              { answer: '', validated: null },
-              { answer: '', validated: null }
+              { question: 'Por que há vibração na carcaça?', answer: 'Vibração excessiva na carcaça', validated: 'V' },
+              { question: 'Por que ocorre vibração excessiva?', answer: 'Rolamento com desgaste prematuro', validated: 'V' },
+              { question: 'Por que o rolamento desgastou?', answer: 'Lubrificação insuficiente', validated: 'F' },
+              { question: '', answer: '', validated: null },
+              { question: '', answer: '', validated: null }
             ],
             improvement: ''
           },
           {
             id: 'C',
             rounds: [
-              { answer: 'Temperatura elevada na carcaça', validated: 'V' },
-              { answer: 'Refrigeração inadequada', validated: 'F' },
-              { answer: '', validated: null },
-              { answer: '', validated: null },
-              { answer: '', validated: null }
+              { question: 'Por que temperatura está elevada?', answer: 'Temperatura elevada na carcaça', validated: 'V' },
+              { question: 'Por que a temperatura subiu?', answer: 'Refrigeração inadequada', validated: 'F' },
+              { question: '', answer: '', validated: null },
+              { question: '', answer: '', validated: null },
+              { question: '', answer: '', validated: null }
             ],
             improvement: ''
           },
           {
             id: 'D',
             rounds: [
-              { answer: '', validated: null },
-              { answer: '', validated: null },
-              { answer: '', validated: null },
-              { answer: '', validated: null },
-              { answer: '', validated: null }
+              { question: '', answer: '', validated: null },
+              { question: '', answer: '', validated: null },
+              { question: '', answer: '', validated: null },
+              { question: '', answer: '', validated: null },
+              { question: '', answer: '', validated: null }
             ],
             improvement: ''
           },
           {
             id: 'E',
             rounds: [
-              { answer: '', validated: null },
-              { answer: '', validated: null },
-              { answer: '', validated: null },
-              { answer: '', validated: null },
-              { answer: '', validated: null }
+              { question: '', answer: '', validated: null },
+              { question: '', answer: '', validated: null },
+              { question: '', answer: '', validated: null },
+              { question: '', answer: '', validated: null },
+              { question: '', answer: '', validated: null }
             ],
             improvement: ''
           }
@@ -555,9 +555,12 @@ const App: React.FC = () => {
                   <tr>
                     <td style="padding:6px; border:1px solid #ddd; text-align:center; background:#f8fafc; font-weight:bold;">${row.id}</td>
                     ${row.rounds.map(cell => `
-                      <td style="padding:6px; border:1px solid #ddd; text-align:center; ${cell.validated === 'F' ? 'background:#fee2e2;' : cell.validated === 'V' ? 'background:#d1fae5;' : ''}">
-                        ${cell.answer || '-'}
-                        ${cell.validated ? ` <span style="font-weight:bold; color:${cell.validated === 'V' ? '#065f46' : '#991b1b'};">(${cell.validated})</span>` : ''}
+                      <td style="padding:0; border:1px solid #ddd; ${cell.validated === 'F' ? 'background:#fee2e2;' : cell.validated === 'V' ? 'background:#d1fae5;' : ''}">
+                        ${cell.question ? `<div style="padding:4px 6px; font-size:9px; color:#64748b; font-style:italic; border-bottom:1px solid rgba(0,0,0,0.08);">${cell.question}</div>` : ''}
+                        <div style="padding:4px 6px; font-size:10px; font-weight:600; color:#1e293b; display:flex; justify-content:space-between; align-items:center;">
+                          <span>${cell.answer || '—'}</span>
+                          ${cell.validated ? `<span style="font-weight:900; color:${cell.validated === 'V' ? '#065f46' : '#991b1b'}; margin-left:4px;">${cell.validated}</span>` : ''}
+                        </div>
                       </td>
                     `).join('')}
                     <td style="padding:6px; border:1px solid #ddd; text-align:center; background:#eff6ff; font-style:italic;">${row.improvement || '-'}</td>
@@ -800,7 +803,7 @@ const App: React.FC = () => {
           ? analysis.whys 
           : createInitialWhysMatrix();
 
-        const updateWhysCell = (rowId: string, roundIdx: number, field: 'answer' | 'validated', value: any) => {
+        const updateWhysCell = (rowId: string, roundIdx: number, field: 'question' | 'answer' | 'validated', value: any) => {
           const newRows = whysMatrix.rows.map(row => {
             if (row.id !== rowId) return row;
             const newRounds = row.rounds.map((cell, idx) => {
@@ -890,30 +893,46 @@ const App: React.FC = () => {
                       
                       {/* 5 Rounds */}
                       {row.rounds.map((cell, roundIdx) => (
-                        <div key={roundIdx} className="p-1 flex flex-col gap-0.5">
-                          <div className="flex-1">
-                            <input
-                              type="text"
-                              value={cell.answer}
-                              onChange={(e) => updateWhysCell(row.id, roundIdx, 'answer', e.target.value)}
-                              className="w-full min-h-[32px] bg-transparent text-[10px] text-slate-700 outline-none px-1.5 py-1 focus:bg-[#e5ebf7] rounded transition-colors placeholder-slate-300 font-medium"
-                              placeholder="Hipótese..."
+                        <div
+                          key={roundIdx}
+                          className={`flex flex-col divide-y divide-slate-100 ${
+                            cell.validated === 'V' ? 'bg-green-50/40' : cell.validated === 'F' ? 'bg-red-50/40' : ''
+                          }`}
+                        >
+                          {/* Linha 1: Pergunta */}
+                          <div className="px-1.5 py-1">
+                            <textarea
+                              rows={2}
+                              value={cell.question}
+                              onChange={(e) => updateWhysCell(row.id, roundIdx, 'question', e.target.value)}
+                              className="w-full bg-transparent text-[9px] text-slate-500 outline-none resize-none focus:bg-blue-50/60 rounded transition-colors placeholder-slate-300 font-medium italic leading-snug"
+                              placeholder="Por que ocorre...?"
                             />
                           </div>
-                          {cell.answer.trim() && (
-                            <button
-                              onClick={() => toggleValidation(row.id, roundIdx)}
-                              className={`self-end text-[8px] font-black px-2 py-0.5 rounded-md border transition-all ${
-                                cell.validated === 'V' 
-                                  ? 'bg-green-100 border-green-300 text-green-700 hover:bg-green-200' 
-                                  : cell.validated === 'F' 
-                                    ? 'bg-red-100 border-red-300 text-red-700 hover:bg-red-200' 
-                                    : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
-                              }`}
-                            >
-                              {cell.validated === 'V' ? 'V' : cell.validated === 'F' ? 'F' : '?'}
-                            </button>
-                          )}
+                          {/* Linha 2: Resposta + Badge V/F */}
+                          <div className="px-1.5 py-1 flex items-start gap-1">
+                            <textarea
+                              rows={2}
+                              value={cell.answer}
+                              onChange={(e) => updateWhysCell(row.id, roundIdx, 'answer', e.target.value)}
+                              className="flex-1 bg-transparent text-[10px] text-slate-800 outline-none resize-none focus:bg-[#e5ebf7] rounded transition-colors placeholder-slate-300 font-semibold leading-snug"
+                              placeholder="Resposta..."
+                            />
+                            {cell.answer.trim() && (
+                              <button
+                                onClick={() => toggleValidation(row.id, roundIdx)}
+                                className={`shrink-0 mt-0.5 text-[8px] font-black w-6 h-6 rounded border transition-all flex items-center justify-center ${
+                                  cell.validated === 'V'
+                                    ? 'bg-green-100 border-green-400 text-green-700 hover:bg-green-200'
+                                    : cell.validated === 'F'
+                                      ? 'bg-red-100 border-red-400 text-red-700 hover:bg-red-200'
+                                      : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
+                                }`}
+                              >
+                                {cell.validated === 'V' ? 'V' : cell.validated === 'F' ? 'F' : '?'}
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ))}
                       
@@ -1238,9 +1257,14 @@ const App: React.FC = () => {
                     <div key={row.id} className="grid grid-cols-[30px_1fr_1fr_1fr_1fr_1fr_1fr] divide-x divide-slate-100">
                       <div className="p-1.5 flex items-center justify-center font-black text-[#171C8F] text-[9px] bg-slate-50">{row.id}</div>
                       {row.rounds.map((cell, idx) => (
-                        <div key={idx} className={`p-1.5 flex items-center justify-center text-[8px] font-medium text-slate-700 text-center break-words min-h-[28px] ${cell.validated === 'V' ? 'bg-green-50' : cell.validated === 'F' ? 'bg-red-50' : ''}`}>
-                          {cell.answer || '-'}
-                          {cell.validated && <span className={`ml-1 font-black ${cell.validated === 'V' ? 'text-green-600' : 'text-red-600'}`}>({cell.validated})</span>}
+                        <div key={idx} className={`flex flex-col divide-y divide-slate-100 min-h-[36px] ${cell.validated === 'V' ? 'bg-green-50' : cell.validated === 'F' ? 'bg-red-50' : ''}`}>
+                          {cell.question && (
+                            <p className="px-1 py-0.5 text-[7px] italic text-slate-400 leading-tight">{cell.question}</p>
+                          )}
+                          <div className="px-1 py-0.5 flex items-center justify-between gap-0.5">
+                            <p className="text-[8px] font-semibold text-slate-700 break-words flex-1">{cell.answer || (cell.question ? '' : '-')}</p>
+                            {cell.validated && <span className={`shrink-0 text-[7px] font-black ${cell.validated === 'V' ? 'text-green-600' : 'text-red-600'}`}>{cell.validated}</span>}
+                          </div>
                         </div>
                       ))}
                       <div className="p-1.5 flex items-center justify-center text-[8px] font-medium text-slate-600 text-center italic bg-blue-50">{row.improvement || '-'}</div>

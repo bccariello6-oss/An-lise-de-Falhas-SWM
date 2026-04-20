@@ -4,8 +4,9 @@ export type FailureFrequency = 'Eventual' | 'Recorrente' | 'Crônica';
 export type ActionType = 'Corretiva' | 'Preventiva' | 'Melhoria';
 
 export interface WhyCell {
-  answer: string;
-  validated: 'V' | 'F' | null; // V = Verdadeiro (confirmado), F = Falso (não confirmado), null = não avaliado
+  question: string;   // linha 1: "Por que ocorre...?" 
+  answer: string;     // linha 2: a hipótese/resposta
+  validated: 'V' | 'F' | null; // V = Verdadeiro, F = Falso
 }
 
 export interface WhysRow {
@@ -99,7 +100,7 @@ export function isNewWhysMatrix(whys: WhysData): whys is WhysMatrix {
 
 // Helper to create an empty WhyCell
 export function createEmptyCell(): WhyCell {
-  return { answer: '', validated: null };
+  return { question: '', answer: '', validated: null };
 }
 
 // Helper to create an empty row
