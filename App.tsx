@@ -8,6 +8,7 @@ import KanbanView from './components/KanbanView';
 import Login from './components/Login';
 import { supabase } from './lib/supabase';
 import * as db from './services/supabaseService';
+import { notifyNewAnalysis } from './services/notificationService';
 import { generateSummary, suggestRootCause } from './services/geminiService';
 import { 
   LogOut,
@@ -340,6 +341,11 @@ const App: React.FC = () => {
       const seqNum = await db.fetchNextSequentialNumber();
       const analysisWithSeq = { ...analysis, sequentialNumber: seqNum };
       await db.saveAnalysis(session.user.id, analysisWithSeq);
+      
+      if (profile?.role === 'ADMIN') {
+        await notifyNewAnalysis(analysisWithSeq, analysis.authorName || 'Usuário');
+      }
+      
       setCurrentStep(StepId.DASHBOARD);
       setShowSummary(false);
     } catch (error) {

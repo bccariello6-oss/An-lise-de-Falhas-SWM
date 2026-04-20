@@ -1,7 +1,7 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { AlertTriangle, ListChecks, BarChart3, PieChart as PieChartIcon, Search, ChevronDown, FileText, Trash2, FolderOpen } from 'lucide-react';
+import { AlertTriangle, ListChecks, BarChart3, PieChart as PieChartIcon, Search, ChevronDown, FileText, Trash2, FolderOpen, Bell, X } from 'lucide-react';
 import { Analysis } from '../types';
 
 interface DashboardProps {
@@ -22,6 +22,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
   const [history, setHistory] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [notifications, setNotifications] = useState<Analysis[]>([]);
+  const [showNotification, setShowNotification] = useState(false);
+  const lastCountRef = useRef(0);
 
   const isAdmin = profile?.role === 'ADMIN';
 
@@ -30,6 +33,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
       loadData();
     }
   }, [user, profile, refreshKey]);
+
+  useEffect(() => {
+    if (!isAdmin || !user?.id) return;
+    
+    const interval = setInterval(async () => {
+      try {
+        const data = await db.fetchAnalyses(user.id, true);
+        if (data.length > lastCountRef.current) {
+          const newAnalyses = data.slice(0, data.length - lastCountRef.current);
+          setNotifications(prev => [...prev, ...newAnalyses].slice(-5));
+          setShowNotification(true);
+        }
+        lastCountRef.current = data.length;
+      } catch (error) {
+        console.error('Error polling:', error);
+      }
+    }, 15000);
+    
+    return () => clearInterval(interval);
+  }, [isAdmin, user]);
 
   const loadData = async () => {
     try {
@@ -91,6 +114,47 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
 
   return (
     <div className="space-y-8 animate-fadeIn pb-20">
+      {/* Real-time Notification Toast for Admin */}
+      {isAdmin && notifications.length > 0 && showNotification && (
+        <div className="fixed top-4 right-4 z-50 animate-slideDown">
+          <div className="bg-gradient-to-r from-[#171C8F] to-[#13aff0] text-white p-4 rounded-xl shadow-2xl max-w-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center animate-pulse">
+                  <Bell size={16} />
+                </div>
+                <div>
+                  <p className="font-black text-xs uppercase">Nova Análise!</p>
+                  <p className="text-[10px] opacity-90">{notifications[notifications.length - 1]?.equipment || 'Novo registro'}</p>
+                  <p className="text-[9px] opacity-75">{notifications[notifications.length - 1]?.area || ''}</p>
+                </div>
+              </div>
+              <button onClick={() => setShowNotification(false)} className="text-white/70 hover:text-white">
+                <X size={16} />
+              </button>
+            </div>
+            <button 
+              onClick={() => {
+                const latest = notifications[notifications.length - 1];
+                if (latest) onLoad(latest);
+                setNotifications([]);
+                setShowNotification(false);
+              }}
+              className="w-full mt-3 bg-white text-[#171C8F] py-2 rounded-lg text-[10px] font-black uppercase hover:bg-gray-50 transition-colors"
+            >
+              Ver Análise
+            </button>
+          </div>
+          <style>{`
+            @keyframes slideDown {
+              from { opacity: 0; transform: translateY(-20px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-slideDown { animation: slideDown 0.3s ease-out; }
+          `}</style>
+        </div>
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[
