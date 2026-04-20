@@ -130,14 +130,10 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
 
           <div className="mt-10 pt-8 border-t border-slate-50 text-center">
             <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">
-              Célula de IA SWM Brasil, por Bruno Cariello
+              Desenvolvido por Bruno Cariello
             </p>
           </div>
         </div>
-        
-        <p className="text-center mt-6 text-[10px] font-medium text-slate-400">
-          Problemas com o acesso? Contate a Engenharia de Manutenção
-        </p>
       </div>
     </div>
   );
