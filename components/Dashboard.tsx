@@ -7,6 +7,7 @@ import { Analysis } from '../types';
 interface DashboardProps {
   onLoad: (analysis: Analysis) => void;
   onDelete: (id: string) => void;
+  onDeleteSuccess?: () => void;
   user: any;
   profile: any;
 }
@@ -15,11 +16,12 @@ import * as db from '../services/supabaseService';
 
 const COLORS = ['#171C8F', '#13aff0', '#10b981', '#5c6eb1'];
 
-const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, user, profile }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess, user, profile }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [areaFilter, setAreaFilter] = useState('Todas');
   const [history, setHistory] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const isAdmin = profile?.role === 'ADMIN';
 
@@ -27,7 +29,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, user, profile }
     if (user?.id) {
       loadData();
     }
-  }, [user, profile]);
+  }, [user, profile, refreshKey]);
 
   const loadData = async () => {
     try {
@@ -229,7 +231,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, user, profile }
                     Abrir Relatório
                   </button>
                   <button 
-                    onClick={() => onDelete(item.id)}
+                    onClick={async () => {
+                      if (confirm("Excluir esta análise definitivamente?")) {
+                        await onDelete(item.id);
+                        setRefreshKey(k => k + 1);
+                        if (onDeleteSuccess) onDeleteSuccess();
+                      }
+                    }}
                     className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 transition-all bg-slate-50 hover:bg-red-50 rounded-lg border border-slate-100"
                     aria-label="Excluir"
                   >

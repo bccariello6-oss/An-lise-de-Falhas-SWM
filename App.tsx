@@ -421,10 +421,10 @@ const App: React.FC = () => {
     document.body.appendChild(tempContainer);
 
     const opt = {
-      margin:       5,
+      margin:       [4, 3, 4, 3],
       filename:     `SWM_ARP_${analysis.id || 'Relatorio'}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, logging: false, letterRendering: true },
+      html2canvas:  { scale: 1.8, useCORS: true, logging: false, letterRendering: true },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
@@ -1121,7 +1121,7 @@ const App: React.FC = () => {
           </div>
         );
       
-      case StepId.DASHBOARD: return <Dashboard onLoad={loadFromHistory} onDelete={deleteFromHistory} user={session?.user} profile={profile} />;
+      case StepId.DASHBOARD: return <Dashboard onLoad={loadFromHistory} onDelete={deleteFromHistory} user={session?.user} profile={profile} onDeleteSuccess={() => setCurrentStep(StepId.DASHBOARD)} />;
       case StepId.KANBAN: return <KanbanView user={session?.user} profile={profile} />;
       default: return null;
     }
@@ -1168,7 +1168,7 @@ const App: React.FC = () => {
       )}
 
       {/* PDF PRINT LAYOUT (Hidden on UI) */}
-      <div id="pdf-content-wrapper" className="hidden bg-white p-5 text-slate-900 font-sans w-[210mm] mx-auto" style={{ minHeight: '297mm' }}>
+      <div id="pdf-content-wrapper" className="hidden bg-white p-4 text-slate-900 font-sans w-[210mm] mx-auto" style={{ minHeight: '297mm' }}>
         <style>{`
           #pdf-content-wrapper * { box-sizing: border-box; }
           #pdf-content-wrapper section { break-inside: avoid; page-break-inside: avoid; }
@@ -1176,18 +1176,18 @@ const App: React.FC = () => {
           #pdf-content-wrapper .page-break-before { page-break-before: always; }
           #pdf-content-wrapper table { page-break-inside: avoid; }
         `}</style>
-        <header className="flex justify-between items-center border-b-4 border-[#171C8F] pb-4 mb-6">
-          <div className="flex items-center gap-4">
-            <img src="/swm-logo.png" alt="SWM Logo" className="h-10 w-auto" />
+        <header className="flex justify-between items-center border-b-4 border-[#171C8F] pb-2 mb-3">
+          <div className="flex items-center gap-3">
+            <img src="/swm-logo.png" alt="SWM Logo" className="h-8 w-auto" />
             <div>
-              <h1 className="text-xl font-black uppercase text-[#171C8F]">Relatório de Análise de Falha</h1>
-              <p className="text-[#13aff0] font-extrabold uppercase tracking-[0.15em] text-[9px]">SWM Brasil - LIDERANÇA OPEX</p>
+              <h1 className="text-lg font-black uppercase text-[#171C8F]">Relatório de Análise de Falha</h1>
+              <p className="text-[#13aff0] font-extrabold uppercase tracking-[0.15em] text-[8px]">SWM Brasil - LIDERANÇA OPEX</p>
             </div>
           </div>
           <div className="text-right">
-             <p className="text-[8px] font-black text-slate-400 uppercase">Nº Sequencial</p>
+             <p className="text-[7px] font-black text-slate-400 uppercase">Nº Sequencial</p>
              <p className="text-sm font-black text-[#171C8F]">{analysis.sequentialNumber || '-'}</p>
-             <p className="text-[7px] font-black text-slate-300 uppercase mt-1">Protocolo</p>
+             <p className="text-[6px] font-black text-slate-300 uppercase mt-0.5">Protocolo</p>
              <p className="text-xs font-black text-[#171C8F]">{analysis.id}</p>
           </div>
         </header>
