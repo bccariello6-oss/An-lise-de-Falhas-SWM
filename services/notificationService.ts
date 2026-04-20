@@ -1,4 +1,5 @@
 import type { Analysis } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface NotificationPayload {
   analysis: Analysis;
@@ -18,6 +19,10 @@ export const sendAnalysisNotification = async ({ analysis, authorName }: Notific
     console.warn('[Notification] Admin email not configured');
     return false;
   }
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const functionUrl = `${supabaseUrl}/functions/v1/send-report-email`;
 
   const subject = `[ARP] Nova Análise Finalizada - ${analysis.equipment || 'Equipamento'} (${analysis.area || 'N/A'})`;
 
@@ -227,14 +232,15 @@ export const sendAnalysisNotification = async ({ analysis, authorName }: Notific
   `;
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
+    const response = await fetch(functionUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${resendApiKey}`,
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'x-resend-api-key': resendApiKey,
       },
       body: JSON.stringify({
-        from: 'ARP SWM Brasil <noreply@seudominio.com.br>',
         to: [adminEmail],
         subject: subject,
         html: htmlContent,
@@ -243,7 +249,7 @@ export const sendAnalysisNotification = async ({ analysis, authorName }: Notific
 
     if (!response.ok) {
       const error = await response.json();
-      console.error('[Notification] Resend error:', error);
+      console.error('[Notification] Edge Function error:', error);
       return false;
     }
 
