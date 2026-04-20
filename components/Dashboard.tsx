@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { AlertTriangle, ListChecks, BarChart3, PieChart as PieChartIcon, Search, ChevronDown, FileText, Trash2, FolderOpen, Bell, X } from 'lucide-react';
@@ -17,7 +16,7 @@ import * as db from '../services/supabaseService';
 const COLORS = ['#171C8F', '#13aff0', '#10b981', '#5c6eb1'];
 
 const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess, user, profile }) => {
-const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [areaFilter, setAreaFilter] = useState('Todas');
   const [history, setHistory] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +53,44 @@ const [searchTerm, setSearchTerm] = useState('');
     return () => clearInterval(interval);
   }, [isAdmin, user]);
 
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const data = await db.fetchAnalyses(user.id, isAdmin);
+      setHistory(data);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const stats = useMemo(() => {
+    const total = history.length;
+    const openActions = history.reduce((acc, curr) => acc + (curr.actions?.filter(a => a.status !== 'Concluída').length || 0), 0);
+    
+    return {
+      total,
+      openActions,
+    };
+  }, [history]);
+
+  const chartData = useMemo(() => {
+    const areas: Record<string, number> = {};
+    const causes: Record<string, number> = {};
+
+    history.forEach(item => {
+      if (item.area) areas[item.area] = (areas[item.area] || 0) + 1;
+      const cause = item.rootCause ? (item.rootCause.length > 15 ? item.rootCause.substring(0, 15) + '...' : item.rootCause) : 'Não definida';
+      causes[cause] = (causes[cause] || 0) + 1;
+    });
+
+    return {
+      byArea: Object.entries(areas).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 5),
+      byRootCause: Object.entries(causes).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 4)
+    };
+  }, [history]);
+
   const areas = useMemo(() => {
     const uniqueAreas = new Set(history.map(a => a.area).filter(Boolean));
     return ['Todas', ...Array.from(uniqueAreas)];
@@ -71,6 +108,14 @@ const [searchTerm, setSearchTerm] = useState('');
       return matchesSearch && matchesArea;
     }).sort((a, b) => new Date(b.failureDate).getTime() - new Date(a.failureDate).getTime());
   }, [history, searchTerm, areaFilter]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#171C8F]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fadeIn pb-20">
