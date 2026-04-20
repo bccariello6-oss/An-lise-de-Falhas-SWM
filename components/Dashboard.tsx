@@ -273,11 +273,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
                 <div className="flex items-center gap-3 w-full">
                   <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center flex-shrink-0 group-hover:border-[#171C8F] transition-all shadow-sm">
                     <span className="text-[10px] font-black text-[#171C8F]">
-                      {profile?.role === 'MANUT' ? 'MANUT' : 
-                       profile?.role === 'ADMIN' ? 'ADMIN' : 
-                       profile?.full_name?.substring(0, 3).toUpperCase() || 
-                       profile?.username?.substring(0, 3).toUpperCase() || 
-                       'USR'}
+                      {item.authorName?.substring(0, 2).toUpperCase() || 
+                       item.area?.substring(0, 2).toUpperCase() || 
+                       'US'}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
