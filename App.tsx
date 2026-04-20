@@ -963,16 +963,15 @@ const App: React.FC = () => {
             <div className="flex items-center gap-3">
               <img src="/swm-logo.png" alt="SWM Logo" className="h-8 w-auto" />
               <div>
-                <h1 className="text-lg font-black uppercase text-[#171C8F]">Relatório de Análise de Falha</h1>
+                <h1 className="text-lg font-black uppercase text-[#171C8F]">ARP - Análise e Resolução de Problemas</h1>
                 <p className="text-[#13aff0] font-extrabold uppercase tracking-[0.15em] text-[8px]">SWM Brasil - LIDERANÇA OPEX</p>
               </div>
             </div>
             <p className="text-[7px] font-bold text-slate-500 mt-1"><span className="font-black">Responsável:</span> {analysis.authorName || '—'}</p>
+            <p className="text-[7px] font-black text-slate-400 mt-0.5"><span className="font-bold">Nº Sequential:</span> <span className="text-[#171C8F]">{analysis.sequentialNumber || '-'}</span></p>
           </div>
           <div className="text-right">
-             <p className="text-[7px] font-black text-slate-400 uppercase">Nº Sequencial</p>
-             <p className="text-sm font-black text-[#171C8F]">{analysis.sequentialNumber || '-'}</p>
-             <p className="text-[6px] font-black text-slate-300 uppercase mt-0.5">Protocolo</p>
+             <p className="text-[6px] font-black text-slate-300 uppercase">Protocolo</p>
              <p className="text-xs font-black text-[#171C8F]">{analysis.id}</p>
           </div>
         </header>
