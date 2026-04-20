@@ -200,12 +200,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, user, profile }
             filteredHistory.map(item => (
               <div key={item.id} className="bg-white border border-slate-100 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:shadow-sm transition-all group">
                 <div className="flex items-center gap-3 w-full">
-                  <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 p-1 flex items-center justify-center flex-shrink-0 group-hover:border-[#171C8F] transition-all shadow-sm">
-                    <img src="/swm-logo.png" alt="SWM" className="w-full h-auto object-contain" />
+                  <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center flex-shrink-0 group-hover:border-[#171C8F] transition-all shadow-sm">
+                    <span className="text-[10px] font-black text-[#171C8F]">
+                      {profile?.role === 'MANUT' ? 'MANUT' : 
+                       profile?.role === 'ADMIN' ? 'ADMIN' : 
+                       profile?.full_name?.substring(0, 3).toUpperCase() || 
+                       profile?.username?.substring(0, 3).toUpperCase() || 
+                       'USR'}
+                    </span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                      <span className="text-[7px] font-black text-[#171C8F] bg-[#e5ebf7] px-1.5 py-0.5 rounded-md uppercase tracking-widest">{item.id}</span>
+                      <span className="text-[7px] font-black text-[#171C8F] bg-[#e5ebf7] px-1.5 py-0.5 rounded-md uppercase tracking-widest">{(item as any).sequentialNumber ? `#${(item as any).sequentialNumber}` : item.id}</span>
                       <time dateTime={item.failureDate} className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">{new Date(item.failureDate).toLocaleDateString('pt-BR')}</time>
                     </div>
                     <h4 className="text-xs font-black text-slate-800 leading-tight truncate group-hover:text-[#171C8F] transition-colors">{item.equipment || "Equipamento s/ Nome"}</h4>

@@ -56,6 +56,7 @@ export interface Ishikawa {
 
 export interface Analysis {
   id: string;
+  sequentialNumber?: number;
   // Step 1
   area: string;
   equipment: string;

@@ -1,6 +1,25 @@
 import { supabase } from '../lib/supabase';
 import type { Analysis, Action } from '../types';
 
+export const fetchNextSequentialNumber = async (): Promise<number> => {
+  const { data, error } = await supabase
+    .from('swm_failure_analyses')
+    .select('data')
+    .not('data->sequentialNumber', 'is', null)
+    .order('data->sequentialNumber', { ascending: true, nullsFirst: false })
+    .limit(1);
+
+  if (error) throw error;
+  if (!data || data.length === 0) return 1;
+
+  const maxSeq = data.reduce((max, item) => {
+    const seq = (item.data as any)?.sequentialNumber;
+    return seq > max ? seq : max;
+  }, 0);
+
+  return maxSeq + 1;
+};
+
 export const fetchAnalyses = async (userId: string, isAdmin: boolean) => {
   let query = supabase
     .from('swm_failure_analyses')

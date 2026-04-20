@@ -337,7 +337,9 @@ const App: React.FC = () => {
     
     try {
       setIsGeneratingSummary(true);
-      await db.saveAnalysis(session.user.id, analysis);
+      const seqNum = await db.fetchNextSequentialNumber();
+      const analysisWithSeq = { ...analysis, sequentialNumber: seqNum };
+      await db.saveAnalysis(session.user.id, analysisWithSeq);
       setCurrentStep(StepId.DASHBOARD);
       setShowSummary(false);
     } catch (error) {
@@ -1166,185 +1168,192 @@ const App: React.FC = () => {
       )}
 
       {/* PDF PRINT LAYOUT (Hidden on UI) */}
-      <div id="pdf-content-wrapper" className="hidden bg-white p-8 text-slate-900 font-sans w-[210mm] mx-auto" style={{ minHeight: '297mm', pageBreakAfter: 'always' }}>
+      <div id="pdf-content-wrapper" className="hidden bg-white p-5 text-slate-900 font-sans w-[210mm] mx-auto" style={{ minHeight: '297mm' }}>
         <style>{`
           #pdf-content-wrapper * { box-sizing: border-box; }
           #pdf-content-wrapper section { break-inside: avoid; page-break-inside: avoid; }
           #pdf-content-wrapper .break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
           #pdf-content-wrapper .page-break-before { page-break-before: always; }
+          #pdf-content-wrapper table { page-break-inside: avoid; }
         `}</style>
-        <header className="flex justify-between items-center border-b-4 border-[#171C8F] pb-6 mb-8">
-          <div className="flex items-center gap-6">
-            <img src="/swm-logo.png" alt="SWM Logo" className="h-14 w-auto" />
+        <header className="flex justify-between items-center border-b-4 border-[#171C8F] pb-4 mb-6">
+          <div className="flex items-center gap-4">
+            <img src="/swm-logo.png" alt="SWM Logo" className="h-10 w-auto" />
             <div>
-              <h1 className="text-2xl font-black uppercase text-[#171C8F]">Relatório de Análise de Falha</h1>
-              <p className="text-[#13aff0] font-extrabold uppercase tracking-[0.15em] text-xs">SWM Brasil - LIDERANÇA OPEX</p>
+              <h1 className="text-xl font-black uppercase text-[#171C8F]">Relatório de Análise de Falha</h1>
+              <p className="text-[#13aff0] font-extrabold uppercase tracking-[0.15em] text-[9px]">SWM Brasil - LIDERANÇA OPEX</p>
             </div>
           </div>
           <div className="text-right">
-             <p className="text-[9px] font-black text-slate-400 uppercase">Protocolo</p>
-             <p className="text-lg font-black text-[#171C8F]">{analysis.id}</p>
+             <p className="text-[8px] font-black text-slate-400 uppercase">Nº Sequencial</p>
+             <p className="text-sm font-black text-[#171C8F]">{analysis.sequentialNumber || '-'}</p>
+             <p className="text-[7px] font-black text-slate-300 uppercase mt-1">Protocolo</p>
+             <p className="text-xs font-black text-[#171C8F]">{analysis.id}</p>
           </div>
         </header>
 
-        <section className="mb-6 break-inside-avoid">
-          <h2 className="text-base font-black border-l-4 border-[#171C8F] pl-3 uppercase mb-3">1. Identificação</h2>
-          <section className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-3">
-             <div><p className="text-[8px] font-black text-slate-400 uppercase">Equipamento</p><p className="text-xs font-bold truncate">{analysis.equipment || '—'}</p></div>
-             <div><p className="text-[8px] font-black text-slate-400 uppercase">Área</p><p className="text-xs font-bold">{analysis.area || '—'}</p></div>
-             <div><p className="text-[8px] font-black text-slate-400 uppercase">Data Ocorrência</p><p className="text-xs font-bold">{analysis.failureDate || '—'}</p></div>
-             <div><p className="text-[8px] font-black text-slate-400 uppercase">Nome</p><p className="text-xs font-bold">{analysis.authorName || '—'}</p></div>
-             <div className="col-span-2"><p className="text-[8px] font-black text-slate-400 uppercase">Função</p><p className="text-xs font-bold">{analysis.authorRole || '—'}</p></div>
+        <section className="mb-4 break-inside-avoid">
+          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">1. Identificação</h2>
+          <section className="grid grid-cols-3 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200 mb-2">
+             <div><p className="text-[6px] font-black text-slate-400 uppercase">Equipamento</p><p className="text-[9px] font-bold truncate">{analysis.equipment || '—'}</p></div>
+             <div><p className="text-[6px] font-black text-slate-400 uppercase">Área</p><p className="text-[9px] font-bold">{analysis.area || '—'}</p></div>
+             <div><p className="text-[6px] font-black text-slate-400 uppercase">Data Ocorrência</p><p className="text-[9px] font-bold">{analysis.failureDate || '—'}</p></div>
+             <div><p className="text-[6px] font-black text-slate-400 uppercase">Nome</p><p className="text-[9px] font-bold">{analysis.authorName || '—'}</p></div>
+             <div className="col-span-2"><p className="text-[6px] font-black text-slate-400 uppercase">Função</p><p className="text-[9px] font-bold">{analysis.authorRole || '—'}</p></div>
           </section>
-          <div className="bg-white p-3 border rounded-lg">
-            <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Descrição da Falha</p>
-            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{analysis.description || '—'}</p>
+          <div className="bg-white p-2 border rounded-lg">
+            <p className="text-[6px] font-black text-slate-400 uppercase mb-1">Descrição da Falha</p>
+            <p className="text-[9px] leading-relaxed whitespace-pre-wrap break-words">{analysis.description || '—'}</p>
           </div>
         </section>
 
-        <section className="mb-8 break-inside-avoid">
-          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">2. 5W1H e Fenômeno</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {[['O Que', analysis.what], ['Onde', analysis.where], ['Quando', analysis.when], ['Quem', analysis.who], ['Quanto Custo', analysis.howMuch], ['Como', analysis.how], ['Fenômeno', analysis.phenomenon]].map(([label, value]) => (
-              <div key={label} className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <p className="text-[8px] font-black text-slate-400 uppercase">{label as string}</p>
-                <p className="text-xs font-medium">{value || '—'}</p>
+        <section className="mb-4 break-inside-avoid">
+          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">2. 5W1H e Fenômeno</h2>
+          <div className="grid grid-cols-4 gap-2">
+            {[['O Que', analysis.what], ['Onde', analysis.where], ['Quando', analysis.when], ['Quem', analysis.who], ['Quanto', analysis.howMuch], ['Como', analysis.how], ['Fenômeno', analysis.phenomenon]].map(([label, value]) => (
+              <div key={label} className="p-2 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[6px] font-black text-slate-400 uppercase">{label as string}</p>
+                <p className="text-[8px] font-medium">{value || '—'}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mb-8 break-inside-avoid">
-          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">3. Detalhes</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-               <p className="text-[8px] font-black text-slate-400 uppercase">Sintoma</p>
-               <p className="text-xs font-bold">{analysis.symptom || '—'}</p>
-            </div>
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-               <p className="text-[8px] font-black text-slate-400 uppercase">Frequência</p>
-               <p className="text-xs font-bold">{analysis.frequency || '—'}</p>
-            </div>
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 col-span-2">
-               <p className="text-[8px] font-black text-slate-400 uppercase">Histórico</p>
-               <p className="text-xs font-bold">{analysis.history || '—'}</p>
-            </div>
-            {analysis.attachmentUrl && (
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 col-span-2 flex flex-col items-center">
-                 <p className="text-[8px] font-black text-slate-400 uppercase self-start mb-2">Anexo de Imagem</p>
-                 <img src={analysis.attachmentUrl} alt="Anexo" className="max-h-64 object-contain rounded-lg border border-slate-200 shadow-sm" />
-              </div>
-            )}
+<section className="mb-4 break-inside-avoid">
+          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">3. Detalhes</h2>
+          <div className="grid grid-cols-3 gap-2">
+             <div className="p-2 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[6px] font-black text-slate-400 uppercase">Sintoma</p>
+                <p className="text-[8px] font-bold">{analysis.symptom || '—'}</p>
+             </div>
+             <div className="p-2 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[6px] font-black text-slate-400 uppercase">Frequência</p>
+                <p className="text-[8px] font-bold">{analysis.frequency || '—'}</p>
+             </div>
+             <div className="p-2 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[6px] font-black text-slate-400 uppercase">Histórico</p>
+                <p className="text-[8px] font-bold">{analysis.history || '—'}</p>
+             </div>
           </div>
+          {analysis.attachmentUrl && (
+            <div className="mt-2 p-2 bg-slate-50 rounded border border-slate-100 flex flex-col items-center">
+               <p className="text-[6px] font-black text-slate-400 uppercase self-start mb-1">Anexo de Imagem</p>
+               <img src={analysis.attachmentUrl} alt="Anexo" className="max-h-32 object-contain rounded border border-slate-200 shadow-sm" />
+            </div>
+          )}
         </section>
 
-        <section className="mb-8 break-inside-avoid">
-          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">4. Tabela de Análise Porque Porque</h2>
-          <div className="border border-slate-200 rounded-xl overflow-hidden mb-4 bg-white shadow-sm">
+        <section className="mb-4 break-inside-avoid">
+          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">4. Tabela 5 Porquês</h2>
+          <div className="border border-slate-200 rounded-lg overflow-hidden mb-3 bg-white">
             {isNewWhysMatrix(analysis.whys) ? (
               <>
-                <div className="grid grid-cols-[30px_1fr_1fr_1fr_1fr_1fr_1fr] bg-[#171C8F] text-white text-[7px] font-black uppercase tracking-widest text-center divide-x divide-white/20">
-                  <div className="p-2 flex items-center justify-center"></div>
-                  <div className="p-2">1º Round</div>
-                  <div className="p-2">2º Round</div>
-                  <div className="p-2">3º Round</div>
-                  <div className="p-2">4º Round</div>
-                  <div className="p-2">5º Round</div>
-                  <div className="p-2">Melhorias</div>
+                <div className="grid grid-cols-[25px_1fr_1fr_1fr_1fr_1fr_1fr] bg-[#171C8F] text-white text-[5px] font-black uppercase tracking-widest text-center divide-x divide-white/20">
+                  <div className="p-1 flex items-center justify-center"></div>
+                  <div className="p-1">1º</div>
+                  <div className="p-1">2º</div>
+                  <div className="p-1">3º</div>
+                  <div className="p-1">4º</div>
+                  <div className="p-1">5º</div>
+                  <div className="p-1">Melhorias</div>
                 </div>
                 <div className="divide-y divide-slate-100">
                   {(analysis.whys as WhysMatrix).rows.filter(r => r.rounds.some(c => c.answer.trim())).map(row => (
-                    <div key={row.id} className="grid grid-cols-[30px_1fr_1fr_1fr_1fr_1fr_1fr] divide-x divide-slate-100">
-                      <div className="p-1.5 flex items-center justify-center font-black text-[#171C8F] text-[9px] bg-slate-50">{row.id}</div>
+                    <div key={row.id} className="grid grid-cols-[25px_1fr_1fr_1fr_1fr_1fr_1fr] divide-x divide-slate-100">
+                      <div className="p-1 flex items-center justify-center font-black text-[#171C8F] text-[7px] bg-slate-50">{row.id}</div>
                       {row.rounds.map((cell, idx) => (
-                        <div key={idx} className={`flex flex-col divide-y divide-slate-100 min-h-[36px] ${cell.validated === 'V' ? 'bg-green-50' : cell.validated === 'F' ? 'bg-red-50' : ''}`}>
+                        <div key={idx} className={`flex flex-col divide-y divide-slate-100 min-h-[24px] text-[6px] ${cell.validated === 'V' ? 'bg-green-50' : cell.validated === 'F' ? 'bg-red-50' : ''}`}>
                           {cell.question && (
-                            <p className="px-1 py-0.5 text-[7px] italic text-slate-400 leading-tight">{cell.question}</p>
+                            <p className="px-0.5 text-[5px] italic text-slate-400 leading-tight">{cell.question}</p>
                           )}
-                          <div className="px-1 py-0.5 flex items-center justify-between gap-0.5">
-                            <p className="text-[8px] font-semibold text-slate-700 break-words flex-1">{cell.answer || (cell.question ? '' : '-')}</p>
-                            {cell.validated && <span className={`shrink-0 text-[7px] font-black ${cell.validated === 'V' ? 'text-green-600' : 'text-red-600'}`}>{cell.validated}</span>}
+                          <div className="px-0.5 flex items-center justify-between gap-0.5">
+                            <p className="text-[6px] font-semibold text-slate-700 break-words flex-1">{cell.answer || (cell.question ? '' : '-')}</p>
+                            {cell.validated && <span className={`shrink-0 text-[5px] font-black ${cell.validated === 'V' ? 'text-green-600' : 'text-red-600'}`}>{cell.validated}</span>}
                           </div>
                         </div>
                       ))}
-                      <div className="p-1.5 flex items-center justify-center text-[8px] font-medium text-slate-600 text-center italic bg-blue-50">{row.improvement || '-'}</div>
+                      <div className="p-1 flex items-center justify-center text-[6px] font-medium text-slate-600 text-center italic bg-blue-50">{row.improvement || '-'}</div>
                     </div>
                   ))}
                 </div>
               </>
             ) : (
-              <div className="p-4 text-center text-slate-400 text-sm">Formato legado</div>
+              <div className="p-2 text-center text-slate-400 text-[8px]">Formato legado</div>
             )}
           </div>
-          <div className="bg-[#171C8F] text-white p-6 rounded-2xl">
-             <p className="text-[9px] font-black uppercase opacity-60 mb-1">Causa Raiz Geral</p>
-             <p className="text-xl font-black">{analysis.rootCause || 'NÃO IDENTIFICADA'}</p>
+          <div className="bg-[#171C8F] text-white p-3 rounded-lg">
+             <p className="text-[7px] font-black uppercase opacity-60 mb-1">Causa Raiz</p>
+             <p className="text-sm font-black">{analysis.rootCause || 'NÃO IDENTIFICADA'}</p>
           </div>
         </section>
 
-        <section className="mb-8 break-inside-avoid">
-          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">5. Ishikawa (6M)</h2>
-          <div className="grid grid-cols-2 gap-3">
+        <section className="mb-4 break-inside-avoid">
+          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">5. Ishikawa (6M)</h2>
+          <div className="grid grid-cols-3 gap-2">
             {Object.entries(analysis.ishikawa).map(([category, data]) => (
-              <div key={category} className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <p className="text-[8px] font-black text-slate-400 uppercase mb-1">{category === 'manpower' ? 'Mão de Obra' : category === 'measurement' ? 'Medição' : category === 'environment' ? 'Meio Ambiente' : category.charAt(0).toUpperCase() + category.slice(1)}</p>
-                <p className="text-[10px] font-medium">{data.causes.filter(c => c.trim()).join(', ') || '—'}</p>
+              <div key={category} className="p-2 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[6px] font-black text-slate-400 uppercase mb-1">{category === 'manpower' ? 'Mão de Obra' : category === 'measurement' ? 'Medição' : category === 'environment' ? 'Meio Ambiente' : category.charAt(0).toUpperCase() + category.slice(1)}</p>
+                <p className="text-[7px] font-medium">{data.causes.filter(c => c.trim()).join(', ') || '—'}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mb-10 page-break-before">
-          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">6. Plano de Ação</h2>
-          <table className="w-full text-left border-collapse border border-slate-200">
-             <thead className="bg-[#171C8F] text-white text-[9px] font-black uppercase">
+        <section className="mb-4 page-break-before">
+          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">6. Plano de Ação</h2>
+          <table className="w-full text-left border-collapse border border-slate-200 text-[8px]">
+             <thead className="bg-[#171C8F] text-white text-[7px] font-black uppercase">
                 <tr>
-                   <th className="p-3 border-r border-slate-700">Tipo</th>
-                   <th className="p-3 border-r border-slate-700">Descrição</th>
-                   <th className="p-3 border-r border-slate-700">Responsável</th>
-                   <th className="p-3 border-r border-slate-700">Prazo</th>
-                   <th className="p-3">Status</th>
+                   <th className="p-1.5 border-r border-slate-700">Tipo</th>
+                   <th className="p-1.5 border-r border-slate-700">Descrição</th>
+                   <th className="p-1.5 border-r border-slate-700">Resp.</th>
+                   <th className="p-1.5 border-r border-slate-700">Prazo</th>
+                   <th className="p-1.5">Status</th>
                 </tr>
              </thead>
-             <tbody className="text-[10px]">
+             <tbody className="text-[7px]">
                 {analysis.actions.length === 0 ? (
-                  <tr><td colSpan={5} className="p-4 text-center text-slate-400">Nenhuma ação registrada</td></tr>
+                  <tr><td colSpan={5} className="p-2 text-center text-slate-400">Nenhuma ação registrada</td></tr>
                 ) : analysis.actions.map(a => (
                   <tr key={a.id} className="border-b border-slate-100">
-                    <td className="p-3"><span className={`text-[8px] px-2 py-0.5 rounded-full ${a.type === 'Corretiva' ? 'bg-red-100 text-red-700' : a.type === 'Preventiva' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{a.type}</span></td>
-                    <td className="p-3 font-medium">{a.description || '—'}</td>
-                    <td className="p-3">{a.responsible || '—'}</td>
-                    <td className="p-3">{a.dueDate ? new Date(a.dueDate).toLocaleDateString('pt-BR') : '—'}</td>
-                    <td className="p-3"><span className={`text-[8px] px-2 py-0.5 rounded-full ${a.status === 'Concluída' ? 'bg-green-100 text-green-700' : a.status === 'Em andamento' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{a.status}</span></td>
+                    <td className="p-1"><span className={`text-[6px] px-1 py-0.5 rounded-full ${a.type === 'Corretiva' ? 'bg-red-100 text-red-700' : a.type === 'Preventiva' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{a.type}</span></td>
+                    <td className="p-1 font-medium">{a.description || '—'}</td>
+                    <td className="p-1">{a.responsible || '—'}</td>
+                    <td className="p-1">{a.dueDate ? new Date(a.dueDate).toLocaleDateString('pt-BR') : '—'}</td>
+                    <td className="p-1"><span className={`text-[6px] px-1 py-0.5 rounded-full ${a.status === 'Concluída' ? 'bg-green-100 text-green-700' : a.status === 'Em andamento' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{a.status}</span></td>
                   </tr>
                 ))}
              </tbody>
           </table>
         </section>
 
-        <section className="mb-8">
-          <h2 className="text-lg font-black border-l-4 border-[#171C8F] pl-4 uppercase mb-4">7. Verificação</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-               <p className="text-[8px] font-black text-slate-400 uppercase">Reincidência?</p>
-               <p className="text-sm font-bold">{analysis.reoccurred === true ? 'SIM' : analysis.reoccurred === false ? 'NÃO' : '—'}</p>
-            </div>
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-               <p className="text-[8px] font-black text-slate-400 uppercase">Precisa Revisão?</p>
-               <p className="text-sm font-bold">{analysis.needsRevision ? 'SIM' : 'NÃO'}</p>
-            </div>
+<section className="mb-4 break-inside-avoid">
+          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">7. Verificação</h2>
+          <div className="grid grid-cols-3 gap-2 mb-2">
+             <div className="p-2 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[6px] font-black text-slate-400 uppercase">Reincidência?</p>
+                <p className="text-[9px] font-bold">{analysis.reoccurred === true ? 'SIM' : analysis.reoccurred === false ? 'NÃO' : '—'}</p>
+             </div>
+             <div className="p-2 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[6px] font-black text-slate-400 uppercase">Precisa Revisão?</p>
+                <p className="text-[9px] font-bold">{analysis.needsRevision ? 'SIM' : 'NÃO'}</p>
+             </div>
+             <div className="p-2 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[6px] font-black text-slate-400 uppercase">Treinamento?</p>
+                <p className="text-[9px] font-bold">{analysis.needsTraining ? 'SIM' : 'NÃO'}</p>
+             </div>
           </div>
-          <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-             <p className="text-[8px] font-black text-slate-400 uppercase">Evidências de Eficácia</p>
-             <p className="text-sm font-medium whitespace-pre-wrap">{analysis.effectivenessEvidence || '—'}</p>
+          <div className="p-2 bg-slate-50 rounded border border-slate-100">
+             <p className="text-[6px] font-black text-slate-400 uppercase">Evidências de Eficácia</p>
+             <p className="text-[8px] font-medium whitespace-pre-wrap">{analysis.effectivenessEvidence || '—'}</p>
           </div>
         </section>
 
-        <footer className="mt-16 pt-8 border-t border-slate-200 flex justify-between items-end">
-           <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Gerado em {new Date().toLocaleString('pt-BR')}</div>
-           <div className="w-64 border-t-2 border-slate-900 text-center pt-2">
-              <p className="text-[9px] font-black uppercase">{analysis.authorName || 'Responsável Técnico'}</p>
-              <p className="text-[8px] font-bold text-slate-400">Assinatura Digital</p>
+        <footer className="mt-8 pt-4 border-t border-slate-200 flex justify-between items-end">
+           <div className="text-[6px] font-black text-slate-300 uppercase tracking-widest">Gerado em {new Date().toLocaleString('pt-BR')}</div>
+           <div className="w-48 border-t border-slate-900 text-center pt-1">
+              <p className="text-[7px] font-black uppercase">{analysis.authorName || 'Responsável Técnico'}</p>
+              <p className="text-[6px] font-bold text-slate-400">Assinatura Digital</p>
            </div>
         </footer>
       </div>
