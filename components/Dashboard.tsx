@@ -232,11 +232,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
                   </button>
                   <button 
                     onClick={async () => {
-                      if (confirm("Excluir esta análise definitivamente?")) {
-                        await onDelete(item.id);
-                        setRefreshKey(k => k + 1);
-                        if (onDeleteSuccess) onDeleteSuccess();
-                      }
+                      await onDelete(item.id);
+                      setRefreshKey(k => k + 1);
+                      if (onDeleteSuccess) onDeleteSuccess();
                     }}
                     className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 transition-all bg-slate-50 hover:bg-red-50 rounded-lg border border-slate-100"
                     aria-label="Excluir"

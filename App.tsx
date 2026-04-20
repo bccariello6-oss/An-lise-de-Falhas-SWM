@@ -38,7 +38,7 @@ import {
   Trash2,
   FileText,
   Printer,
-  Share2,
+  Mail,
   Factory,
   Info,
   Target,
@@ -368,13 +368,12 @@ const App: React.FC = () => {
   };
 
   const deleteFromHistory = async (id: string) => {
-    if (!confirm("Excluir esta análise permanentemente?")) return;
     try {
       await db.deleteAnalysis(id);
-      setCurrentStep(StepId.DASHBOARD);
     } catch (error) {
       console.error('Error deleting:', error);
       alert("Erro ao excluir do banco de dados.");
+      throw error;
     }
   };
 
@@ -421,10 +420,10 @@ const App: React.FC = () => {
     document.body.appendChild(tempContainer);
 
     const opt = {
-      margin:       [4, 3, 4, 3],
+      margin:       [3, 3, 3, 3],
       filename:     `SWM_ARP_${analysis.id || 'Relatorio'}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 1.8, useCORS: true, logging: false, letterRendering: true },
+      html2canvas:  { scale: 1.7, useCORS: true, logging: false, letterRendering: true },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
@@ -435,14 +434,17 @@ const App: React.FC = () => {
   };
 
   const handleSendEmail = async () => {
-    if (!session?.user) return;
-    const toEmail = 'bccariello_6@hotmail.com';
-    
-    const hour = new Date().getHours();
-    const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
-    
-    const htmlContent = `
-<!DOCTYPE html>
+    handlePrintPDF();
+    setTimeout(() => {
+      const subject = encodeURIComponent(`[SWM] Análise de Falha - ${analysis.area || 'N/A'} (${analysis.id})`);
+      const body = encodeURIComponent(
+        `Prezados,\n\nSegue análise de falha do equipamento ${analysis.equipment || 'N/A'}.\n\n${analysis.description || ''}\n\nAtt.`
+      );
+      window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+    }, 1000);
+  };
+
+  const renderStepContent = () => {
 <html>
 <head>
   <meta charset="UTF-8">
@@ -1092,7 +1094,7 @@ const App: React.FC = () => {
                     <FileDown size={14} /> Download PDF
                   </button>
                   <button onClick={handleSendEmail} className="bg-emerald-600 text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-emerald-700 transition-all shadow-sm">
-                    <Share2 size={14} /> Enviar por E-mail
+                    <Mail size={14} /> E-mail Outlook
                   </button>
                 </div>
                 <div className="space-y-2">
@@ -1177,12 +1179,15 @@ const App: React.FC = () => {
           #pdf-content-wrapper table { page-break-inside: avoid; }
         `}</style>
         <header className="flex justify-between items-center border-b-4 border-[#171C8F] pb-2 mb-3">
-          <div className="flex items-center gap-3">
-            <img src="/swm-logo.png" alt="SWM Logo" className="h-8 w-auto" />
-            <div>
-              <h1 className="text-lg font-black uppercase text-[#171C8F]">Relatório de Análise de Falha</h1>
-              <p className="text-[#13aff0] font-extrabold uppercase tracking-[0.15em] text-[8px]">SWM Brasil - LIDERANÇA OPEX</p>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-3">
+              <img src="/swm-logo.png" alt="SWM Logo" className="h-8 w-auto" />
+              <div>
+                <h1 className="text-lg font-black uppercase text-[#171C8F]">Relatório de Análise de Falha</h1>
+                <p className="text-[#13aff0] font-extrabold uppercase tracking-[0.15em] text-[8px]">SWM Brasil - LIDERANÇA OPEX</p>
+              </div>
             </div>
+            <p className="text-[7px] font-bold text-slate-500 mt-1"><span className="font-black">Responsável:</span> {analysis.authorName || '—'}</p>
           </div>
           <div className="text-right">
              <p className="text-[7px] font-black text-slate-400 uppercase">Nº Sequencial</p>
@@ -1192,166 +1197,166 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <section className="mb-4 break-inside-avoid">
-          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">1. Identificação</h2>
-          <section className="grid grid-cols-3 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200 mb-2">
-             <div><p className="text-[6px] font-black text-slate-400 uppercase">Equipamento</p><p className="text-[9px] font-bold truncate">{analysis.equipment || '—'}</p></div>
-             <div><p className="text-[6px] font-black text-slate-400 uppercase">Área</p><p className="text-[9px] font-bold">{analysis.area || '—'}</p></div>
-             <div><p className="text-[6px] font-black text-slate-400 uppercase">Data Ocorrência</p><p className="text-[9px] font-bold">{analysis.failureDate || '—'}</p></div>
-             <div><p className="text-[6px] font-black text-slate-400 uppercase">Nome</p><p className="text-[9px] font-bold">{analysis.authorName || '—'}</p></div>
-             <div className="col-span-2"><p className="text-[6px] font-black text-slate-400 uppercase">Função</p><p className="text-[9px] font-bold">{analysis.authorRole || '—'}</p></div>
+        <section className="mb-3 break-inside-avoid">
+          <h2 className="text-xs font-black border-l-4 border-[#171C8F] pl-1 uppercase mb-1">1. Identificação</h2>
+          <section className="grid grid-cols-3 gap-1 bg-slate-50 p-1 rounded border border-slate-200 mb-1">
+             <div><p className="text-[5px] font-black text-slate-400 uppercase">Equipamento</p><p className="text-[7px] font-bold truncate">{analysis.equipment || '—'}</p></div>
+             <div><p className="text-[5px] font-black text-slate-400 uppercase">Área</p><p className="text-[7px] font-bold">{analysis.area || '—'}</p></div>
+             <div><p className="text-[5px] font-black text-slate-400 uppercase">Data</p><p className="text-[7px] font-bold">{analysis.failureDate || '—'}</p></div>
+             <div><p className="text-[5px] font-black text-slate-400 uppercase">Nome</p><p className="text-[7px] font-bold">{analysis.authorName || '—'}</p></div>
+             <div className="col-span-2"><p className="text-[5px] font-black text-slate-400 uppercase">Função</p><p className="text-[7px] font-bold">{analysis.authorRole || '—'}</p></div>
           </section>
-          <div className="bg-white p-2 border rounded-lg">
-            <p className="text-[6px] font-black text-slate-400 uppercase mb-1">Descrição da Falha</p>
-            <p className="text-[9px] leading-relaxed whitespace-pre-wrap break-words">{analysis.description || '—'}</p>
+          <div className="bg-white p-1 border rounded">
+            <p className="text-[5px] font-black text-slate-400 uppercase mb-0.5">Descrição da Falha</p>
+            <p className="text-[7px] leading-relaxed whitespace-pre-wrap break-words">{analysis.description || '—'}</p>
           </div>
         </section>
 
-        <section className="mb-4 break-inside-avoid">
-          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">2. 5W1H e Fenômeno</h2>
-          <div className="grid grid-cols-4 gap-2">
-            {[['O Que', analysis.what], ['Onde', analysis.where], ['Quando', analysis.when], ['Quem', analysis.who], ['Quanto', analysis.howMuch], ['Como', analysis.how], ['Fenômeno', analysis.phenomenon]].map(([label, value]) => (
-              <div key={label} className="p-2 bg-slate-50 rounded border border-slate-100">
-                <p className="text-[6px] font-black text-slate-400 uppercase">{label as string}</p>
-                <p className="text-[8px] font-medium">{value || '—'}</p>
+        <section className="mb-3 break-inside-avoid">
+          <h2 className="text-xs font-black border-l-4 border-[#171C8F] pl-1 uppercase mb-1">2. 5W1H</h2>
+          <div className="grid grid-cols-4 gap-1">
+            {[['OQ', analysis.what], ['ONDE', analysis.where], ['QUANDO', analysis.when], ['QUEM', analysis.who], ['QUANTO', analysis.howMuch], ['COMO', analysis.how], ['FENOM', analysis.phenomenon]].map(([label, value]) => (
+              <div key={label} className="p-1 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[4px] font-black text-slate-400 uppercase">{label as string}</p>
+                <p className="text-[6px] font-medium">{value || '—'}</p>
               </div>
             ))}
           </div>
         </section>
 
-<section className="mb-4 break-inside-avoid">
-          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">3. Detalhes</h2>
-          <div className="grid grid-cols-3 gap-2">
-             <div className="p-2 bg-slate-50 rounded border border-slate-100">
-                <p className="text-[6px] font-black text-slate-400 uppercase">Sintoma</p>
-                <p className="text-[8px] font-bold">{analysis.symptom || '—'}</p>
+<section className="mb-3 break-inside-avoid">
+          <h2 className="text-xs font-black border-l-4 border-[#171C8F] pl-1 uppercase mb-1">3. Detalhes</h2>
+          <div className="grid grid-cols-3 gap-1">
+             <div className="p-1 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[5px] font-black text-slate-400 uppercase">Sintoma</p>
+                <p className="text-[6px] font-bold">{analysis.symptom || '—'}</p>
              </div>
-             <div className="p-2 bg-slate-50 rounded border border-slate-100">
-                <p className="text-[6px] font-black text-slate-400 uppercase">Frequência</p>
-                <p className="text-[8px] font-bold">{analysis.frequency || '—'}</p>
+             <div className="p-1 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[5px] font-black text-slate-400 uppercase">Frequência</p>
+                <p className="text-[6px] font-bold">{analysis.frequency || '—'}</p>
              </div>
-             <div className="p-2 bg-slate-50 rounded border border-slate-100">
-                <p className="text-[6px] font-black text-slate-400 uppercase">Histórico</p>
-                <p className="text-[8px] font-bold">{analysis.history || '—'}</p>
+             <div className="p-1 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[5px] font-black text-slate-400 uppercase">Histórico</p>
+                <p className="text-[6px] font-bold">{analysis.history || '—'}</p>
              </div>
           </div>
           {analysis.attachmentUrl && (
-            <div className="mt-2 p-2 bg-slate-50 rounded border border-slate-100 flex flex-col items-center">
-               <p className="text-[6px] font-black text-slate-400 uppercase self-start mb-1">Anexo de Imagem</p>
-               <img src={analysis.attachmentUrl} alt="Anexo" className="max-h-32 object-contain rounded border border-slate-200 shadow-sm" />
+            <div className="mt-1 p-1 bg-slate-50 rounded border border-slate-100 flex flex-col items-center">
+               <p className="text-[5px] font-black text-slate-400 uppercase self-start mb-0.5">Anexo</p>
+               <img src={analysis.attachmentUrl} alt="Anexo" className="max-h-20 object-contain rounded border border-slate-200 shadow-sm" />
             </div>
           )}
         </section>
 
-        <section className="mb-4 break-inside-avoid">
-          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">4. Tabela 5 Porquês</h2>
-          <div className="border border-slate-200 rounded-lg overflow-hidden mb-3 bg-white">
+        <section className="mb-3 break-inside-avoid">
+          <h2 className="text-xs font-black border-l-4 border-[#171C8F] pl-1 uppercase mb-1">4. Tabela 5 Porquês</h2>
+          <div className="border border-slate-200 rounded overflow-hidden mb-2 bg-white">
             {isNewWhysMatrix(analysis.whys) ? (
               <>
-                <div className="grid grid-cols-[25px_1fr_1fr_1fr_1fr_1fr_1fr] bg-[#171C8F] text-white text-[5px] font-black uppercase tracking-widest text-center divide-x divide-white/20">
-                  <div className="p-1 flex items-center justify-center"></div>
-                  <div className="p-1">1º</div>
-                  <div className="p-1">2º</div>
-                  <div className="p-1">3º</div>
-                  <div className="p-1">4º</div>
-                  <div className="p-1">5º</div>
-                  <div className="p-1">Melhorias</div>
+                <div className="grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_0.8fr] bg-[#171C8F] text-white text-[4px] font-black uppercase tracking-widest text-center divide-x divide-white/20">
+                  <div className="p-0.5 flex items-center justify-center"></div>
+                  <div className="p-0.5">1º</div>
+                  <div className="p-0.5">2º</div>
+                  <div className="p-0.5">3º</div>
+                  <div className="p-0.5">4º</div>
+                  <div className="p-0.5">5º</div>
+                  <div className="p-0.5">Melhorias</div>
                 </div>
                 <div className="divide-y divide-slate-100">
                   {(analysis.whys as WhysMatrix).rows.filter(r => r.rounds.some(c => c.answer.trim())).map(row => (
-                    <div key={row.id} className="grid grid-cols-[25px_1fr_1fr_1fr_1fr_1fr_1fr] divide-x divide-slate-100">
-                      <div className="p-1 flex items-center justify-center font-black text-[#171C8F] text-[7px] bg-slate-50">{row.id}</div>
+                    <div key={row.id} className="grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_0.8fr] divide-x divide-slate-100">
+                      <div className="p-0.5 flex items-center justify-center font-black text-[#171C8F] text-[6px] bg-slate-50">{row.id}</div>
                       {row.rounds.map((cell, idx) => (
-                        <div key={idx} className={`flex flex-col divide-y divide-slate-100 min-h-[24px] text-[6px] ${cell.validated === 'V' ? 'bg-green-50' : cell.validated === 'F' ? 'bg-red-50' : ''}`}>
+                        <div key={idx} className={`flex flex-col divide-y divide-slate-100 min-h-[18px] text-[5px] ${cell.validated === 'V' ? 'bg-green-50' : cell.validated === 'F' ? 'bg-red-50' : ''}`}>
                           {cell.question && (
-                            <p className="px-0.5 text-[5px] italic text-slate-400 leading-tight">{cell.question}</p>
+                            <p className="px-0.5 text-[4px] italic text-slate-400 leading-tight">{cell.question}</p>
                           )}
                           <div className="px-0.5 flex items-center justify-between gap-0.5">
-                            <p className="text-[6px] font-semibold text-slate-700 break-words flex-1">{cell.answer || (cell.question ? '' : '-')}</p>
-                            {cell.validated && <span className={`shrink-0 text-[5px] font-black ${cell.validated === 'V' ? 'text-green-600' : 'text-red-600'}`}>{cell.validated}</span>}
+                            <p className="text-[5px] font-semibold text-slate-700 break-words flex-1">{cell.answer || (cell.question ? '' : '-')}</p>
+                            {cell.validated && <span className={`shrink-0 text-[4px] font-black ${cell.validated === 'V' ? 'text-green-600' : 'text-red-600'}`}>{cell.validated}</span>}
                           </div>
                         </div>
                       ))}
-                      <div className="p-1 flex items-center justify-center text-[6px] font-medium text-slate-600 text-center italic bg-blue-50">{row.improvement || '-'}</div>
+                      <div className="p-0.5 flex items-center justify-center text-[5px] font-medium text-slate-600 text-center italic bg-blue-50">{row.improvement || '-'}</div>
                     </div>
                   ))}
                 </div>
               </>
             ) : (
-              <div className="p-2 text-center text-slate-400 text-[8px]">Formato legado</div>
+              <div className="p-1 text-center text-slate-400 text-[6px]">Formato legado</div>
             )}
           </div>
-          <div className="bg-[#171C8F] text-white p-3 rounded-lg">
-             <p className="text-[7px] font-black uppercase opacity-60 mb-1">Causa Raiz</p>
-             <p className="text-sm font-black">{analysis.rootCause || 'NÃO IDENTIFICADA'}</p>
+          <div className="bg-[#171C8F] text-white p-2 rounded">
+             <p className="text-[6px] font-black uppercase opacity-60 mb-0.5">Causa Raiz</p>
+             <p className="text-xs font-black">{analysis.rootCause || 'NÃO IDENTIFICADA'}</p>
           </div>
         </section>
 
-        <section className="mb-4 break-inside-avoid">
-          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">5. Ishikawa (6M)</h2>
-          <div className="grid grid-cols-3 gap-2">
+        <section className="mb-3 break-inside-avoid">
+          <h2 className="text-xs font-black border-l-4 border-[#171C8F] pl-1 uppercase mb-1">5. Ishikawa (6M)</h2>
+          <div className="grid grid-cols-3 gap-1">
             {Object.entries(analysis.ishikawa).map(([category, data]) => (
-              <div key={category} className="p-2 bg-slate-50 rounded border border-slate-100">
-                <p className="text-[6px] font-black text-slate-400 uppercase mb-1">{category === 'manpower' ? 'Mão de Obra' : category === 'measurement' ? 'Medição' : category === 'environment' ? 'Meio Ambiente' : category.charAt(0).toUpperCase() + category.slice(1)}</p>
-                <p className="text-[7px] font-medium">{data.causes.filter(c => c.trim()).join(', ') || '—'}</p>
+              <div key={category} className="p-1 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[5px] font-black text-slate-400 uppercase mb-0.5">{category === 'manpower' ? 'Mão de Obra' : category === 'measurement' ? 'Medição' : category === 'environment' ? 'Meio Ambiente' : category.charAt(0).toUpperCase() + category.slice(1)}</p>
+                <p className="text-[6px] font-medium">{data.causes.filter(c => c.trim()).join(', ') || '—'}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mb-4 page-break-before">
-          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">6. Plano de Ação</h2>
-          <table className="w-full text-left border-collapse border border-slate-200 text-[8px]">
-             <thead className="bg-[#171C8F] text-white text-[7px] font-black uppercase">
+        <section className="mb-3 page-break-before">
+          <h2 className="text-xs font-black border-l-4 border-[#171C8F] pl-1 uppercase mb-1">6. Plano de Ação</h2>
+          <table className="w-full text-left border-collapse border border-slate-200 text-[6px]">
+             <thead className="bg-[#171C8F] text-white text-[5px] font-black uppercase">
                 <tr>
-                   <th className="p-1.5 border-r border-slate-700">Tipo</th>
-                   <th className="p-1.5 border-r border-slate-700">Descrição</th>
-                   <th className="p-1.5 border-r border-slate-700">Resp.</th>
-                   <th className="p-1.5 border-r border-slate-700">Prazo</th>
-                   <th className="p-1.5">Status</th>
+                   <th className="p-1 border-r border-slate-700">Tipo</th>
+                   <th className="p-1 border-r border-slate-700">Descrição</th>
+                   <th className="p-1 border-r border-slate-700">Resp.</th>
+                   <th className="p-1 border-r border-slate-700">Prazo</th>
+                   <th className="p-1">Status</th>
                 </tr>
              </thead>
-             <tbody className="text-[7px]">
+             <tbody className="text-[5px]">
                 {analysis.actions.length === 0 ? (
-                  <tr><td colSpan={5} className="p-2 text-center text-slate-400">Nenhuma ação registrada</td></tr>
+                  <tr><td colSpan={5} className="p-1 text-center text-slate-400">Nenhuma ação registrada</td></tr>
                 ) : analysis.actions.map(a => (
                   <tr key={a.id} className="border-b border-slate-100">
-                    <td className="p-1"><span className={`text-[6px] px-1 py-0.5 rounded-full ${a.type === 'Corretiva' ? 'bg-red-100 text-red-700' : a.type === 'Preventiva' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{a.type}</span></td>
-                    <td className="p-1 font-medium">{a.description || '—'}</td>
-                    <td className="p-1">{a.responsible || '—'}</td>
-                    <td className="p-1">{a.dueDate ? new Date(a.dueDate).toLocaleDateString('pt-BR') : '—'}</td>
-                    <td className="p-1"><span className={`text-[6px] px-1 py-0.5 rounded-full ${a.status === 'Concluída' ? 'bg-green-100 text-green-700' : a.status === 'Em andamento' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{a.status}</span></td>
+                    <td className="p-0.5"><span className={`text-[4px] px-1 rounded-full ${a.type === 'Corretiva' ? 'bg-red-100 text-red-700' : a.type === 'Preventiva' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{a.type}</span></td>
+                    <td className="p-0.5 font-medium">{a.description || '—'}</td>
+                    <td className="p-0.5">{a.responsible || '—'}</td>
+                    <td className="p-0.5">{a.dueDate ? new Date(a.dueDate).toLocaleDateString('pt-BR') : '—'}</td>
+                    <td className="p-0.5"><span className={`text-[4px] px-1 rounded-full ${a.status === 'Concluída' ? 'bg-green-100 text-green-700' : a.status === 'Em andamento' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{a.status}</span></td>
                   </tr>
                 ))}
              </tbody>
           </table>
         </section>
 
-<section className="mb-4 break-inside-avoid">
-          <h2 className="text-sm font-black border-l-4 border-[#171C8F] pl-2 uppercase mb-2">7. Verificação</h2>
-          <div className="grid grid-cols-3 gap-2 mb-2">
-             <div className="p-2 bg-slate-50 rounded border border-slate-100">
-                <p className="text-[6px] font-black text-slate-400 uppercase">Reincidência?</p>
-                <p className="text-[9px] font-bold">{analysis.reoccurred === true ? 'SIM' : analysis.reoccurred === false ? 'NÃO' : '—'}</p>
+<section className="mb-3 break-inside-avoid">
+          <h2 className="text-xs font-black border-l-4 border-[#171C8F] pl-1 uppercase mb-1">7. Verificação</h2>
+          <div className="grid grid-cols-3 gap-1 mb-1">
+             <div className="p-1 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[5px] font-black text-slate-400 uppercase">Reincidência?</p>
+                <p className="text-[7px] font-bold">{analysis.reoccurred === true ? 'SIM' : analysis.reoccurred === false ? 'NÃO' : '—'}</p>
              </div>
-             <div className="p-2 bg-slate-50 rounded border border-slate-100">
-                <p className="text-[6px] font-black text-slate-400 uppercase">Precisa Revisão?</p>
-                <p className="text-[9px] font-bold">{analysis.needsRevision ? 'SIM' : 'NÃO'}</p>
+             <div className="p-1 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[5px] font-black text-slate-400 uppercase">Revisão?</p>
+                <p className="text-[7px] font-bold">{analysis.needsRevision ? 'SIM' : 'NÃO'}</p>
              </div>
-             <div className="p-2 bg-slate-50 rounded border border-slate-100">
-                <p className="text-[6px] font-black text-slate-400 uppercase">Treinamento?</p>
-                <p className="text-[9px] font-bold">{analysis.needsTraining ? 'SIM' : 'NÃO'}</p>
+             <div className="p-1 bg-slate-50 rounded border border-slate-100">
+                <p className="text-[5px] font-black text-slate-400 uppercase">Treino?</p>
+                <p className="text-[7px] font-bold">{analysis.needsTraining ? 'SIM' : 'NÃO'}</p>
              </div>
           </div>
-          <div className="p-2 bg-slate-50 rounded border border-slate-100">
-             <p className="text-[6px] font-black text-slate-400 uppercase">Evidências de Eficácia</p>
-             <p className="text-[8px] font-medium whitespace-pre-wrap">{analysis.effectivenessEvidence || '—'}</p>
+          <div className="p-1 bg-slate-50 rounded border border-slate-100">
+             <p className="text-[5px] font-black text-slate-400 uppercase">Evidências</p>
+             <p className="text-[6px] font-medium whitespace-pre-wrap">{analysis.effectivenessEvidence || '—'}</p>
           </div>
         </section>
 
-        <footer className="mt-8 pt-4 border-t border-slate-200 flex justify-between items-end">
-           <div className="text-[6px] font-black text-slate-300 uppercase tracking-widest">Gerado em {new Date().toLocaleString('pt-BR')}</div>
-           <div className="w-48 border-t border-slate-900 text-center pt-1">
+        <footer className="mt-4 pt-2 border-t border-slate-200 flex justify-between items-end">
+           <div className="text-[5px] font-black text-slate-300 uppercase tracking-widest">Gerado em {new Date().toLocaleString('pt-BR')}</div>
+           <div className="w-32 border-t border-slate-900 text-center pt-1">
               <p className="text-[7px] font-black uppercase">{analysis.authorName || 'Responsável Técnico'}</p>
               <p className="text-[6px] font-bold text-slate-400">Assinatura Digital</p>
            </div>
