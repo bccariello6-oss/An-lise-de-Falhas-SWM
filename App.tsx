@@ -461,29 +461,32 @@ const App: React.FC = () => {
     
     // Create a temporary visible container for html2canvas
     const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
+    tempContainer.style.position = 'fixed';
+    tempContainer.style.left = '0';
     tempContainer.style.top = '0';
-    tempContainer.style.width = '195mm';
-    tempContainer.style.padding = '0';
+    tempContainer.style.width = '800px';
+    tempContainer.style.background = 'white';
+    tempContainer.style.zIndex = '-9999';
     
-    // clone the element so we don't mess up the react DOM
     const cloned = element.cloneNode(true) as HTMLElement;
     cloned.style.display = 'block';
-    cloned.style.width = '195mm';
+    cloned.style.width = '800px';
+    cloned.style.padding = '20px';
+    cloned.style.margin = '0';
+    
     tempContainer.appendChild(cloned);
     document.body.appendChild(tempContainer);
 
     const opt = {
-      margin:       [7, 7, 7, 7],
-      filename:     `SWM_ARP_${analysis.id || 'Relatorio'}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
+      margin:       [10, 5, 10, 5],
+      filename:     `SWM_AF_${analysis.id || 'Relatorio'}.pdf`,
+      image:        { type: 'jpeg', quality: 1.0 },
       html2canvas:  { 
-        scale: 2, 
+        scale: 3, 
         useCORS: true, 
         logging: false, 
         letterRendering: true,
-        windowWidth: 1200
+        windowWidth: 800
       },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
@@ -1118,7 +1121,7 @@ const App: React.FC = () => {
       )}
 
       {/* PDF PRINT LAYOUT (Hidden on UI) */}
-      <div id="pdf-content-wrapper" className="hidden bg-white p-6 text-slate-900 font-sans w-[195mm] mx-auto">
+      <div id="pdf-content-wrapper" className="hidden bg-white text-slate-900 font-sans">
         <style>{`
           #pdf-content-wrapper * { box-sizing: border-box; }
           #pdf-content-wrapper img { max-width: 100%; height: auto; display: block; }
