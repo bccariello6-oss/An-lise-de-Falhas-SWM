@@ -4,8 +4,9 @@ import { X, FileText, Save, AlertCircle } from 'lucide-react';
 interface EvidenceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (evidence: string) => void;
+  onSave: (evidence: string, evidenceImage?: string) => void;
   initialEvidence?: string;
+  initialEvidenceImage?: string;
   title?: string;
   mode?: 'add' | 'complete';
 }
@@ -15,25 +16,44 @@ const EvidenceModal: React.FC<EvidenceModalProps> = ({
   onClose,
   onSave,
   initialEvidence = '',
+  initialEvidenceImage = '',
   title = 'Adicionar Evidência',
   mode = 'add'
 }) => {
   const [evidence, setEvidence] = useState(initialEvidence);
+  const [evidenceImage, setEvidenceImage] = useState(initialEvidenceImage);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       setEvidence(initialEvidence);
+      setEvidenceImage(initialEvidenceImage);
       setError('');
     }
-  }, [isOpen, initialEvidence]);
+  }, [isOpen, initialEvidence, initialEvidenceImage]);
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            setEvidenceImage(event.target?.result as string);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    }
+  };
 
   const handleSave = () => {
-    if (!evidence.trim()) {
-      setError('É obrigatória a inserção de uma evidência.');
+    if (!evidence.trim() && !evidenceImage) {
+      setError('É obrigatória a inserção de uma evidência (texto ou imagem).');
       return;
     }
-    onSave(evidence.trim());
+    onSave(evidence.trim(), evidenceImage);
     onClose();
   };
 
@@ -107,7 +127,8 @@ const EvidenceModal: React.FC<EvidenceModalProps> = ({
                 setEvidence(e.target.value);
                 if (error) setError('');
               }}
-              placeholder="Descreva a evidência da ação executada (foto, documento, registro, etc.)..."
+              onPaste={handlePaste}
+              placeholder="Descreva a evidência ou Cole (Ctrl+V) uma imagem..."
               className={`w-full h-32 p-4 rounded-xl border-2 text-sm font-medium text-slate-700 outline-none resize-none transition-all ${
                 error 
                   ? 'border-red-300 bg-red-50 focus:border-red-500' 
@@ -115,6 +136,14 @@ const EvidenceModal: React.FC<EvidenceModalProps> = ({
               }`}
               autoFocus
             />
+            {evidenceImage && (
+               <div className="mt-2 relative inline-block group border border-slate-100 rounded-lg overflow-hidden shadow-sm">
+                 <img src={evidenceImage} alt="Evidência" className="max-h-[150px] object-contain bg-slate-50" />
+                 <button onClick={() => setEvidenceImage('')} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                   <X size={12} />
+                 </button>
+               </div>
+            )}
             {error && (
               <p className="mt-2 text-[10px] font-bold text-red-600 flex items-center gap-1">
                 <AlertCircle size={12} />

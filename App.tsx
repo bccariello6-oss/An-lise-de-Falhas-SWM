@@ -61,10 +61,10 @@ const getInitialState = (): Analysis => ({
   id: 'AN-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
   area: '',
   equipment: '',
-  authorName: '',
-  authorRole: '',
+  team: [],
   failureDate: new Date().toISOString().split('T')[0],
   description: '',
+  theme: '',
   what: '',
   where: '',
   when: '',
@@ -101,6 +101,8 @@ const App: React.FC = () => {
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{step: string, errors: string[]}[]>([]);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [newTeamMemberName, setNewTeamMemberName] = useState('');
+  const [newTeamMemberRole, setNewTeamMemberRole] = useState('');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -132,6 +134,25 @@ const App: React.FC = () => {
     localStorage.setItem('swm_current_step', currentStep.toString());
   }, [currentStep]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const parts = [
+        analysis.what,
+        analysis.where,
+        analysis.when,
+        analysis.who,
+        analysis.how,
+        analysis.howMuch
+      ].filter(p => p && p.trim() !== '');
+      
+      const newPhenomenon = parts.join(' ').replace(/\s+/g, ' ');
+      if (newPhenomenon !== analysis.phenomenon && parts.length > 0) {
+        setAnalysis(prev => ({ ...prev, phenomenon: newPhenomenon }));
+      }
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [analysis.what, analysis.where, analysis.when, analysis.who, analysis.how, analysis.howMuch]);
+
   const updateAnalysis = (data: Partial<Analysis>) => {
     setAnalysis(prev => ({ ...prev, ...data }));
   };
@@ -142,8 +163,9 @@ const App: React.FC = () => {
     const step1Errors: string[] = [];
     if (!analysis.area.trim()) step1Errors.push("Área");
     if (!analysis.equipment.trim()) step1Errors.push("Nome do Equipamento");
-    if (!analysis.authorName.trim()) step1Errors.push("Nome");
+    if (analysis.team.length === 0) step1Errors.push("Equipe (mínimo 1 integrante)");
     if (!analysis.description.trim()) step1Errors.push("Descrição do problema");
+    if (!analysis.theme.trim()) step1Errors.push("Tema");
     if (step1Errors.length > 0) allErrors.push({ step: "1. Identificação Geral", errors: step1Errors });
 
     const step2Errors: string[] = [];
@@ -171,8 +193,8 @@ const App: React.FC = () => {
     if (analysis.actions.length === 0) {
       step6Errors.push("Nenhuma ação cadastrada");
     } else {
-      if (analysis.actions.some(a => !a.description.trim())) step6Errors.push("Ações sem descrição");
-      if (analysis.actions.some(a => !a.responsible.trim())) step6Errors.push("Ações sem responsável");
+      if (analysis.actions.some(a => !a.what.trim())) step6Errors.push("Ações sem o preenchimento de O Quê");
+      if (analysis.actions.some(a => !a.who.trim())) step6Errors.push("Ações sem responsável (Quem)");
     }
     if (step6Errors.length > 0) allErrors.push({ step: "6. Plano de Ação", errors: step6Errors });
 
@@ -217,10 +239,10 @@ const App: React.FC = () => {
       id: 'AN-DEMO-' + Math.random().toString(36).substr(2, 5).toUpperCase(),
       area: 'Utilidades - Caldeiras',
       equipment: 'Bomba de Alimentação B-102',
-      authorName: 'Eng. Roberto Silva',
-      authorRole: 'Engenheiro de Manutenção',
+      team: [{ name: 'Eng. Roberto Silva', role: 'Engenheiro de Manutenção' }],
       failureDate: new Date().toISOString().split('T')[0],
       description: 'A bomba parou repentinamente durante a operação normal. Foi observado fumaça saindo do motor elétrico e o disjuntor de proteção desarmou por sobrecorrente.',
+      theme: 'Falha do sistema de bombeamento de água para a caldeira',
       what: 'Queima do enrolamento do motor elétrico da bomba de alimentação de água da caldeira.',
       where: 'Casa de Máquinas - Setor de Utilidades.',
       when: '08/04/2026 às 14:30 durante o pico de demanda.',
@@ -303,18 +325,24 @@ const App: React.FC = () => {
       actions: [
         {
           id: Math.random().toString(36).substr(2, 9),
-          description: 'Revisar plano de manutenção preventiva para incluir limpeza quinzenal dos sensores de nível.',
-          type: 'Preventiva',
-          responsible: 'Planejamento de Manutenção',
-          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          what: 'Revisar plano de manutenção preventiva para incluir limpeza quinzenal dos sensores de nível.',
+          type: 'Definitiva',
+          who: 'Planejamento de Manutenção',
+          when: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          where: 'Sistema Sap',
+          how: 'Revisando planos de trabalho',
+          howMuch: '0',
           status: 'Aberta'
         },
         {
           id: Math.random().toString(36).substr(2, 9),
-          description: 'Treinar operadores para identificação precoce de ruídos de cavitação.',
-          type: 'Melhoria',
-          responsible: 'Coordenação de Operação',
-          dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          what: 'Treinar operadores para identificação precoce de ruídos de cavitação.',
+          type: 'Contenção',
+          who: 'Coordenação de Operação',
+          when: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          where: 'Sala de Treinamentos',
+          how: 'Apresentação e prova oral',
+          howMuch: '0',
           status: 'Aberta'
         }
       ],
@@ -388,7 +416,7 @@ const App: React.FC = () => {
   };
 
   const addAction = () => {
-    const newAction: Action = { id: Date.now().toString(), description: '', type: 'Corretiva', responsible: '', dueDate: '', status: 'Aberta' };
+    const newAction: Action = { id: Date.now().toString(), what: '', who: '', when: '', where: '', how: '', howMuch: '', type: 'Contenção', status: 'Aberta' };
     updateAnalysis({ actions: [newAction, ...analysis.actions] });
   };
 
@@ -459,8 +487,7 @@ const App: React.FC = () => {
           <div className="space-y-4 animate-fadeIn">
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-3">
                <div>
-                  <h2 className="text-lg font-bold text-[#171C8F]">1. Identificação Geral</h2>
-                  <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Ativo e Contexto</p>
+                  <h2 className="text-lg font-bold text-[#171C8F]">1. Identificação Geral e Seleção do Tema</h2>
                </div>
                <div className="flex gap-2 w-full sm:w-auto">
                  <button onClick={fillDemoData} className="flex-1 sm:flex-initial bg-[#e5ebf7] hover:bg-blue-100 text-[#171C8F] text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-lg border border-blue-100 transition-all shadow-sm flex items-center justify-center gap-2">
@@ -487,18 +514,36 @@ const App: React.FC = () => {
                   <Calendar size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#13aff0] pointer-events-none" />
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Nome <span className="text-red-500" aria-hidden="true">*</span></label>
-                <input type="text" value={analysis.authorName} onChange={e => updateAnalysis({ authorName: e.target.value })} className={inputClasses} placeholder="Seu nome" aria-required="true" />
-              </div>
-              <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Função</label>
-                <input type="text" value={analysis.authorRole} onChange={e => updateAnalysis({ authorRole: e.target.value })} className={inputClasses} placeholder="Sua função" />
+              <div className="col-span-1 sm:col-span-2 lg:col-span-3 space-y-2 mt-2">
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Equipe <span className="text-red-500" aria-hidden="true">*</span></label>
+                <div className="flex flex-wrap gap-2 mb-2 empty:hidden">
+                  {analysis.team.map((member, idx) => (
+                    <div key={idx} className="bg-[#171C8F] text-white text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
+                      {member.name} {member.role ? `(${member.role})` : ''}
+                      <button onClick={() => updateAnalysis({ team: analysis.team.filter((_, i) => i !== idx) })} className="hover:text-red-300 transition-colors"><X size={12}/></button>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input type="text" value={newTeamMemberName} onChange={e => setNewTeamMemberName(e.target.value)} className={inputClasses + " flex-1"} placeholder="Nome do integrante" />
+                  <input type="text" value={newTeamMemberRole} onChange={e => setNewTeamMemberRole(e.target.value)} className={inputClasses + " flex-1"} placeholder="Função" />
+                  <button onClick={() => {
+                    if(newTeamMemberName.trim()){
+                      updateAnalysis({ team: [...analysis.team, { name: newTeamMemberName, role: newTeamMemberRole }] });
+                      setNewTeamMemberName('');
+                      setNewTeamMemberRole('');
+                    }
+                  }} className="bg-[#e5ebf7] hover:bg-blue-100 text-[#171C8F] px-4 py-2 sm:py-0 rounded-xl font-bold transition-all shadow-sm flex items-center justify-center min-h-[48px]"><Plus size={16}/> Adicionar</button>
+                </div>
               </div>
             </div>
             <div className="space-y-1">
               <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Descrição do Problema <span className="text-red-500" aria-hidden="true">*</span></label>
               <textarea value={analysis.description} onChange={e => updateAnalysis({ description: e.target.value })} className={`${inputClasses} h-20 md:h-24 resize-none`} placeholder="Relate o ocorrido tecnicamente..." aria-required="true" />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Tema <span className="text-red-500" aria-hidden="true">*</span></label>
+              <input type="text" value={analysis.theme} onChange={e => updateAnalysis({ theme: e.target.value })} className={inputClasses} placeholder="Frase breve que resume o assunto da análise" aria-required="true" />
             </div>
           </div>
         );
@@ -531,8 +576,8 @@ const App: React.FC = () => {
 
       case StepId.DETAILS:
         return (
-          <div className="space-y-4 animate-fadeIn">
-            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">3. Detalhamento e Contexto</h2>
+          <div className="space-y-4 animate-fadeIn flex flex-col relative pb-8">
+            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">3. Verificação da Situação Atual</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Sintoma Observado <span className="text-red-500">*</span></label>
@@ -543,19 +588,22 @@ const App: React.FC = () => {
                 <input type="text" value={analysis.history} onChange={e => updateAnalysis({ history: e.target.value })} className={inputClasses + " h-9"} placeholder="Intervenções anteriores?" />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
               <div className="space-y-1">
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Frequência</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {['Eventual', 'Recorrente', 'Crônica'].map(f => (
-                    <button key={f} onClick={() => updateAnalysis({ frequency: f as any })} className={`py-1.5 rounded-lg border-2 transition-all font-bold text-[10px] uppercase ${analysis.frequency === f ? 'bg-[#171C8F] border-[#171C8F] text-white shadow-sm' : 'bg-white border-slate-100 text-slate-400 hover:bg-slate-50'}`}>
+                  {[
+                    { f: 'Eventual', tooltip: 'Ocorre raramente ou pela primeira vez' },
+                    { f: 'Recorrente', tooltip: 'Acontece com certa periodicidade conhecida' },
+                    { f: 'Crônica', tooltip: 'Acontece repetidamente sem solução definitiva' }
+                  ].map(({f, tooltip}) => (
+                    <button key={f} title={tooltip} onClick={() => updateAnalysis({ frequency: f as any })} className={`py-1.5 rounded-lg border-2 transition-all font-bold text-[10px] uppercase ${analysis.frequency === f ? 'bg-[#171C8F] border-[#171C8F] text-white shadow-sm' : 'bg-white border-slate-100 text-slate-400 hover:bg-slate-50'}`}>
                       {f}
                     </button>
                   ))}
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Condições do Ativo</label>
+              <div className="space-y-1 flex flex-col justify-start">
                 <div className="mt-1 flex items-center gap-2">
                   <label className="bg-[#171C8F] hover:bg-black transition-all text-white text-[10px] font-bold uppercase py-2 px-4 rounded-xl cursor-pointer shadow-sm flex items-center gap-2 h-9 w-full justify-center">
                     <input 
@@ -583,6 +631,17 @@ const App: React.FC = () => {
                   </div>
                 )}
               </div>
+            </div>
+            
+            <div className="mt-auto pt-6 border-t border-slate-100">
+               <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-start gap-3">
+                 <Info size={16} className="text-[#13aff0] shrink-0 mt-0.5" />
+                 <div className="text-[10px] text-slate-600 font-medium">
+                   <p><strong className="text-[#171C8F]">Eventual:</strong> Ocorre raramente ou pela primeira vez.</p>
+                   <p><strong className="text-[#171C8F]">Recorrente:</strong> Acontece com certa periodicidade conhecida.</p>
+                   <p><strong className="text-[#171C8F]">Crônica:</strong> Acontece repetidamente sem solução definitiva.</p>
+                 </div>
+               </div>
             </div>
           </div>
         );
@@ -636,7 +695,7 @@ const App: React.FC = () => {
           <div className="space-y-4 animate-fadeIn">
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-3">
               <div>
-                <h2 className="text-lg font-bold text-[#171C8F]">4. Tabela de Análise Porque Porque</h2>
+                <h2 className="text-lg font-bold text-[#171C8F]">5. Tabela de Análise Porque Porque</h2>
                 <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Análise de causa raiz por hipóteses</p>
               </div>
               <button 
@@ -786,59 +845,53 @@ const App: React.FC = () => {
               </button>
             </div>
 
-            <div className="border border-slate-100 rounded-xl overflow-hidden shadow-sm">
-              <table className="w-full text-left border-collapse">
+            <div className="border border-slate-100 rounded-xl overflow-x-auto shadow-sm">
+              <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead className="bg-[#e5ebf7] text-[#171C8F] text-[9px] font-black uppercase tracking-widest">
                   <tr>
-                    <th className="px-3 py-2 border-b border-blue-100">Tipo</th>
-                    <th className="px-3 py-2 border-b border-blue-100">Descrição</th>
-                    <th className="px-3 py-2 border-b border-blue-100">Resp.</th>
-                    <th className="px-3 py-2 border-b border-blue-100">Prazo</th>
-                    <th className="px-3 py-2 border-b border-blue-100 w-10"></th>
+                    <th className="px-2 py-2 border-b border-blue-100">Tipo</th>
+                    <th className="px-2 py-2 border-b border-blue-100">O Quê</th>
+                    <th className="px-2 py-2 border-b border-blue-100">Quem</th>
+                    <th className="px-2 py-2 border-b border-blue-100">Quando</th>
+                    <th className="px-2 py-2 border-b border-blue-100">Onde</th>
+                    <th className="px-2 py-2 border-b border-blue-100">Como</th>
+                    <th className="px-2 py-2 border-b border-blue-100">Quanto</th>
+                    <th className="px-2 py-2 border-b border-blue-100">Status</th>
+                    <th className="px-2 py-2 border-b border-blue-100 w-8"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {analysis.actions.map((action) => (
                     <tr key={action.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-3 py-1.5">
+                      <td className="px-2 py-1.5">
                         <select 
                           value={action.type} 
                           onChange={e => updateAction(action.id, { type: e.target.value as any })}
-                          className="bg-transparent border-none text-[10px] font-bold focus:ring-0 p-0 text-slate-600 uppercase"
+                          className="bg-transparent border-none text-[9px] font-bold focus:ring-0 p-0 text-[#171C8F] uppercase"
                         >
-                          <option>Corretiva</option>
-                          <option>Preventiva</option>
-                          <option>Melhoria</option>
+                          <option>Contenção</option>
+                          <option>Definitiva</option>
                         </select>
                       </td>
-                      <td className="px-3 py-1.5">
-                        <input 
-                          type="text" 
-                          value={action.description} 
-                          onChange={e => updateAction(action.id, { description: e.target.value })}
-                          className="w-full bg-transparent border-none text-xs p-0 focus:ring-0 placeholder:text-slate-300 font-medium"
-                          placeholder="O que fazer?"
-                        />
+                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.what} onChange={e => updateAction(action.id, { what: e.target.value })} className="w-full min-w-[120px] bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder="O que fazer?"/></td>
+                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.who} onChange={e => updateAction(action.id, { who: e.target.value })} className="w-full bg-transparent border-none text-[9px] p-0 focus:ring-0 placeholder:text-slate-300 font-bold text-slate-500 uppercase" placeholder="Quem?"/></td>
+                      <td className="px-2 py-1.5"><input type="date" value={action.when} onChange={e => updateAction(action.id, { when: e.target.value })} className="bg-transparent border-none text-[9px] p-0 focus:ring-0 text-slate-400 font-bold w-[90px]"/></td>
+                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.where} onChange={e => updateAction(action.id, { where: e.target.value })} className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder="Onde?"/></td>
+                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.how} onChange={e => updateAction(action.id, { how: e.target.value })} className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder="Como?"/></td>
+                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.howMuch} onChange={e => updateAction(action.id, { howMuch: e.target.value })} className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium w-16" placeholder="R$ / h"/></td>
+                      <td className="px-2 py-1.5">
+                        <select 
+                          value={action.status} 
+                          onChange={e => updateAction(action.id, { status: e.target.value as any })}
+                          className={`bg-transparent border-none text-[9px] font-bold focus:ring-0 p-0 uppercase ${action.status === 'Aberta' ? 'text-red-500' : action.status === 'Em andamento' ? 'text-amber-500' : 'text-green-500'}`}
+                        >
+                          <option>Aberta</option>
+                          <option>Em andamento</option>
+                          <option>Concluída</option>
+                        </select>
                       </td>
-                      <td className="px-3 py-1.5">
-                        <input 
-                          type="text" 
-                          value={action.responsible} 
-                          onChange={e => updateAction(action.id, { responsible: e.target.value })}
-                          className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-bold text-slate-500 uppercase"
-                          placeholder="Quem?"
-                        />
-                      </td>
-                      <td className="px-3 py-1.5">
-                        <input 
-                          type="date" 
-                          value={action.dueDate} 
-                          onChange={e => updateAction(action.id, { dueDate: e.target.value })}
-                          className="bg-transparent border-none text-[10px] p-0 focus:ring-0 text-slate-400 font-bold"
-                        />
-                      </td>
-                      <td className="px-3 py-1.5">
-                        <button onClick={() => removeAction(action.id)} className="text-slate-300 hover:text-red-500 transition-colors">
+                      <td className="px-2 py-1.5 text-center">
+                        <button onClick={() => removeAction(action.id)} className="text-slate-300 hover:text-red-500 transition-colors flex items-center justify-center">
                           <Trash2 size={14} />
                         </button>
                       </td>
@@ -852,8 +905,8 @@ const App: React.FC = () => {
 
       case StepId.VERIFICATION:
         return (
-          <div className="space-y-4 animate-fadeIn">
-            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">7. Verificação e Padronização</h2>
+          <div className="space-y-4 animate-fadeIn flex flex-col relative">
+            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">8. Verificação dos Resultados</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="bg-[#e5ebf7] p-4 rounded-xl border border-blue-100 flex flex-col gap-4">
                 <div className="flex justify-between items-center">
@@ -870,31 +923,36 @@ const App: React.FC = () => {
                 <div className="space-y-2">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Evidências de Eficácia</label>
                   <textarea value={analysis.effectivenessEvidence} onChange={e => updateAnalysis({ effectivenessEvidence: e.target.value })} className={inputClasses + " h-20 resize-none"} placeholder="Indicadores de melhoria..." />
+                  <div className="bg-amber-50 border border-amber-200 p-2 rounded-lg flex items-start gap-2 mt-2 shadow-sm">
+                    <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-[9px] text-amber-700 font-bold uppercase">As evidências definitivas devem ser informadas no prazo máximo de 3 meses para encerramento adequado da análise.</p>
+                  </div>
                 </div>
               </div>
 
               <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3">
-                <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-widest">Ações Finais</h3>
+                <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-widest leading-tight">Ações contra recorrência do problema</h3>
+                <div className="space-y-2 pb-2">
+                  <button onClick={() => updateAnalysis({ needsRevision: !analysis.needsRevision })} className={`w-full flex items-center gap-3 p-2 rounded-lg border transition-all ${analysis.needsRevision ? 'bg-[#e5ebf7] border-blue-200' : 'bg-white border-slate-50 hover:bg-slate-50'}`}>
+                    <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-all ${analysis.needsRevision ? 'bg-[#171C8F] border-[#171C8F] text-white' : 'border-slate-200'}`}>
+                      {analysis.needsRevision && <Check size={8} />}
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-700">Revisar procedimento técnico (POP / Manual)</span>
+                  </button>
+                  <button onClick={() => updateAnalysis({ needsTraining: !analysis.needsTraining })} className={`w-full flex items-center gap-3 p-2 rounded-lg border transition-all ${analysis.needsTraining ? 'bg-[#e5ebf7] border-blue-200' : 'bg-white border-slate-50 hover:bg-slate-50'}`}>
+                    <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-all ${analysis.needsTraining ? 'bg-[#171C8F] border-[#171C8F] text-white' : 'border-slate-200'}`}>
+                      {analysis.needsTraining && <Check size={8} />}
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-700">Necessita treinamento para equipe / OPL</span>
+                  </button>
+                </div>
+                <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-widest border-t pt-3">Ações Compartilhadas</h3>
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={handlePrintPDF} className="bg-[#171C8F] text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-blue-700 transition-all shadow-sm">
                     <FileDown size={14} /> Download PDF
                   </button>
                   <button onClick={handleSendEmail} className="bg-emerald-600 text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-emerald-700 transition-all shadow-sm">
                     <Mail size={14} /> E-mail Outlook
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  <button onClick={() => updateAnalysis({ needsRevision: !analysis.needsRevision })} className={`w-full flex items-center gap-3 p-2 rounded-lg border transition-all ${analysis.needsRevision ? 'bg-[#e5ebf7] border-blue-200' : 'bg-white border-slate-50'}`}>
-                    <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-all ${analysis.needsRevision ? 'bg-[#171C8F] border-[#171C8F] text-white' : 'border-slate-200'}`}>
-                      {analysis.needsRevision && <Check size={8} />}
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-700">Revisar procedimento técnico</span>
-                  </button>
-                  <button onClick={() => updateAnalysis({ needsTraining: !analysis.needsTraining })} className={`w-full flex items-center gap-3 p-2 rounded-lg border transition-all ${analysis.needsTraining ? 'bg-[#e5ebf7] border-blue-200' : 'bg-white border-slate-50'}`}>
-                    <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-all ${analysis.needsTraining ? 'bg-[#171C8F] border-[#171C8F] text-white' : 'border-slate-200'}`}>
-                      {analysis.needsTraining && <Check size={8} />}
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-700">Necessita treinamento</span>
                   </button>
                 </div>
               </div>
@@ -973,7 +1031,7 @@ const App: React.FC = () => {
                 <p className="text-[#13aff0] font-extrabold uppercase tracking-[0.15em] text-[8px]">SWM Brasil - LIDERANÇA OPEX</p>
               </div>
             </div>
-            <p className="text-[7px] font-bold text-slate-500 mt-1"><span className="font-black">Responsável:</span> {analysis.authorName || '—'}</p>
+            <p className="text-[7px] font-bold text-slate-500 mt-1"><span className="font-black">Responsável:</span> {(analysis.team && analysis.team[0]?.name) || analysis.authorName || '—'}</p>
             <p className="text-[7px] font-black text-slate-400 mt-0.5"><span className="font-bold">Nº Sequential:</span> <span className="text-[#171C8F]">{analysis.sequentialNumber || '-'}</span></p>
           </div>
           <div className="text-right">
@@ -984,16 +1042,37 @@ const App: React.FC = () => {
 
         <section className="mb-3 break-inside-avoid">
           <h2 className="text-xs font-black border-l-4 border-[#171C8F] pl-1 uppercase mb-1">1. Identificação</h2>
-          <section className="grid grid-cols-3 gap-1 bg-slate-50 p-1 rounded border border-slate-200 mb-1">
-             <div><p className="text-[5px] font-black text-slate-400 uppercase">Equipamento</p><p className="text-[7px] font-bold truncate">{analysis.equipment || '—'}</p></div>
+          <section className="grid grid-cols-4 gap-1 bg-slate-50 p-1 rounded border border-slate-200 mb-1">
+             <div className="col-span-2"><p className="text-[5px] font-black text-slate-400 uppercase">Equipamento</p><p className="text-[7px] font-bold truncate">{analysis.equipment || '—'}</p></div>
              <div><p className="text-[5px] font-black text-slate-400 uppercase">Área</p><p className="text-[7px] font-bold">{analysis.area || '—'}</p></div>
              <div><p className="text-[5px] font-black text-slate-400 uppercase">Data</p><p className="text-[7px] font-bold">{analysis.failureDate || '—'}</p></div>
-             <div><p className="text-[5px] font-black text-slate-400 uppercase">Nome</p><p className="text-[7px] font-bold">{analysis.authorName || '—'}</p></div>
-             <div className="col-span-2"><p className="text-[5px] font-black text-slate-400 uppercase">Função</p><p className="text-[7px] font-bold">{analysis.authorRole || '—'}</p></div>
           </section>
-          <div className="bg-white p-1 border rounded">
-            <p className="text-[5px] font-black text-slate-400 uppercase mb-0.5">Descrição da Falha</p>
-            <p className="text-[7px] leading-relaxed whitespace-pre-wrap break-words">{analysis.description || '—'}</p>
+
+          {analysis.team && analysis.team.length > 0 ? (
+            <div className="grid grid-cols-2 gap-1 mb-1">
+              {analysis.team.map((m, idx) => (
+                <div key={idx} className="bg-slate-50 p-1 rounded border border-slate-200 flex flex-col">
+                  <p className="text-[5px] font-black text-slate-400 uppercase">Membro {idx + 1} - {m.role}</p>
+                  <p className="text-[7px] font-bold">{m.name}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <section className="grid grid-cols-3 gap-1 bg-slate-50 p-1 rounded border border-slate-200 mb-1">
+               <div><p className="text-[5px] font-black text-slate-400 uppercase">Nome</p><p className="text-[7px] font-bold">{analysis.authorName || '—'}</p></div>
+               <div className="col-span-2"><p className="text-[5px] font-black text-slate-400 uppercase">Função</p><p className="text-[7px] font-bold">{analysis.authorRole || '—'}</p></div>
+            </section>
+          )}
+
+          <div className="grid grid-cols-1 gap-1">
+            <div className="bg-white p-1 border rounded">
+              <p className="text-[5px] font-black text-slate-400 uppercase mb-0.5">Tema da Análise</p>
+              <p className="text-[7px] font-bold">{analysis.theme || '—'}</p>
+            </div>
+            <div className="bg-white p-1 border rounded">
+              <p className="text-[5px] font-black text-slate-400 uppercase mb-0.5">Descrição do Problema</p>
+              <p className="text-[7px] leading-relaxed whitespace-pre-wrap break-words">{analysis.description || '—'}</p>
+            </div>
           </div>
         </section>
 
@@ -1090,27 +1169,37 @@ const App: React.FC = () => {
         </section>
 
         <section className="mb-3 page-break-before">
-          <h2 className="text-xs font-black border-l-4 border-[#171C8F] pl-1 uppercase mb-1">6. Plano de Ação</h2>
+          <h2 className="text-xs font-black border-l-4 border-[#171C8F] pl-1 uppercase mb-1">6. Plano de Ação (5W2H)</h2>
           <table className="w-full text-left border-collapse border border-slate-200 text-[6px]">
              <thead className="bg-[#171C8F] text-white text-[5px] font-black uppercase">
                 <tr>
                    <th className="p-1 border-r border-slate-700">Tipo</th>
-                   <th className="p-1 border-r border-slate-700">Descrição</th>
-                   <th className="p-1 border-r border-slate-700">Resp.</th>
-                   <th className="p-1 border-r border-slate-700">Prazo</th>
-                   <th className="p-1">Status</th>
+                   <th className="p-1 border-r border-slate-700">O que fazer?</th>
+                   <th className="p-1 border-r border-slate-700">Quem fará?</th>
+                   <th className="p-1 border-r border-slate-700">Quando?</th>
+                   <th className="p-1 border-r border-slate-700">Onde?</th>
+                   <th className="p-1 border-r border-slate-700">Como?</th>
+                   <th className="p-1 border-r border-slate-700">Custo?</th>
+                   <th className="p-1">Status / Evidência</th>
                 </tr>
              </thead>
              <tbody className="text-[5px]">
                 {analysis.actions.length === 0 ? (
-                  <tr><td colSpan={5} className="p-1 text-center text-slate-400">Nenhuma ação registrada</td></tr>
+                  <tr><td colSpan={8} className="p-1 text-center text-slate-400">Nenhuma ação registrada</td></tr>
                 ) : analysis.actions.map(a => (
                   <tr key={a.id} className="border-b border-slate-100">
                     <td className="p-0.5"><span className={`text-[4px] px-1 rounded-full ${a.type === 'Corretiva' ? 'bg-red-100 text-red-700' : a.type === 'Preventiva' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{a.type}</span></td>
-                    <td className="p-0.5 font-medium">{a.description || '—'}</td>
-                    <td className="p-0.5">{a.responsible || '—'}</td>
-                    <td className="p-0.5">{a.dueDate ? new Date(a.dueDate).toLocaleDateString('pt-BR') : '—'}</td>
-                    <td className="p-0.5"><span className={`text-[4px] px-1 rounded-full ${a.status === 'Concluída' ? 'bg-green-100 text-green-700' : a.status === 'Em andamento' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{a.status}</span></td>
+                    <td className="p-0.5 font-medium max-w-[80px] break-words">{a.what || '—'}</td>
+                    <td className="p-0.5">{a.who || '—'}</td>
+                    <td className="p-0.5">{a.when ? new Date(a.when).toLocaleDateString('pt-BR') : '—'}</td>
+                    <td className="p-0.5">{a.where || '—'}</td>
+                    <td className="p-0.5 max-w-[80px] break-words">{a.how || '—'}</td>
+                    <td className="p-0.5">{a.howMuch || '—'}</td>
+                    <td className="p-0.5">
+                      <span className={`text-[4px] px-1 rounded-full mb-1 inline-block ${a.status === 'Concluída' ? 'bg-green-100 text-green-700' : a.status === 'Em andamento' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{a.status}</span>
+                      {a.evidence && <div className="text-[4px] text-green-700 bg-green-50 p-0.5 rounded italic break-words">Evid: {a.evidence}</div>}
+                      {a.evidenceImage && <div className="mt-1 flex justify-center bg-slate-50"><img src={a.evidenceImage} alt="Evidência" className="max-h-12 object-contain" /></div>}
+                    </td>
                   </tr>
                 ))}
              </tbody>

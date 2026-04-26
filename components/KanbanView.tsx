@@ -48,6 +48,11 @@ const CardItem: React.FC<{ action: KanbanAction; isDragging?: boolean; onAskEvid
         <strong>Evidência:</strong> {action.evidence}
       </div>
     )}
+    {action.evidenceImage && (
+      <div className="mb-2 rounded overflow-hidden border border-slate-100 flex justify-center bg-slate-50">
+        <img src={action.evidenceImage} alt="Evidência Anexada" className="max-h-24 object-contain" />
+      </div>
+    )}
     <div className="flex flex-col gap-1 md:gap-2 pt-2 md:pt-3 border-t border-slate-50">
       <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
         <UserCircle size={12} className="opacity-70" />
@@ -449,7 +454,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
           setModalOpen(false);
           setSelectedActionId(null);
         }}
-        onSave={(evidence) => {
+        onSave={(evidence, evidenceImage) => {
           if (selectedActionId) {
             const action = allActions.find(a => a.id === selectedActionId);
             if (!action) return;
@@ -463,7 +468,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
             const updatedAnalysis = {
               ...parentAnalysis,
               actions: parentAnalysis.actions.map(a =>
-                a.id === selectedActionId ? { ...a, evidence } : a
+                a.id === selectedActionId ? { ...a, evidence, evidenceImage } : a
               )
             };
 
@@ -490,6 +495,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
           }
         }}
         initialEvidence={selectedActionId ? allActions.find(a => a.id === selectedActionId)?.evidence || '' : ''}
+        initialEvidenceImage={selectedActionId ? allActions.find(a => a.id === selectedActionId)?.evidenceImage || '' : ''}
         title={modalMode === 'complete' ? 'Finalizar Tarefa' : 'Adicionar Evidência'}
         mode={modalMode}
       />

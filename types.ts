@@ -1,7 +1,7 @@
 
 export type Status = 'Aberta' | 'Em andamento' | 'Concluída';
 export type FailureFrequency = 'Eventual' | 'Recorrente' | 'Crônica';
-export type ActionType = 'Corretiva' | 'Preventiva' | 'Melhoria';
+export type ActionType = 'Contenção' | 'Definitiva';
 
 export interface WhyCell {
   question: string;   // linha 1: "Por que ocorre...?" 
@@ -32,12 +32,16 @@ export interface Attachment {
 
 export interface Action {
   id: string;
-  description: string;
   type: ActionType;
-  responsible: string;
-  dueDate: string;
+  what: string;
+  who: string;
+  when: string;
+  where: string;
+  how: string;
+  howMuch: string;
   status: Status;
   evidence?: string;
+  evidenceImage?: string;
 }
 
 export interface IshikawaCategory {
@@ -60,10 +64,10 @@ export interface Analysis {
   // Step 1
   area: string;
   equipment: string;
-  authorName: string;
-  authorRole: string;
+  team: { name: string; role: string }[];
   failureDate: string;
   description: string;
+  theme: string;
   // Step 2 (5W1H)
   what: string;
   where: string;
@@ -127,10 +131,10 @@ export enum StepId {
   IDENTIFICATION = 0,
   W5H1 = 1,
   DETAILS = 2,
-  FIVE_WHYS = 3,
-  ISHIKAWA = 4,
+  ISHIKAWA = 3,
+  FIVE_WHYS = 4,
   ACTIONS = 5,
-  VERIFICATION = 6,
-  DASHBOARD = 7,
-  KANBAN = 8
+  KANBAN = 6,
+  VERIFICATION = 7,
+  DASHBOARD = 8
 }

@@ -14,15 +14,15 @@ import {
 } from 'lucide-react';
 
 export const STEPS = [
-  { id: StepId.IDENTIFICATION, label: 'Identificação', icon: <IdCard size={18} /> },
-  { id: StepId.W5H1, label: '5W1H', icon: <HelpCircle size={18} /> },
-  { id: StepId.DETAILS, label: 'Detalhamento', icon: <Search size={18} /> },
-  { id: StepId.FIVE_WHYS, label: '5 Porquês', icon: <ListOrdered size={18} /> },
-  { id: StepId.ISHIKAWA, label: 'Ishikawa', icon: <Fish size={18} /> },
-  { id: StepId.ACTIONS, label: 'Plano de Ação', icon: <CheckSquare size={18} /> },
-  { id: StepId.VERIFICATION, label: 'Verificação', icon: <CheckCircle2 size={18} /> },
-  { id: StepId.DASHBOARD, label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-  { id: StepId.KANBAN, label: 'Kanban', icon: <Columns size={18} /> }
+  { id: StepId.IDENTIFICATION, label: '1. Identificação Geral', icon: <IdCard size={18} /> },
+  { id: StepId.W5H1, label: '2. 5W1H', icon: <HelpCircle size={18} /> },
+  { id: StepId.DETAILS, label: '3. Verificação', icon: <Search size={18} /> },
+  { id: StepId.ISHIKAWA, label: '4. Ishikawa', icon: <Fish size={18} /> },
+  { id: StepId.FIVE_WHYS, label: '5. 5 Porquês', icon: <ListOrdered size={18} /> },
+  { id: StepId.ACTIONS, label: '6. Plano de Ação', icon: <CheckSquare size={18} /> },
+  { id: StepId.KANBAN, label: '7. Kanban', icon: <Columns size={18} /> },
+  { id: StepId.VERIFICATION, label: '8. Resultados', icon: <CheckCircle2 size={18} /> },
+  { id: StepId.DASHBOARD, label: 'Dashboard', icon: <LayoutDashboard size={18} /> }
 ];
 
 export const TIPS = {

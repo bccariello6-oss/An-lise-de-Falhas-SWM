@@ -106,7 +106,7 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <h2 className="text-lg md:text-xl font-bold border-b pb-2 md:pb-4 text-slate-800">5. Diagrama de Ishikawa (Causa e Efeito)</h2>
+      <h2 className="text-lg md:text-xl font-bold border-b pb-2 md:pb-4 text-[#171C8F]">4. Diagrama de Ishikawa (Causa e Efeito)</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
         {renderCategory('machine', 'Máquina', Settings)}
         {renderCategory('method', 'Método', Book)}
