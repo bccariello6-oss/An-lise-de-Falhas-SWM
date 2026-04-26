@@ -1371,9 +1371,18 @@ const App: React.FC = () => {
       <div className="no-print h-full flex flex-col">
         <header className="bg-white text-[#171C8F] shadow-md h-20 md:h-24 flex-shrink-0 z-50 border-b-4 border-[#171C8F]">
           <div className="max-w-7xl mx-auto px-4 md:px-6 h-full flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <img src="/swm-logo.png" alt="SWM Logo" className="h-12 md:h-14 w-auto" />
-              <div className="hidden lg:block h-10 w-px bg-slate-200"></div>
+            <div className="flex items-center gap-4">
+              <img src="/swm-logo.png" alt="SWM Logo" className="h-10 md:h-12 w-auto" />
+              <div className="w-px h-8 bg-slate-100"></div>
+              <div className="h-10 md:h-12 bg-white rounded-xl p-1.5 shadow-sm border border-slate-100 flex items-center justify-center">
+                <img 
+                  src="/opex-logo-final.png" 
+                  alt="OPEX" 
+                  className="h-full w-auto object-contain" 
+                  style={{ filter: 'invert(11%) sepia(85%) saturate(3755%) hue-rotate(234deg) brightness(88%) contrast(98%)' }}
+                />
+              </div>
+              <div className="hidden lg:block h-10 w-px bg-slate-200 ml-2"></div>
               <div className="hidden sm:block">
                 <h1 className="font-black text-lg tracking-tight uppercase leading-none text-[#171C8F]">Análise de Falha - AF</h1>
                 <p className="text-[9px] text-[#13aff0] font-bold tracking-[0.25em] uppercase mt-1">SWM Brasil</p>

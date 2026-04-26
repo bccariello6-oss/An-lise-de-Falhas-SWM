@@ -169,7 +169,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
       {/* Sticky Header with Filters */}
       <div className="sticky top-0 z-40 bg-[#fcfdff]/90 backdrop-blur-md pt-2 pb-4 border-b border-slate-200 mb-6 -mx-4 px-4 sm:-mx-6 sm:px-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="hidden sm:block">
+          <div className="flex items-center gap-3">
+             <div className="w-8 h-8 bg-white rounded-lg p-1 shadow-sm border border-slate-100 flex items-center justify-center">
+                <img 
+                  src="/opex-logo-final.png" 
+                  alt="OPEX" 
+                  className="w-full h-auto object-contain" 
+                  style={{ filter: 'invert(11%) sepia(85%) saturate(3755%) hue-rotate(234deg) brightness(88%) contrast(98%)' }}
+                />
+             </div>
              <h2 className="text-xl font-bold text-[#171C8F]">Dashboard</h2>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">

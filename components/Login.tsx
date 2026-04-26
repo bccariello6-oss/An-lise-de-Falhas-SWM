@@ -56,15 +56,26 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
         <div className="bg-white rounded-[40px] shadow-[0_32px_64px_-16px_rgba(23,28,143,0.08)] border border-slate-100 p-8 md:p-12 relative z-10">
           {/* Logo Section */}
           <div className="flex flex-col items-center mb-10">
-            <div className="w-24 h-24 bg-white rounded-3xl p-4 shadow-sm border border-slate-50 mb-6 flex items-center justify-center">
-              <img src="/swm-logo.png" alt="SWM Logo" className="w-full h-auto object-contain" />
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-20 h-20 bg-white rounded-2xl p-3 shadow-sm border border-slate-50 flex items-center justify-center">
+                <img src="/swm-logo.png" alt="SWM Logo" className="w-full h-auto object-contain" />
+              </div>
+              <div className="w-1 h-12 bg-slate-100 rounded-full" />
+              <div className="w-20 h-20 bg-white rounded-2xl p-2 shadow-sm border border-slate-50 flex items-center justify-center group hover:scale-105 transition-transform duration-500">
+                <img 
+                  src="/opex-logo-final.png" 
+                  alt="OPEX Logo" 
+                  className="w-full h-auto object-contain" 
+                  style={{ filter: 'invert(11%) sepia(85%) saturate(3755%) hue-rotate(234deg) brightness(88%) contrast(98%)' }}
+                />
+              </div>
             </div>
             <div className="text-center">
               <h1 className="text-2xl font-black text-[#171C8F] uppercase tracking-tighter mb-1">
                 Análise de Falha - AF
               </h1>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">
-                SWM Brasil • Liderança Opex
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2 flex items-center justify-center gap-2">
+                SWM Brasil <span className="w-1 h-1 bg-slate-300 rounded-full" /> Liderança Opex
               </p>
             </div>
           </div>
