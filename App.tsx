@@ -1414,11 +1414,11 @@ const App: React.FC = () => {
                 <React.Fragment key={step.id}>
                   <button onClick={() => setCurrentStep(step.id)} className={`flex flex-col items-center gap-2 transition-all px-2 ${currentStep === step.id ? 'scale-110 opacity-100' : 'opacity-30 hover:opacity-60'}`} aria-current={currentStep === step.id ? 'step' : undefined}>
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs transition-all ${currentStep === step.id ? 'bg-[#171C8F] text-white shadow-xl shadow-blue-200' : 'bg-slate-100 text-slate-500'}`}>
-                      {currentStep > step.id ? <Check size={16} /> : step.icon}
+                      {(currentStep > step.id && currentStep !== StepId.KANBAN) ? <Check size={16} /> : step.icon}
                     </div>
                     <span className={`text-[9px] font-black uppercase tracking-widest ${currentStep === step.id ? 'text-[#171C8F]' : 'text-slate-400'}`}>{step.label}</span>
                   </button>
-                  {idx < STEPS.length - 1 && <div className={`w-12 h-1 rounded-full ${currentStep > idx ? 'bg-[#171C8F]' : 'bg-slate-100'}`} aria-hidden="true"></div>}
+                  {idx < STEPS.length - 1 && <div className={`w-12 h-1 rounded-full ${(currentStep > idx && currentStep !== StepId.KANBAN) ? 'bg-[#171C8F]' : 'bg-slate-100'}`} aria-hidden="true"></div>}
                 </React.Fragment>
               ))}
             </div>
@@ -1434,7 +1434,7 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {currentStep < StepId.DASHBOARD && (
+          {currentStep < StepId.KANBAN && (
             <div className="bg-white/90 backdrop-blur-xl border-t border-slate-100 p-3 md:p-4 z-50">
               <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
                 <button onClick={handleBack} disabled={currentStep === StepId.IDENTIFICATION} className="flex items-center justify-center gap-2 text-slate-400 font-black uppercase text-[10px] hover:text-[#171C8F] disabled:opacity-20 transition-all px-4 py-2 min-h-[44px]">
