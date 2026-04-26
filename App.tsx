@@ -251,7 +251,11 @@ const App: React.FC = () => {
       area: 'Utilidades - Caldeiras',
       equipment: 'Bomba de Alimentação B-102',
       team: [{ name: 'Eng. Roberto Silva', role: 'Engenheiro de Manutenção' }],
-      failureDate: new Date().toISOString().split('T')[0],
+      failureDate: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 80);
+        return d.toISOString().split('T')[0];
+      })(),
       description: 'A bomba parou repentinamente durante a operação normal. Foi observado fumaça saindo do motor elétrico e o disjuntor de proteção desarmou por sobrecorrente.',
       theme: 'Falha do sistema de bombeamento de água para a caldeira',
       failureLocation: 'Casa de Máquinas - Setor de Utilidades',
@@ -264,7 +268,7 @@ const App: React.FC = () => {
       phenomenon: 'Sobreaquecimento e desarme por sobrecorrente.',
       symptom: 'Cheiro de queimado, fumaça e alta temperatura na carcaça do motor.',
       history: 'Motor rebobinado há 6 meses. Rolamentos trocados na última preventiva.',
-      attachmentUrl: '',
+      attachmentUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=500&q=80',
       frequency: 'Eventual',
       whys: {
         rows: [
@@ -355,13 +359,33 @@ const App: React.FC = () => {
           where: 'Sala de Treinamentos',
           how: 'Apresentação e prova oral',
           howMuch: '0',
+          howMuch: '0',
           status: 'Aberta'
+        },
+        {
+          id: Math.random().toString(36).substr(2, 9),
+          what: 'Substituição preventiva do contator principal.',
+          type: 'Definitiva',
+          who: 'Eletricista Lider',
+          when: (() => { const d = new Date(); d.setDate(d.getDate() - 70); return d.toISOString().split('T')[0]; })(),
+          where: 'Painel Elétrico',
+          how: 'Desmontagem e montagem',
+          howMuch: 'R$ 500',
+          status: 'Fechada',
+          evidence: 'Substituição realizada com sucesso, equipamento em teste.',
+          evidenceImage: 'https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?w=500&q=80'
         }
       ],
-      reoccurred: false,
-      effectivenessEvidence: 'Monitoramento de 30 dias sem novas ocorrências de travamento de boia.',
-      needsRevision: true,
-      needsTraining: true,
+      reoccurred: null,
+      effectivenessEvidence: '',
+      needsRevision: false,
+      needsTraining: false,
+      verificationChecklist: [
+        { id: '1', text: 'Monitoramento por 30 dias sem falhas', checked: false },
+        { id: '2', text: 'Treinamento realizado com todos os envolvidos', checked: false },
+        { id: '3', text: 'Documentação e POPs atualizados no sistema', checked: false }
+      ],
+      verificationAttachments: []
     };
     setAnalysis(demoData);
   };
