@@ -932,9 +932,9 @@ const App: React.FC = () => {
                           onChange={e => updateAction(action.id, { status: e.target.value as any })}
                           className={`bg-transparent border-none text-[9px] font-bold focus:ring-0 p-0 uppercase ${action.status === 'Aberta' ? 'text-red-500' : action.status === 'Em andamento' ? 'text-amber-500' : 'text-green-500'}`}
                         >
-                          <option>Aberta</option>
-                          <option>Em andamento</option>
-                          <option>Concluída</option>
+                          <option className="text-red-500 bg-white font-bold uppercase" value="Aberta">Aberta</option>
+                          <option className="text-amber-500 bg-white font-bold uppercase" value="Em andamento">Em andamento</option>
+                          <option className="text-green-500 bg-white font-bold uppercase" value="Concluída">Concluída</option>
                         </select>
                       </td>
                       <td className="px-2 py-1.5 text-center">
