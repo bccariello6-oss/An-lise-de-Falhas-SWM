@@ -1122,19 +1122,7 @@ const App: React.FC = () => {
       )}
 
       {/* PDF PRINT LAYOUT (Hidden on UI) */}
-      <div id="pdf-content-wrapper" className="hidden bg-white text-slate-900 font-sans" style={{ width: '794px' }}>
-        <style>{`
-          #pdf-content-wrapper * { box-sizing: border-box; }
-          #pdf-content-wrapper img { max-width: 100%; height: auto; display: block; }
-          #pdf-content-wrapper section { margin-bottom: 24px; width: 100%; }
-          #pdf-content-wrapper .break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
-          #pdf-content-wrapper .page-break-before { page-break-before: always; padding-top: 20px; }
-          #pdf-content-wrapper table { width: 100% !important; border-collapse: collapse; table-layout: fixed; margin-bottom: 12px; }
-          #pdf-content-wrapper th, #pdf-content-wrapper td { word-wrap: break-word; overflow-wrap: break-word; vertical-align: top; }
-          #pdf-content-wrapper .label-small { font-size: 8px; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.05em; }
-          #pdf-content-wrapper .value-normal { font-size: 11px; font-weight: 700; color: #0f172a; line-height: 1.4; }
-          #pdf-content-wrapper .section-title { font-size: 13px; font-weight: 900; color: #171C8F; border-left: 4px solid #171C8F; padding-left: 8px; text-transform: uppercase; margin-bottom: 12px; }
-        `}</style>
+      <div id="pdf-content-wrapper" className="hidden" style={{ width: '794px', backgroundColor: 'white' }}>
         
         <header className="flex justify-between items-center border-b-4 border-[#171C8F] pb-4 mb-6">
           <div className="flex flex-col">
