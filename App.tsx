@@ -462,23 +462,40 @@ const App: React.FC = () => {
     // Create a temporary visible container for html2canvas
     const tempContainer = document.createElement('div');
     tempContainer.style.position = 'fixed';
-    tempContainer.style.left = '0';
+    tempContainer.style.left = '-9999px'; 
     tempContainer.style.top = '0';
-    tempContainer.style.width = '794px'; // A4 width at 96 DPI
+    tempContainer.style.width = '794px';
     tempContainer.style.background = 'white';
-    tempContainer.style.zIndex = '-9999';
+    tempContainer.style.zIndex = '9999';
     
     const cloned = element.cloneNode(true) as HTMLElement;
     cloned.style.display = 'block';
     cloned.style.width = '794px';
-    cloned.style.padding = '40px'; // Professional padding
+    cloned.style.padding = '40px'; 
     cloned.style.margin = '0';
+    
+    // Inject specific PDF styles ONLY into the clone
+    const styleTag = document.createElement('style');
+    styleTag.textContent = `
+      #pdf-content-wrapper { font-family: sans-serif; color: #1e293b; line-height: 1.5; }
+      #pdf-content-wrapper .section-title { font-size: 14px; font-weight: 900; color: #171C8F; border-left: 4px solid #171C8F; padding-left: 8px; text-transform: uppercase; margin-bottom: 12px; }
+      #pdf-content-wrapper .label-small { font-size: 8px; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+      #pdf-content-wrapper .value-normal { font-size: 11px; font-weight: 700; color: #0f172a; }
+      #pdf-content-wrapper table { width: 100% !important; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
+      #pdf-content-wrapper th, #pdf-content-wrapper td { border: 1px solid #e2e8f0; padding: 8px; vertical-align: top; word-wrap: break-word; }
+      #pdf-content-wrapper section { page-break-inside: avoid; margin-bottom: 30px; }
+      #pdf-content-wrapper .page-break-before { page-break-before: always; }
+      #pdf-content-wrapper .whys-table td { font-size: 9px; line-height: 1.2; }
+      #pdf-content-wrapper .whys-question { font-size: 8px; font-style: italic; color: #64748b; margin-bottom: 2px; }
+      #pdf-content-wrapper .status-badge { padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 900; }
+    `;
+    cloned.prepend(styleTag);
     
     tempContainer.appendChild(cloned);
     document.body.appendChild(tempContainer);
 
     const opt = {
-      margin:       [15, 10, 15, 10], // T, L, B, R in mm
+      margin:       [10, 10, 10, 10],
       filename:     `SWM_AF_${analysis.sequentialNumber || analysis.id || 'Relatorio'}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { 
@@ -1188,24 +1205,48 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        <section className="break-inside-avoid">
+        <section>
           <h2 className="section-title">2. Entendendo o Problema (5W1H)</h2>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { label: 'O QUE aconteceu?', value: analysis.what },
-              { label: 'ONDE ocorreu?', value: analysis.where },
-              { label: 'QUANDO ocorreu?', value: analysis.when },
-              { label: 'QUEM identificou?', value: analysis.who },
-              { label: 'QUANTO impacto?', value: analysis.howMuch },
-              { label: 'COMO percebido?', value: analysis.how },
-              { label: 'FENÔMENO', value: analysis.phenomenon },
-            ].map((item, idx) => (
-              <div key={idx} className={`p-2.5 bg-slate-50 rounded-lg border border-slate-100 ${item.label === 'FENÔMENO' ? 'col-span-3 bg-blue-50/50' : ''}`}>
-                <p className="label-small">{item.label}</p>
-                <p className="text-[10px] font-semibold text-slate-700 leading-tight">{item.value || '—'}</p>
-              </div>
-            ))}
-          </div>
+          <table className="w-full">
+            <tbody>
+              <tr>
+                <td className="bg-slate-50">
+                  <p className="label-small">O QUE aconteceu?</p>
+                  <p className="value-normal">{analysis.what || '—'}</p>
+                </td>
+                <td className="bg-slate-50">
+                  <p className="label-small">ONDE ocorreu?</p>
+                  <p className="value-normal">{analysis.where || '—'}</p>
+                </td>
+              </tr>
+              <tr>
+                <td className="bg-slate-50">
+                  <p className="label-small">QUANDO ocorreu?</p>
+                  <p className="value-normal">{analysis.when || '—'}</p>
+                </td>
+                <td className="bg-slate-50">
+                  <p className="label-small">QUEM identificou?</p>
+                  <p className="value-normal">{analysis.who || '—'}</p>
+                </td>
+              </tr>
+              <tr>
+                <td className="bg-slate-50">
+                  <p className="label-small">QUANTO impacto?</p>
+                  <p className="value-normal">{analysis.howMuch || '—'}</p>
+                </td>
+                <td className="bg-slate-50">
+                  <p className="label-small">COMO percebido?</p>
+                  <p className="value-normal">{analysis.how || '—'}</p>
+                </td>
+              </tr>
+              <tr>
+                <td colSpan={2} className="bg-blue-50/50">
+                  <p className="label-small">FENÔMENO</p>
+                  <p className="value-normal">{analysis.phenomenon || '—'}</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </section>
 
         <section className="break-inside-avoid">
@@ -1234,45 +1275,41 @@ const App: React.FC = () => {
 
         <section className="page-break-before">
           <h2 className="section-title">4. Tabela de Análise Porque Porque (Causa Raiz)</h2>
-          <div className="border border-slate-200 rounded-xl overflow-hidden mb-4 bg-white shadow-sm">
-            {isNewWhysMatrix(analysis.whys) ? (
-              <>
-                <div className="grid grid-cols-[30px_1fr_1fr_1fr_1fr_1fr_1.2fr] bg-[#171C8F] text-white text-[7px] font-black uppercase tracking-widest text-center divide-x divide-white/20">
-                  <div className="p-2 flex items-center justify-center"></div>
-                  <div className="p-2">1º Round</div>
-                  <div className="p-2">2º Round</div>
-                  <div className="p-2">3º Round</div>
-                  <div className="p-2">4º Round</div>
-                  <div className="p-2">5º Round</div>
-                  <div className="p-2">Ideias de Melhoria</div>
-                </div>
-                <div className="divide-y divide-slate-100">
-                  {(analysis.whys as WhysMatrix).rows.filter(r => r.rounds.some(c => c.answer.trim())).map(row => (
-                    <div key={row.id} className="grid grid-cols-[30px_1fr_1fr_1fr_1fr_1fr_1.2fr] divide-x divide-slate-100 min-h-[40px]">
-                      <div className="p-2 flex items-center justify-center font-black text-[#171C8F] text-[10px] bg-slate-50">{row.id}</div>
-                      {row.rounds.map((cell, idx) => (
-                        <div key={idx} className={`flex flex-col p-1.5 text-[8px] leading-tight ${cell.validated === 'V' ? 'bg-green-50' : cell.validated === 'F' ? 'bg-red-50' : ''}`}>
-                          {cell.question && (
-                            <p className="text-[7px] italic text-slate-400 mb-1">{cell.question}</p>
-                          )}
-                          <div className="flex items-start gap-1">
-                            <p className="font-bold text-slate-800 break-words flex-1">{cell.answer || '-'}</p>
-                            {cell.validated && <span className={`shrink-0 font-black ${cell.validated === 'V' ? 'text-green-600' : 'text-red-600'}`}>{cell.validated}</span>}
-                          </div>
-                        </div>
-                      ))}
-                      <div className="p-2 flex items-center justify-center text-[9px] font-bold text-slate-600 text-center italic bg-blue-50/30">{row.improvement || '-'}</div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="p-4 text-center text-slate-400 text-xs italic">Nenhuma matriz de porquês disponível ou formato antigo detectado.</div>
-            )}
-          </div>
-          <div className="bg-[#171C8F] text-white p-4 rounded-xl shadow-lg">
-             <p className="text-[8px] font-black uppercase opacity-70 mb-1 tracking-widest">Conclusão: Causa Raiz</p>
-             <p className="text-sm font-black tracking-tight">{analysis.rootCause || 'NÃO IDENTIFICADA'}</p>
+          {isNewWhysMatrix(analysis.whys) ? (
+            <table className="whys-table">
+              <thead style={{ backgroundColor: '#171C8F', color: 'white' }}>
+                <tr>
+                  <th style={{ width: '30px' }}>#</th>
+                  <th>1º Round</th>
+                  <th>2º Round</th>
+                  <th>3º Round</th>
+                  <th>4º Round</th>
+                  <th>5º Round</th>
+                  <th style={{ width: '120px' }}>Melhoria</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(analysis.whys as WhysMatrix).rows.filter(r => r.rounds.some(c => c.answer.trim())).map(row => (
+                  <tr key={row.id}>
+                    <td style={{ textAlign: 'center', fontWeight: 'bold', backgroundColor: '#f8fafc' }}>{row.id}</td>
+                    {row.rounds.map((cell, idx) => (
+                      <td key={idx} style={{ backgroundColor: cell.validated === 'V' ? '#f0fdf4' : cell.validated === 'F' ? '#fef2f2' : 'transparent' }}>
+                        {cell.question && <p className="whys-question">{cell.question}</p>}
+                        <p style={{ fontWeight: 'bold' }}>{cell.answer || '-'}</p>
+                        {cell.validated && <span style={{ float: 'right', fontWeight: '900', color: cell.validated === 'V' ? '#16a34a' : '#dc2626' }}>{cell.validated}</span>}
+                      </td>
+                    ))}
+                    <td style={{ fontStyle: 'italic', backgroundColor: '#eff6ff' }}>{row.improvement || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#64748b', fontStyle: 'italic' }}>Nenhuma matriz detectada.</div>
+          )}
+          <div style={{ backgroundColor: '#171C8F', color: 'white', padding: '15px', borderRadius: '8px' }}>
+             <p className="label-small" style={{ color: 'rgba(255,255,255,0.7)' }}>Conclusão: Causa Raiz</p>
+             <p style={{ fontSize: '14px', fontWeight: '900' }}>{analysis.rootCause || 'NÃO IDENTIFICADA'}</p>
           </div>
         </section>
 
