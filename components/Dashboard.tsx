@@ -29,14 +29,32 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
 
   const [periodFilter, setPeriodFilter] = useState('Todos');
 
-  const pendingVerification = useMemo(() => {
+  const verificationAlerts = useMemo(() => {
     const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
+    const approachingMs = 75 * 24 * 60 * 60 * 1000; // 15 days before deadline
     const now = Date.now();
-    return history.filter(item => {
-      const isOlderThan90 = (now - new Date(item.failureDate).getTime()) > ninetyDaysMs;
-      const noEvidence = !item.effectivenessEvidence || item.effectivenessEvidence.trim() === '';
-      return isOlderThan90 && noEvidence;
+    
+    let overdueCount = 0;
+    let approachingCount = 0;
+
+    history.forEach(item => {
+      const noEvidenceText = !item.effectivenessEvidence || item.effectivenessEvidence.trim() === '';
+      const noAttachments = !item.verificationAttachments || item.verificationAttachments.length === 0;
+      const noChecklist = !item.verificationChecklist || !item.verificationChecklist.some(c => c.checked);
+      
+      const noEvidence = noEvidenceText && noAttachments && noChecklist;
+
+      if (noEvidence) {
+        const ageMs = now - new Date(item.failureDate).getTime();
+        if (ageMs >= ninetyDaysMs) {
+          overdueCount++;
+        } else if (ageMs >= approachingMs) {
+          approachingCount++;
+        }
+      }
     });
+
+    return { overdueCount, approachingCount };
   }, [history]);
 
   useEffect(() => {
@@ -191,15 +209,30 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
         </div>
       </div>
 
-      {pendingVerification.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-4 shadow-sm animate-slideDown">
-          <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
-             <AlertTriangle size={20} className="text-amber-600" />
-          </div>
-          <div>
-            <h4 className="text-amber-800 font-black text-xs uppercase tracking-widest">Atenção: Verificações Pendentes</h4>
-            <p className="text-[10px] text-amber-700 font-bold mt-1">Existem {pendingVerification.length} análises com mais de 90 dias sem evidências definitivas de eficácia registradas.</p>
-          </div>
+      {(verificationAlerts.overdueCount > 0 || verificationAlerts.approachingCount > 0) && (
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          {verificationAlerts.overdueCount > 0 && (
+            <div className="flex-1 bg-red-50 border border-red-200 p-4 rounded-xl flex items-start gap-4 shadow-sm animate-slideDown">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                 <AlertTriangle size={20} className="text-red-600" />
+              </div>
+              <div>
+                <h4 className="text-red-800 font-black text-xs uppercase tracking-widest">Atenção: Verificações Atrasadas</h4>
+                <p className="text-[10px] text-red-700 font-bold mt-1">Existem {verificationAlerts.overdueCount} análises com mais de 90 dias sem evidências de eficácia registradas.</p>
+              </div>
+            </div>
+          )}
+          {verificationAlerts.approachingCount > 0 && (
+            <div className="flex-1 bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-4 shadow-sm animate-slideDown">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
+                 <AlertTriangle size={20} className="text-amber-600" />
+              </div>
+              <div>
+                <h4 className="text-amber-800 font-black text-xs uppercase tracking-widest">Atenção: Prazos se Aproximando</h4>
+                <p className="text-[10px] text-amber-700 font-bold mt-1">Existem {verificationAlerts.approachingCount} análises faltando 15 dias ou menos para o limite de 90 dias (sem evidências de eficácia).</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

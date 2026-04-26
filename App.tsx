@@ -45,7 +45,8 @@ import {
   Target,
   ShieldCheck,
   Download,
-  CheckCircle2
+  CheckCircle2,
+  Upload
 } from 'lucide-react';
 
 const INITIAL_ISHIKAWA: Ishikawa = {
@@ -65,6 +66,7 @@ const getInitialState = (): Analysis => ({
   failureDate: new Date().toISOString().split('T')[0],
   description: '',
   theme: '',
+  failureLocation: '',
   what: '',
   where: '',
   when: '',
@@ -84,6 +86,12 @@ const getInitialState = (): Analysis => ({
   effectivenessEvidence: '',
   needsRevision: false,
   needsTraining: false,
+  verificationChecklist: [
+    { id: '1', text: 'Monitoramento por 30 dias sem falhas', checked: false },
+    { id: '2', text: 'Treinamento realizado com todos os envolvidos', checked: false },
+    { id: '3', text: 'Documentação e POPs atualizados no sistema', checked: false }
+  ],
+  verificationAttachments: [],
 });
 
 const getSavedStep = (): StepId => {
@@ -146,9 +154,12 @@ const App: React.FC = () => {
       ].filter(p => p && p.trim() !== '');
       
       const newPhenomenon = parts.join(' ').replace(/\s+/g, ' ');
-      if (newPhenomenon !== analysis.phenomenon && parts.length > 0) {
-        setAnalysis(prev => ({ ...prev, phenomenon: newPhenomenon }));
-      }
+      setAnalysis(prev => {
+        if (newPhenomenon !== prev.phenomenon && parts.length > 0) {
+          return { ...prev, phenomenon: newPhenomenon };
+        }
+        return prev;
+      });
     }, 800);
     return () => clearTimeout(timer);
   }, [analysis.what, analysis.where, analysis.when, analysis.who, analysis.how, analysis.howMuch]);
@@ -243,6 +254,7 @@ const App: React.FC = () => {
       failureDate: new Date().toISOString().split('T')[0],
       description: 'A bomba parou repentinamente durante a operação normal. Foi observado fumaça saindo do motor elétrico e o disjuntor de proteção desarmou por sobrecorrente.',
       theme: 'Falha do sistema de bombeamento de água para a caldeira',
+      failureLocation: 'Casa de Máquinas - Setor de Utilidades',
       what: 'Queima do enrolamento do motor elétrico da bomba de alimentação de água da caldeira.',
       where: 'Casa de Máquinas - Setor de Utilidades.',
       when: '08/04/2026 às 14:30 durante o pico de demanda.',
@@ -506,6 +518,10 @@ const App: React.FC = () => {
               <div className="space-y-1">
                 <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Equipamento <span className="text-red-500" aria-hidden="true">*</span></label>
                 <input type="text" value={analysis.equipment} onChange={e => updateAnalysis({ equipment: e.target.value })} className={inputClasses} placeholder="Ex: Bomba de recalque" aria-required="true" />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Local da Falha</label>
+                <input type="text" value={analysis.failureLocation || ''} onChange={e => updateAnalysis({ failureLocation: e.target.value })} className={inputClasses} placeholder="Ex: Linha 1, Setor B" />
               </div>
               <div className="space-y-1">
                 <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Data da Falha <span className="text-red-500" aria-hidden="true">*</span></label>
@@ -920,13 +936,84 @@ const App: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Evidências de Eficácia</label>
-                  <textarea value={analysis.effectivenessEvidence} onChange={e => updateAnalysis({ effectivenessEvidence: e.target.value })} className={inputClasses + " h-20 resize-none"} placeholder="Indicadores de melhoria..." />
-                  <div className="bg-amber-50 border border-amber-200 p-2 rounded-lg flex items-start gap-2 mt-2 shadow-sm">
-                    <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-[9px] text-amber-700 font-bold uppercase">As evidências definitivas devem ser informadas no prazo máximo de 3 meses para encerramento adequado da análise.</p>
+                
+                <div className="space-y-3 pt-2 border-t border-blue-200">
+                  <h3 className="font-black text-[#171C8F] uppercase text-[10px] tracking-widest">Checklist de Efetividade</h3>
+                  <div className="space-y-2">
+                    {(analysis.verificationChecklist || []).map((item, idx) => (
+                      <div key={item.id} className="flex items-center gap-2">
+                        <button onClick={() => {
+                          const newList = [...(analysis.verificationChecklist || [])];
+                          newList[idx].checked = !newList[idx].checked;
+                          updateAnalysis({ verificationChecklist: newList });
+                        }} className={`w-5 h-5 rounded flex items-center justify-center shrink-0 border transition-all ${item.checked ? 'bg-[#171C8F] border-[#171C8F] text-white' : 'bg-white border-blue-300'}`}>
+                          {item.checked && <Check size={12} />}
+                        </button>
+                        <input type="text" value={item.text} onChange={e => {
+                          const newList = [...(analysis.verificationChecklist || [])];
+                          newList[idx].text = e.target.value;
+                          updateAnalysis({ verificationChecklist: newList });
+                        }} className="flex-1 bg-transparent border-b border-transparent focus:border-blue-300 outline-none text-[11px] font-bold text-[#171C8F]" />
+                        <button onClick={() => {
+                          const newList = (analysis.verificationChecklist || []).filter((_, i) => i !== idx);
+                          updateAnalysis({ verificationChecklist: newList });
+                        }} className="text-slate-400 hover:text-red-500"><X size={14} /></button>
+                      </div>
+                    ))}
+                    <button onClick={() => {
+                      const newList = [...(analysis.verificationChecklist || []), { id: Date.now().toString(), text: '', checked: false }];
+                      updateAnalysis({ verificationChecklist: newList });
+                    }} className="flex items-center gap-2 text-[#13aff0] hover:text-[#171C8F] text-[10px] font-black uppercase transition-colors pt-1">
+                      <Plus size={12} /> Adicionar Item
+                    </button>
                   </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-blue-200">
+                  <h3 className="font-black text-[#171C8F] uppercase text-[10px] tracking-widest">Evidências e Anexos</h3>
+                  <textarea value={analysis.effectivenessEvidence} onChange={e => updateAnalysis({ effectivenessEvidence: e.target.value })} className={inputClasses + " h-16 resize-none bg-white"} placeholder="Descreva os indicadores ou resultados alcançados..." />
+                  
+                  <div className="flex flex-col gap-2 mt-2">
+                    <label className="inline-flex w-fit items-center gap-2 cursor-pointer bg-[#13aff0] hover:bg-[#171C8F] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors shadow-sm">
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              const newAttachments = [...(analysis.verificationAttachments || []), { id: Date.now().toString(), url: reader.result as string }];
+                              updateAnalysis({ verificationAttachments: newAttachments });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }} 
+                      />
+                      <Upload size={14} /> Anexar Gráfico ou Imagem
+                    </label>
+
+                    {(analysis.verificationAttachments || []).length > 0 && (
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        {(analysis.verificationAttachments || []).map((att) => (
+                          <div key={att.id} className="relative group border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm h-24">
+                            <img src={att.url} alt="Evidência" className="w-full h-full object-cover" />
+                            <button onClick={() => {
+                              updateAnalysis({ verificationAttachments: (analysis.verificationAttachments || []).filter(a => a.id !== att.id) });
+                            }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 p-2 rounded-lg flex items-start gap-2 mt-2 shadow-sm">
+                  <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                  <p className="text-[9px] text-amber-700 font-bold uppercase">As evidências definitivas devem ser informadas no prazo máximo de 3 meses para encerramento adequado da análise.</p>
                 </div>
               </div>
 
@@ -1027,7 +1114,7 @@ const App: React.FC = () => {
             <div className="flex items-center gap-3">
               <img src="/swm-logo.png" alt="SWM Logo" className="h-8 w-auto" />
               <div>
-                <h1 className="text-lg font-black uppercase text-[#171C8F]">ARP - Análise e Resolução de Problemas</h1>
+                <h1 className="text-lg font-black uppercase text-[#171C8F]">Análise de Falha - AF</h1>
                 <p className="text-[#13aff0] font-extrabold uppercase tracking-[0.15em] text-[8px]">SWM Brasil - LIDERANÇA OPEX</p>
               </div>
             </div>
@@ -1042,9 +1129,10 @@ const App: React.FC = () => {
 
         <section className="mb-3 break-inside-avoid">
           <h2 className="text-xs font-black border-l-4 border-[#171C8F] pl-1 uppercase mb-1">1. Identificação</h2>
-          <section className="grid grid-cols-4 gap-1 bg-slate-50 p-1 rounded border border-slate-200 mb-1">
+          <section className="grid grid-cols-5 gap-1 bg-slate-50 p-1 rounded border border-slate-200 mb-1">
              <div className="col-span-2"><p className="text-[5px] font-black text-slate-400 uppercase">Equipamento</p><p className="text-[7px] font-bold truncate">{analysis.equipment || '—'}</p></div>
              <div><p className="text-[5px] font-black text-slate-400 uppercase">Área</p><p className="text-[7px] font-bold">{analysis.area || '—'}</p></div>
+             <div><p className="text-[5px] font-black text-slate-400 uppercase">Local</p><p className="text-[7px] font-bold truncate">{analysis.failureLocation || '—'}</p></div>
              <div><p className="text-[5px] font-black text-slate-400 uppercase">Data</p><p className="text-[7px] font-bold">{analysis.failureDate || '—'}</p></div>
           </section>
 
@@ -1222,10 +1310,33 @@ const App: React.FC = () => {
                 <p className="text-[7px] font-bold">{analysis.needsTraining ? 'SIM' : 'NÃO'}</p>
              </div>
           </div>
-          <div className="p-1 bg-slate-50 rounded border border-slate-100">
-             <p className="text-[5px] font-black text-slate-400 uppercase">Evidências</p>
+          <div className="p-1 bg-slate-50 rounded border border-slate-100 mb-1">
+             <p className="text-[5px] font-black text-slate-400 uppercase">Evidências textuais</p>
              <p className="text-[6px] font-medium whitespace-pre-wrap">{analysis.effectivenessEvidence || '—'}</p>
           </div>
+          {analysis.verificationChecklist && analysis.verificationChecklist.length > 0 && (
+            <div className="p-1 bg-slate-50 rounded border border-slate-100 mb-1">
+               <p className="text-[5px] font-black text-slate-400 uppercase mb-0.5">Checklist de Efetividade</p>
+               <ul className="text-[6px] font-medium list-none space-y-0.5">
+                 {analysis.verificationChecklist.map(item => (
+                   <li key={item.id} className="flex gap-1 items-start">
+                     <span className={item.checked ? 'text-green-600 font-black' : 'text-slate-300'}>{item.checked ? '[x]' : '[ ]'}</span>
+                     <span className={item.checked ? 'text-slate-800' : 'text-slate-500'}>{item.text || '—'}</span>
+                   </li>
+                 ))}
+               </ul>
+            </div>
+          )}
+          {analysis.verificationAttachments && analysis.verificationAttachments.length > 0 && (
+            <div className="grid grid-cols-2 gap-1">
+               {analysis.verificationAttachments.map(att => (
+                 <div key={att.id} className="p-1 bg-slate-50 rounded border border-slate-100 flex flex-col items-center">
+                    <p className="text-[5px] font-black text-slate-400 uppercase self-start mb-0.5">Anexo Verificação</p>
+                    <img src={att.url} alt="Anexo Verificação" className="max-h-20 object-contain rounded border border-slate-200 shadow-sm" />
+                 </div>
+               ))}
+            </div>
+          )}
         </section>
 
         <footer className="mt-4 pt-2 border-t border-slate-200 flex justify-between items-end">
@@ -1245,8 +1356,8 @@ const App: React.FC = () => {
               <img src="/swm-logo.png" alt="SWM Logo" className="h-12 md:h-14 w-auto" />
               <div className="hidden lg:block h-10 w-px bg-slate-200"></div>
               <div className="hidden sm:block">
-                <h1 className="font-black text-lg tracking-tight uppercase leading-none text-[#171C8F]">ARP</h1>
-                <p className="text-[9px] text-[#13aff0] font-bold tracking-[0.25em] uppercase mt-1">Análise e Resolução de Problemas</p>
+                <h1 className="font-black text-lg tracking-tight uppercase leading-none text-[#171C8F]">Análise de Falha - AF</h1>
+                <p className="text-[9px] text-[#13aff0] font-bold tracking-[0.25em] uppercase mt-1">SWM Brasil</p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-6">

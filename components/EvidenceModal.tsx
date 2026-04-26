@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileText, Save, AlertCircle } from 'lucide-react';
+import { X, FileText, Save, AlertCircle, Upload } from 'lucide-react';
 
 interface EvidenceModalProps {
   isOpen: boolean;
@@ -136,10 +136,31 @@ const EvidenceModal: React.FC<EvidenceModalProps> = ({
               }`}
               autoFocus
             />
+            <div className="mt-2 flex items-center justify-between">
+              <label className="inline-flex items-center gap-2 cursor-pointer text-[#13aff0] hover:text-[#171C8F] text-[10px] font-black uppercase tracking-wider transition-colors">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setEvidenceImage(reader.result as string);
+                        if (error) setError('');
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }} 
+                />
+                <Upload size={14} /> Fazer upload de imagem
+              </label>
+            </div>
             {evidenceImage && (
-               <div className="mt-2 relative inline-block group border border-slate-100 rounded-lg overflow-hidden shadow-sm">
+               <div className="mt-3 relative inline-block group border border-slate-100 rounded-lg overflow-hidden shadow-sm">
                  <img src={evidenceImage} alt="Evidência" className="max-h-[150px] object-contain bg-slate-50" />
-                 <button onClick={() => setEvidenceImage('')} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                 <button onClick={() => setEvidenceImage('')} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg" title="Excluir imagem">
                    <X size={12} />
                  </button>
                </div>

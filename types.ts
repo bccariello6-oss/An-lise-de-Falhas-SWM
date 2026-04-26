@@ -68,6 +68,7 @@ export interface Analysis {
   failureDate: string;
   description: string;
   theme: string;
+  failureLocation: string;
   // Step 2 (5W1H)
   what: string;
   where: string;
@@ -93,6 +94,8 @@ export interface Analysis {
   effectivenessEvidence: string;
   needsRevision: boolean;
   needsTraining: boolean;
+  verificationChecklist: { id: string; text: string; checked: boolean }[];
+  verificationAttachments: { id: string; url: string; name?: string }[];
   // Meta
   summary?: string;
   lastUpdated?: string;
