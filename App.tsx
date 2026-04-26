@@ -477,17 +477,17 @@ const App: React.FC = () => {
     // Inject specific PDF styles ONLY into the clone
     const styleTag = document.createElement('style');
     styleTag.textContent = `
-      #pdf-content-wrapper { font-family: sans-serif; color: #1e293b; line-height: 1.5; }
-      #pdf-content-wrapper .section-title { font-size: 14px; font-weight: 900; color: #171C8F; border-left: 4px solid #171C8F; padding-left: 8px; text-transform: uppercase; margin-bottom: 12px; }
-      #pdf-content-wrapper .label-small { font-size: 8px; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
-      #pdf-content-wrapper .value-normal { font-size: 11px; font-weight: 700; color: #0f172a; }
-      #pdf-content-wrapper table { width: 100% !important; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
-      #pdf-content-wrapper th, #pdf-content-wrapper td { border: 1px solid #e2e8f0; padding: 8px; vertical-align: top; word-wrap: break-word; }
-      #pdf-content-wrapper section { page-break-inside: avoid; margin-bottom: 30px; }
+      #pdf-content-wrapper * { box-sizing: border-box; }
+      #pdf-content-wrapper { font-family: sans-serif; color: #1e293b; line-height: 1.2; width: 700px !important; }
+      #pdf-content-wrapper .section-title { font-size: 10px; font-weight: 900; color: #171C8F; border-left: 3px solid #171C8F; padding-left: 6px; text-transform: uppercase; margin-bottom: 8px; }
+      #pdf-content-wrapper .label-small { font-size: 6px; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 1px; }
+      #pdf-content-wrapper .value-normal { font-size: 8px; font-weight: 700; color: #0f172a; word-wrap: break-word; overflow-wrap: break-word; }
+      #pdf-content-wrapper table { width: 100% !important; border-collapse: collapse; margin-bottom: 10px; table-layout: fixed; }
+      #pdf-content-wrapper th, #pdf-content-wrapper td { border: 1px solid #e2e8f0; padding: 4px; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+      #pdf-content-wrapper section { page-break-inside: avoid; margin-bottom: 15px; width: 100%; }
       #pdf-content-wrapper .page-break-before { page-break-before: always; }
-      #pdf-content-wrapper .whys-table td { font-size: 9px; line-height: 1.2; }
-      #pdf-content-wrapper .whys-question { font-size: 8px; font-style: italic; color: #64748b; margin-bottom: 2px; }
-      #pdf-content-wrapper .status-badge { padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 900; }
+      #pdf-content-wrapper .whys-table td { font-size: 7px; line-height: 1.1; }
+      #pdf-content-wrapper .whys-question { font-size: 6px; font-style: italic; color: #64748b; margin-bottom: 1px; }
     `;
     cloned.prepend(styleTag);
     
