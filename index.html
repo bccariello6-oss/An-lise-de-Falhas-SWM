@@ -5,30 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Análise de Falha - AF | SWM Brasil - LIDERANÇA OPEX</title>
-    <script>
-        // Fix for "Uncaught TypeError: Cannot set property fetch of #<Window> which has only a getter"
-        // This happens when polyfills (like formdata-polyfill) try to override window.fetch via a 'global' or 'globalThis' alias.
-        (function() {
-            const proxy = new Proxy(window, {
-                set(target, prop, value) {
-                    if (prop === 'fetch') {
-                        console.warn('Blocked attempt to override read-only fetch');
-                        return true; // Ignore attempts to override fetch
-                    }
-                    target[prop] = value;
-                    return true;
-                },
-                get(target, prop) {
-                    if (prop === 'global' || prop === 'globalThis') return proxy;
-                    const value = target[prop];
-                    if (typeof value === 'function') return value.bind(target);
-                    return value;
-                }
-            });
-            window.global = proxy;
-            // Note: We can't redefine globalThis directly in JS, but we can use Vite's 'define' to replace it in the bundle.
-        })();
-    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="assets/animate_5a7f94d18b76.css" rel="stylesheet">
