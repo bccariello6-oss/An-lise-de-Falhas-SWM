@@ -601,6 +601,7 @@ const App: React.FC = () => {
                 { field: 'howMuch', label: 'QUANTO impacto?', required: false, icon: <LineChart size={12} className="text-[#13aff0]/50" /> },
                 { field: 'how', label: 'COMO percebido?', required: true, icon: <Eye size={12} className="text-[#13aff0]/50" /> },
                 { field: 'phenomenon', label: 'FENÔMENO (O que se observou)?', required: false, icon: <AlertTriangle size={12} className="text-[#13aff0]/50" /> },
+              ].map(item => (
                 <div key={item.field} className="space-y-1 relative group">
                   <label className="flex items-center gap-2 text-[9px] font-bold text-slate-500 uppercase tracking-wider">
                     {item.icon}
