@@ -455,64 +455,229 @@ const App: React.FC = () => {
 
 
 
-  const handlePrintPDF = () => {
-    const element = document.getElementById('pdf-content-wrapper');
-    if (!element) return;
-    
-    // Create a temporary visible container for html2canvas
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'fixed';
-    tempContainer.style.left = '-9999px'; 
-    tempContainer.style.top = '0';
-    tempContainer.style.width = '794px';
-    tempContainer.style.background = 'white';
-    tempContainer.style.zIndex = '9999';
-    
-    const cloned = element.cloneNode(true) as HTMLElement;
-    cloned.style.display = 'block';
-    cloned.style.width = '794px';
-    cloned.style.padding = '40px'; 
-    cloned.style.margin = '0';
-    
-    // Inject specific PDF styles ONLY into the clone
-    const styleTag = document.createElement('style');
-    styleTag.textContent = `
-      #pdf-content-wrapper * { box-sizing: border-box; }
-      #pdf-content-wrapper { font-family: sans-serif; color: #1e293b; line-height: 1.2; width: 700px !important; }
-      #pdf-content-wrapper .section-title { font-size: 10px; font-weight: 900; color: #171C8F; border-left: 3px solid #171C8F; padding-left: 6px; text-transform: uppercase; margin-bottom: 8px; }
-      #pdf-content-wrapper .label-small { font-size: 6px; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 1px; }
-      #pdf-content-wrapper .value-normal { font-size: 8px; font-weight: 700; color: #0f172a; word-wrap: break-word; overflow-wrap: break-word; }
-      #pdf-content-wrapper table { width: 100% !important; border-collapse: collapse; margin-bottom: 10px; table-layout: fixed; }
-      #pdf-content-wrapper th, #pdf-content-wrapper td { border: 1px solid #e2e8f0; padding: 4px; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
-      #pdf-content-wrapper section { page-break-inside: avoid; margin-bottom: 15px; width: 100%; }
-      #pdf-content-wrapper .page-break-before { page-break-before: always; }
-      #pdf-content-wrapper .whys-table td { font-size: 7px; line-height: 1.1; }
-      #pdf-content-wrapper .whys-question { font-size: 6px; font-style: italic; color: #64748b; margin-bottom: 1px; }
+  const handleViewReport = () => {
+    const reportWindow = window.open('', '_blank');
+    if (!reportWindow) return;
+
+    // Build the printable HTML
+    const html = `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <title>SWM_AF_${analysis.sequentialNumber || analysis.id}</title>
+        <style>
+          @page { size: A4; margin: 15mm; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; line-height: 1.4; margin: 0; padding: 0; background: white; font-size: 10pt; }
+          .container { max-width: 210mm; margin: 0 auto; }
+          header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #171C8F; padding-bottom: 10px; margin-bottom: 20px; }
+          .logo-area { display: flex; items-center: center; gap: 15px; }
+          .logo-area img { height: 45px; width: auto; }
+          .protocol-box { text-align: right; }
+          .protocol-box p { margin: 0; font-weight: 900; color: #171C8F; }
+          .section { margin-bottom: 20px; page-break-inside: avoid; }
+          .section-title { font-size: 12pt; font-weight: 900; color: #171C8F; border-left: 5px solid #171C8F; padding-left: 10px; text-transform: uppercase; margin-bottom: 10px; background: #f8fafc; padding-top: 5px; padding-bottom: 5px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed; }
+          th, td { border: 1px solid #e2e8f0; padding: 6px; text-align: left; vertical-align: top; word-wrap: break-word; }
+          th { background: #171C8F; color: white; font-size: 8pt; text-transform: uppercase; }
+          .label { font-size: 7pt; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+          .value { font-size: 9pt; font-weight: 700; color: #0f172a; }
+          .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+          .bg-slate { background: #f8fafc; }
+          .bg-blue { background: #eff6ff; }
+          .whys-row td { font-size: 8pt; }
+          .whys-question { font-size: 7pt; font-style: italic; color: #64748b; margin-bottom: 3px; }
+          .status-concluido { color: #16a34a; font-weight: 900; }
+          .status-andamento { color: #d97706; font-weight: 900; }
+          .status-atrasado { color: #dc2626; font-weight: 900; }
+          .evidence-img { max-width: 100%; max-height: 250px; object-contain: contain; border-radius: 8px; border: 1px solid #e2e8f0; }
+          footer { margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .signature { border-top: 2px solid #171C8F; width: 200px; text-align: center; padding-top: 5px; }
+          @media print {
+            .no-print { display: none; }
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="background: #171C8F; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 14px; position: sticky; top: 0; z-index: 1000;">
+          MODO DE VISUALIZAÇÃO - Pressione Ctrl+P (ou Cmd+P) para salvar como PDF ou Imprimir
+          <button onclick="window.print()" style="margin-left: 20px; padding: 8px 20px; background: white; color: #171C8F; border: none; border-radius: 6px; font-weight: 900; cursor: pointer;">IMPRIMIR AGORA</button>
+        </div>
+        
+        <div class="container">
+          <header>
+            <div class="logo-area">
+              <img src="${window.location.origin}/swm-logo.png" alt="SWM">
+              <div>
+                <p style="margin:0; font-size: 14pt; font-weight: 900; color: #171C8F;">ANÁLISE DE FALHA - AF</p>
+                <p style="margin:0; font-size: 8pt; font-weight: 900; color: #13aff0;">SWM BRASIL - LIDERANÇA OPEX</p>
+              </div>
+            </div>
+            <div class="protocol-box">
+              <p style="font-size: 7pt; opacity: 0.6;">PROTOCOLO</p>
+              <p style="font-size: 12pt;">${analysis.id}</p>
+              <p style="font-size: 8pt; margin-top: 5px;">Nº SEQ: ${analysis.sequentialNumber || '-'}</p>
+            </div>
+          </header>
+
+          <div class="section">
+            <div class="section-title">1. Identificação Geral</div>
+            <table>
+              <tr>
+                <td colspan="2" class="bg-slate"><div class="label">Equipamento</div><div class="value">${analysis.equipment || '—'}</div></td>
+                <td class="bg-slate"><div class="label">Área</div><div class="value">${analysis.area || '—'}</div></td>
+                <td class="bg-slate"><div class="label">Data</div><div class="value">${analysis.failureDate ? new Date(analysis.failureDate).toLocaleDateString('pt-BR') : '—'}</div></td>
+              </tr>
+              <tr>
+                <td colspan="2"><div class="label">Local da Falha</div><div class="value">${analysis.failureLocation || '—'}</div></td>
+                <td colspan="2"><div class="label">Tema da Análise</div><div class="value">${analysis.theme || '—'}</div></td>
+              </tr>
+              <tr>
+                <td colspan="4">
+                  <div class="label">Equipe</div>
+                  <div class="value">${(analysis.team || []).map(m => `${m.name} (${m.role})`).join(', ') || '—'}</div>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="section">
+            <div class="section-title">2. Entendendo o Problema (5W1H)</div>
+            <table>
+              <tr>
+                <td class="bg-slate"><div class="label">O QUE aconteceu?</div><div class="value">${analysis.what || '—'}</div></td>
+                <td class="bg-slate"><div class="label">ONDE ocorreu?</div><div class="value">${analysis.where || '—'}</div></td>
+              </tr>
+              <tr>
+                <td class="bg-slate"><div class="label">QUANDO ocorreu?</div><div class="value">${analysis.when || '—'}</div></td>
+                <td class="bg-slate"><div class="label">QUEM identificou?</div><div class="value">${analysis.who || '—'}</div></td>
+              </tr>
+              <tr>
+                <td class="bg-slate"><div class="label">QUANTO impacto?</div><div class="value">${analysis.howMuch || '—'}</div></td>
+                <td class="bg-slate"><div class="label">COMO percebido?</div><div class="value">${analysis.how || '—'}</div></td>
+              </tr>
+              <tr>
+                <td colspan="2" class="bg-blue"><div class="label">FENÔMENO</div><div class="value">${analysis.phenomenon || '—'}</div></td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="section">
+            <div class="section-title">3. Detalhes Técnicos</div>
+            <div class="grid-2">
+              <div style="border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px;">
+                <div class="label">Sintoma</div><div class="value">${analysis.symptom || '—'}</div>
+                <div class="label" style="margin-top:10px">Frequência</div><div class="value">${analysis.frequency || '—'}</div>
+                <div class="label" style="margin-top:10px">Histórico</div><div class="value">${analysis.history || '—'}</div>
+              </div>
+              <div style="text-align: center; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                ${analysis.attachmentUrl ? `<img src="${analysis.attachmentUrl}" class="evidence-img">` : '<p style="color:#cbd5e1; font-style:italic">Sem evidência fotográfica</p>'}
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">4. Tabela de Análise Porque Porque</div>
+            ${isNewWhysMatrix(analysis.whys) ? `
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 25px">#</th>
+                    <th>1º Round</th>
+                    <th>2º Round</th>
+                    <th>3º Round</th>
+                    <th>4º Round</th>
+                    <th>5º Round</th>
+                    <th style="width: 100px">Melhoria</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(analysis.whys as WhysMatrix).rows.filter(r => r.rounds.some(c => c.answer.trim())).map(row => `
+                    <tr class="whys-row">
+                      <td style="text-align:center; font-weight:900; background:#f8fafc;">${row.id}</td>
+                      ${row.rounds.map(cell => `
+                        <td style="background: ${cell.validated === 'V' ? '#f0fdf4' : cell.validated === 'F' ? '#fef2f2' : 'transparent'}">
+                          ${cell.question ? `<div class="whys-question">${cell.question}</div>` : ''}
+                          <div style="font-weight: 700;">${cell.answer || '-'}</div>
+                          ${cell.validated ? `<div style="text-align:right; font-weight:900; color: ${cell.validated === 'V' ? '#16a34a' : '#dc2626'}">${cell.validated}</div>` : ''}
+                        </td>
+                      `).join('')}
+                      <td style="font-style: italic; background: #eff6ff;">${row.improvement || '-'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<p>Matriz não disponível</p>'}
+            <div style="background: #171C8F; color: white; padding: 15px; border-radius: 8px; margin-top: 10px;">
+              <div class="label" style="color: rgba(255,255,255,0.7)">Conclusão: Causa Raiz</div>
+              <div style="font-size: 12pt; font-weight: 900;">${analysis.rootCause || 'NÃO IDENTIFICADA'}</div>
+            </div>
+          </div>
+
+          <div style="page-break-before: always;"></div>
+
+          <div class="section">
+            <div class="section-title">5. Plano de Ação (5W2H)</div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 60px">Tipo</th>
+                  <th>O que fazer?</th>
+                  <th style="width: 80px">Quem?</th>
+                  <th style="width: 70px">Prazo</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${analysis.actions.map(a => `
+                  <tr>
+                    <td style="font-weight: 900; font-size: 7pt;">${a.type}</td>
+                    <td style="font-weight: 700;">${a.what || '—'}</td>
+                    <td>${a.who || '—'}</td>
+                    <td>${a.when ? new Date(a.when).toLocaleDateString('pt-BR') : '—'}</td>
+                    <td class="${a.status === 'Concluída' ? 'status-concluido' : a.status === 'Em andamento' ? 'status-andamento' : 'status-atrasado'}">${a.status}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section">
+            <div class="section-title">6. Verificação e Eficácia</div>
+            <div class="grid-2">
+              <div class="bg-slate" style="padding:10px; border-radius:8px; text-align:center;">
+                <div class="label">Reincidência?</div>
+                <div class="value" style="font-size: 14pt; color: ${analysis.reoccurred ? '#dc2626' : '#16a34a'}">${analysis.reoccurred ? 'SIM' : 'NÃO'}</div>
+              </div>
+              <div class="bg-slate" style="padding:10px; border-radius:8px; text-align:center;">
+                <div class="label">Treinamento Equipe?</div>
+                <div class="value" style="font-size: 14pt;">${analysis.needsTraining ? 'SIM' : 'NÃO'}</div>
+              </div>
+            </div>
+            <div style="margin-top: 15px; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px;">
+              <div class="label">Evidências da Eficácia</div>
+              <div class="value" style="white-space: pre-wrap;">${analysis.effectivenessEvidence || 'Nenhuma evidência registrada.'}</div>
+            </div>
+          </div>
+
+          <footer>
+            <div style="font-size: 7pt; color: #94a3b8;">
+              Gerado em ${new Date().toLocaleString('pt-BR')}<br>
+              SWM Brasil - Sistema de Análise de Falha
+            </div>
+            <div class="signature">
+              <div class="value" style="text-transform: uppercase;">${analysis.authorName || 'Responsável Técnico'}</div>
+              <div class="label">Assinatura Digital</div>
+            </div>
+          </footer>
+        </div>
+      </body>
+      </html>
     `;
-    cloned.prepend(styleTag);
-    
-    tempContainer.appendChild(cloned);
-    document.body.appendChild(tempContainer);
 
-    const opt = {
-      margin:       [10, 10, 10, 10],
-      filename:     `SWM_AF_${analysis.sequentialNumber || analysis.id || 'Relatorio'}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { 
-        scale: 2, 
-        useCORS: true, 
-        logging: false, 
-        letterRendering: true,
-        windowWidth: 794
-      },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-    };
-
-    // @ts-ignore
-    (window as any).html2pdf().set(opt).from(cloned).save().then(() => {
-      document.body.removeChild(tempContainer);
-    });
+    reportWindow.document.write(html);
+    reportWindow.document.close();
   };
 
   const handleSendEmail = async () => {
@@ -1079,8 +1244,8 @@ const App: React.FC = () => {
                 </div>
                 <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-widest border-t pt-3">Ações Compartilhadas</h3>
                 <div className="grid grid-cols-2 gap-2">
-                  <button onClick={handlePrintPDF} className="bg-[#171C8F] text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-blue-700 transition-all shadow-sm">
-                    <FileDown size={14} /> Download PDF
+                  <button onClick={handleViewReport} className="bg-[#171C8F] text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-blue-700 transition-all shadow-sm">
+                    <FileText size={14} /> Visualizar Relatório (PDF)
                   </button>
                   <button onClick={handleSendEmail} className="bg-emerald-600 text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-emerald-700 transition-all shadow-sm">
                     <Mail size={14} /> E-mail Outlook
