@@ -1386,7 +1386,7 @@ const App: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 sm:gap-6">
               <nav className="flex gap-1 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-                <button onClick={startNewAnalysis} className={`px-4 md:px-6 py-3 rounded-xl transition-all font-black uppercase text-[10px] tracking-wider ${currentStep < StepId.DASHBOARD ? 'bg-[#171C8F] text-white shadow-lg' : 'text-[#171C8F]/50 hover:text-[#171C8F] hover:bg-white'}`}>Novo</button>
+                <button onClick={startNewAnalysis} className={`px-4 md:px-6 py-3 rounded-xl transition-all font-black uppercase text-[10px] tracking-wider ${(currentStep !== StepId.DASHBOARD && currentStep !== StepId.KANBAN) ? 'bg-[#171C8F] text-white shadow-lg' : 'text-[#171C8F]/50 hover:text-[#171C8F] hover:bg-white'}`}>Novo</button>
                 <button onClick={() => setCurrentStep(StepId.DASHBOARD)} className={`px-4 md:px-6 py-3 rounded-xl transition-all font-black uppercase text-[10px] tracking-wider ${currentStep === StepId.DASHBOARD ? 'bg-[#171C8F] text-white shadow-lg' : 'text-[#171C8F]/50 hover:text-[#171C8F] hover:bg-white'}`}>Dashboard</button>
                 <button onClick={() => setCurrentStep(StepId.KANBAN)} className={`px-4 md:px-6 py-3 rounded-xl transition-all font-black uppercase text-[10px] tracking-wider ${currentStep === StepId.KANBAN ? 'bg-[#171C8F] text-white shadow-lg' : 'text-[#171C8F]/50 hover:text-[#171C8F] hover:bg-white'}`}>Kanban</button>
               </nav>
