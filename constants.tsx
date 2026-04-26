@@ -20,8 +20,8 @@ export const STEPS = [
   { id: StepId.ISHIKAWA, label: '4. Ishikawa', icon: <Fish size={18} /> },
   { id: StepId.FIVE_WHYS, label: '5. 5 Porquês', icon: <ListOrdered size={18} /> },
   { id: StepId.ACTIONS, label: '6. Plano de Ação', icon: <CheckSquare size={18} /> },
-  { id: StepId.KANBAN, label: '7. Kanban', icon: <Columns size={18} /> },
-  { id: StepId.VERIFICATION, label: '8. Resultados', icon: <CheckCircle2 size={18} /> },
+  { id: StepId.VERIFICATION, label: '7. Resultados', icon: <CheckCircle2 size={18} /> },
+  { id: StepId.KANBAN, label: '8. Kanban', icon: <Columns size={18} /> },
   { id: StepId.DASHBOARD, label: 'Dashboard', icon: <LayoutDashboard size={18} /> }
 ];
 

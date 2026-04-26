@@ -217,7 +217,7 @@ const App: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (currentStep < StepId.VERIFICATION) {
+    if (currentStep < StepId.KANBAN) {
       setCurrentStep(prev => prev + 1);
       document.getElementById('step-scroll-container')?.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -953,7 +953,7 @@ const App: React.FC = () => {
       case StepId.VERIFICATION:
         return (
           <div className="space-y-4 animate-fadeIn flex flex-col relative">
-            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">8. Verificação dos Resultados</h2>
+            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">7. Verificação dos Resultados</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="bg-[#e5ebf7] p-4 rounded-xl border border-blue-100 flex flex-col gap-4">
                 <div className="flex justify-between items-center">
@@ -1445,7 +1445,7 @@ const App: React.FC = () => {
                 </button>
                 <div className="flex gap-3 flex-1 sm:flex-initial">
                   <button onClick={saveDraft} className="hidden sm:flex items-center justify-center text-slate-600 bg-slate-100 hover:bg-slate-200 px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest border border-slate-200 min-h-[44px]">Salvar Rascunho</button>
-                  {currentStep < StepId.VERIFICATION ? (
+                  {currentStep < StepId.KANBAN ? (
                     <button onClick={handleNext} className="flex-1 sm:flex-initial bg-[#171C8F] hover:bg-blue-700 text-white px-10 py-3 rounded-xl font-black uppercase text-[10px] shadow-xl shadow-blue-200/50 transition-all flex items-center justify-center gap-3 min-h-[44px]">
                       Próximo <ArrowRight size={14} />
                     </button>

@@ -137,7 +137,7 @@ export enum StepId {
   ISHIKAWA = 3,
   FIVE_WHYS = 4,
   ACTIONS = 5,
-  KANBAN = 6,
-  VERIFICATION = 7,
+  VERIFICATION = 6,
+  KANBAN = 7,
   DASHBOARD = 8
 }
