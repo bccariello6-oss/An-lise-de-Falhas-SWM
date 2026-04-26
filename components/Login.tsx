@@ -63,10 +63,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
               <h1 className="text-2xl font-black text-[#171C8F] uppercase tracking-tighter mb-1">
                 Análise de Falha - AF
               </h1>
-              <p className="text-[8px] font-bold text-[#13aff0] uppercase tracking-[0.2em] opacity-90">
-                SWM Brasil
-              </p>
-              <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">
                 SWM Brasil • Liderança Opex
               </p>
             </div>
