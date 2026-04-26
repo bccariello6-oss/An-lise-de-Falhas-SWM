@@ -9,20 +9,16 @@ import Login from './components/Login';
 import { supabase } from './lib/supabase';
 import * as db from './services/supabaseService';
 import { notifyNewAnalysis } from './services/notificationService';
-import { generateSummary, suggestRootCause } from './services/geminiService';
 import { 
   LogOut,
   ThumbsDown, 
   ThumbsUp, 
   Loader2, 
-  Brain, 
   FileDown, 
   Check, 
-  Quote, 
-  Bot, 
   AlertTriangle, 
   X, 
-  Cpu, 
+  Zap, 
   ArrowLeft, 
   ArrowRight,
   Eraser,
@@ -105,10 +101,8 @@ const App: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [analysis, setAnalysis] = useState<Analysis>(getInitialState);
   const [currentStep, setCurrentStep] = useState<StepId>(getSavedStep);
-  const [showSummary, setShowSummary] = useState(false);
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{step: string, errors: string[]}[]>([]);
-  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [newTeamMemberName, setNewTeamMemberName] = useState('');
   const [newTeamMemberRole, setNewTeamMemberRole] = useState('');
 
@@ -217,7 +211,7 @@ const App: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (currentStep < StepId.KANBAN) {
+    if (currentStep < StepId.VERIFICATION) {
       setCurrentStep(prev => prev + 1);
       document.getElementById('step-scroll-container')?.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -242,7 +236,6 @@ const App: React.FC = () => {
     const preservedArea = (profile?.role !== 'ADMIN' && profile?.full_name) ? profile.full_name : '';
     setAnalysis({ ...getInitialState(), area: preservedArea });
     setCurrentStep(StepId.IDENTIFICATION);
-    setShowSummary(false);
   };
 
   const fillDemoData = () => {
@@ -401,7 +394,6 @@ const App: React.FC = () => {
     if (!session?.user) return;
     
     try {
-      setIsGeneratingSummary(true);
       const seqNum = await db.fetchNextSequentialNumber();
       const analysisWithSeq = { ...analysis, sequentialNumber: seqNum };
       await db.saveAnalysis(session.user.id, analysisWithSeq);
@@ -411,12 +403,9 @@ const App: React.FC = () => {
       }
       
       setCurrentStep(StepId.DASHBOARD);
-      setShowSummary(false);
     } catch (error) {
       console.error('Error saving analysis:', error);
       alert('Erro ao salvar no banco de dados corporativo.');
-    } finally {
-      setIsGeneratingSummary(false);
     }
   };
 
@@ -434,7 +423,6 @@ const App: React.FC = () => {
   const loadFromHistory = (loadedAnalysis: Analysis) => {
     setAnalysis(loadedAnalysis);
     setCurrentStep(StepId.IDENTIFICATION);
-    setShowSummary(!!loadedAnalysis.summary);
   };
 
   const deleteFromHistory = async (id: string) => {
@@ -465,10 +453,7 @@ const App: React.FC = () => {
     updateAnalysis({ actions: analysis.actions.filter(a => a.id !== id) });
   };
 
-  const handleSuggestCause = async () => {
-    const cause = await suggestRootCause(analysis);
-    updateAnalysis({ rootCause: cause });
-  };
+
 
   const handlePrintPDF = () => {
     const element = document.getElementById('pdf-content-wrapper');
@@ -479,21 +464,27 @@ const App: React.FC = () => {
     tempContainer.style.position = 'absolute';
     tempContainer.style.left = '-9999px';
     tempContainer.style.top = '0';
-    tempContainer.style.width = '210mm';
+    tempContainer.style.width = '195mm';
     tempContainer.style.padding = '0';
     
     // clone the element so we don't mess up the react DOM
     const cloned = element.cloneNode(true) as HTMLElement;
     cloned.style.display = 'block';
-    cloned.style.width = '210mm';
+    cloned.style.width = '195mm';
     tempContainer.appendChild(cloned);
     document.body.appendChild(tempContainer);
 
     const opt = {
-      margin:       [3, 3, 3, 3],
+      margin:       [7, 7, 7, 7],
       filename:     `SWM_ARP_${analysis.id || 'Relatorio'}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 1.7, useCORS: true, logging: false, letterRendering: true },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true, 
+        logging: false, 
+        letterRendering: true,
+        windowWidth: 1200
+      },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
@@ -527,7 +518,7 @@ const App: React.FC = () => {
                </div>
                <div className="flex gap-2 w-full sm:w-auto">
                  <button onClick={fillDemoData} className="flex-1 sm:flex-initial bg-[#e5ebf7] hover:bg-blue-100 text-[#171C8F] text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-lg border border-blue-100 transition-all shadow-sm flex items-center justify-center gap-2">
-                    <Bot size={12} /> Preencher Demo
+                    <Zap size={12} /> Preencher Demo
                  </button>
                  <button onClick={() => setAnalysis(getInitialState())} className="flex-1 sm:flex-initial bg-slate-50 hover:bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-lg border border-slate-200 transition-all shadow-sm flex items-center justify-center gap-2">
                     <Eraser size={12} /> Limpar
@@ -1076,13 +1067,7 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
-            {showSummary && analysis.summary && (
-              <div className="p-4 bg-[#171C8F] text-white rounded-2xl shadow-xl animate-slideUp relative overflow-hidden">
-                <Quote size={32} className="absolute top-2 left-2 opacity-10" />
-                <h2 className="text-sm font-black mb-1 flex items-center gap-2 relative z-10"><Bot size={16} className="text-[#13aff0]" /> Parecer da IA</h2>
-                <p className="text-[11px] italic leading-tight opacity-95 relative z-10 font-medium whitespace-pre-wrap">"{analysis.summary}"</p>
-              </div>
-            )}
+
           </div>
         );
       
@@ -1133,13 +1118,15 @@ const App: React.FC = () => {
       )}
 
       {/* PDF PRINT LAYOUT (Hidden on UI) */}
-      <div id="pdf-content-wrapper" className="hidden bg-white p-4 text-slate-900 font-sans w-[210mm] mx-auto" style={{ minHeight: '297mm' }}>
+      <div id="pdf-content-wrapper" className="hidden bg-white p-6 text-slate-900 font-sans w-[195mm] mx-auto">
         <style>{`
           #pdf-content-wrapper * { box-sizing: border-box; }
-          #pdf-content-wrapper section { break-inside: avoid; page-break-inside: avoid; }
+          #pdf-content-wrapper img { max-width: 100%; height: auto; display: block; }
+          #pdf-content-wrapper section { break-inside: avoid; page-break-inside: avoid; margin-bottom: 12px; }
           #pdf-content-wrapper .break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
           #pdf-content-wrapper .page-break-before { page-break-before: always; }
-          #pdf-content-wrapper table { page-break-inside: avoid; }
+          #pdf-content-wrapper table { page-break-inside: avoid; width: 100% !important; table-layout: fixed; }
+          #pdf-content-wrapper th, #pdf-content-wrapper td { word-wrap: break-word; overflow-wrap: break-word; }
         `}</style>
         <header className="flex justify-between items-center border-b-4 border-[#171C8F] pb-2 mb-3">
           <div className="flex flex-col">
@@ -1153,9 +1140,9 @@ const App: React.FC = () => {
             <p className="text-[7px] font-bold text-slate-500 mt-1"><span className="font-black">Responsável:</span> {(analysis.team && analysis.team[0]?.name) || analysis.authorName || '—'}</p>
             <p className="text-[7px] font-black text-slate-400 mt-0.5"><span className="font-bold">Nº Sequential:</span> <span className="text-[#171C8F]">{analysis.sequentialNumber || '-'}</span></p>
           </div>
-          <div className="text-right">
+          <div className="text-right pr-2">
              <p className="text-[6px] font-black text-slate-300 uppercase">Protocolo</p>
-             <p className="text-xs font-black text-[#171C8F]">{analysis.id}</p>
+             <p className="text-[10px] font-black text-[#171C8F]">{analysis.id}</p>
           </div>
         </header>
 
@@ -1226,8 +1213,8 @@ const App: React.FC = () => {
           </div>
           {analysis.attachmentUrl && (
             <div className="mt-1 p-1 bg-slate-50 rounded border border-slate-100 flex flex-col items-center">
-               <p className="text-[5px] font-black text-slate-400 uppercase self-start mb-0.5">Anexo</p>
-               <img src={analysis.attachmentUrl} alt="Anexo" className="max-h-20 object-contain rounded border border-slate-200 shadow-sm" />
+               <p className="text-[5px] font-black text-slate-400 uppercase self-start mb-1.5">Anexo</p>
+               <img src={analysis.attachmentUrl} alt="Anexo" className="max-h-32 object-contain rounded border border-slate-200 shadow-sm" />
             </div>
           )}
         </section>
@@ -1271,17 +1258,17 @@ const App: React.FC = () => {
             )}
           </div>
           <div className="bg-[#171C8F] text-white p-2 rounded">
-             <p className="text-[6px] font-black uppercase opacity-60 mb-0.5">Causa Raiz</p>
+             <p className="text-[6px] font-black uppercase opacity-60 mb-1.5">Causa Raiz</p>
              <p className="text-xs font-black">{analysis.rootCause || 'NÃO IDENTIFICADA'}</p>
           </div>
         </section>
 
         <section className="mb-3 break-inside-avoid">
           <h2 className="text-xs font-black border-l-4 border-[#171C8F] pl-1 uppercase mb-1">5. Ishikawa (6M)</h2>
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid grid-cols-2 gap-1">
             {Object.entries(analysis.ishikawa).map(([category, data]) => (
               <div key={category} className="p-1 bg-slate-50 rounded border border-slate-100">
-                <p className="text-[5px] font-black text-slate-400 uppercase mb-0.5">{category === 'manpower' ? 'Mão de Obra' : category === 'measurement' ? 'Medição' : category === 'environment' ? 'Meio Ambiente' : category.charAt(0).toUpperCase() + category.slice(1)}</p>
+                <p className="text-[5px] font-black text-slate-400 uppercase mb-1.5">{category === 'manpower' ? 'Mão de Obra' : category === 'measurement' ? 'Medição' : category === 'environment' ? 'Meio Ambiente' : category.charAt(0).toUpperCase() + category.slice(1)}</p>
                 <p className="text-[6px] font-medium">{data.causes.filter(c => c.trim()).join(', ') || '—'}</p>
               </div>
             ))}
@@ -1317,8 +1304,8 @@ const App: React.FC = () => {
                     <td className="p-0.5">{a.howMuch || '—'}</td>
                     <td className="p-0.5">
                       <span className={`text-[4px] px-1 rounded-full mb-1 inline-block ${a.status === 'Concluída' ? 'bg-green-100 text-green-700' : a.status === 'Em andamento' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{a.status}</span>
-                      {a.evidence && <div className="text-[4px] text-green-700 bg-green-50 p-0.5 rounded italic break-words">Evid: {a.evidence}</div>}
-                      {a.evidenceImage && <div className="mt-1 flex justify-center bg-slate-50"><img src={a.evidenceImage} alt="Evidência" className="max-h-12 object-contain" /></div>}
+                      {a.evidence && <div className="text-[4px] text-green-700 bg-green-50 p-0.5 rounded italic break-words leading-tight">Evid: {a.evidence}</div>}
+                      {a.evidenceImage && <div className="mt-1 flex justify-center bg-slate-50 border border-slate-100 rounded overflow-hidden"><img src={a.evidenceImage} alt="Evidência" className="max-h-16 w-auto object-contain" /></div>}
                     </td>
                   </tr>
                 ))}
@@ -1348,7 +1335,7 @@ const App: React.FC = () => {
           </div>
           {analysis.verificationChecklist && analysis.verificationChecklist.length > 0 && (
             <div className="p-1 bg-slate-50 rounded border border-slate-100 mb-1">
-               <p className="text-[5px] font-black text-slate-400 uppercase mb-0.5">Checklist de Efetividade</p>
+               <p className="text-[5px] font-black text-slate-400 uppercase mb-1.5">Checklist de Efetividade</p>
                <ul className="text-[6px] font-medium list-none space-y-0.5">
                  {analysis.verificationChecklist.map(item => (
                    <li key={item.id} className="flex gap-1 items-start">
@@ -1363,8 +1350,8 @@ const App: React.FC = () => {
             <div className="grid grid-cols-2 gap-1">
                {analysis.verificationAttachments.map(att => (
                  <div key={att.id} className="p-1 bg-slate-50 rounded border border-slate-100 flex flex-col items-center">
-                    <p className="text-[5px] font-black text-slate-400 uppercase self-start mb-0.5">Anexo Verificação</p>
-                    <img src={att.url} alt="Anexo Verificação" className="max-h-20 object-contain rounded border border-slate-200 shadow-sm" />
+                    <p className="text-[5px] font-black text-slate-400 uppercase self-start mb-1.5">Anexo Verificação</p>
+                    <img src={att.url} alt="Anexo Verificação" className="max-h-32 object-contain rounded border border-slate-200 shadow-sm" />
                  </div>
                ))}
             </div>
@@ -1446,7 +1433,7 @@ const App: React.FC = () => {
                 </button>
                 <div className="flex gap-3 flex-1 sm:flex-initial">
                   <button onClick={saveDraft} className="hidden sm:flex items-center justify-center text-slate-600 bg-slate-100 hover:bg-slate-200 px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest border border-slate-200 min-h-[44px]">Salvar Rascunho</button>
-                  {currentStep < StepId.KANBAN ? (
+                  {currentStep < StepId.VERIFICATION ? (
                     <button onClick={handleNext} className="flex-1 sm:flex-initial bg-[#171C8F] hover:bg-blue-700 text-white px-10 py-3 rounded-xl font-black uppercase text-[10px] shadow-xl shadow-blue-200/50 transition-all flex items-center justify-center gap-3 min-h-[44px]">
                       Próximo <ArrowRight size={14} />
                     </button>
