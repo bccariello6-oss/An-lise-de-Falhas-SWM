@@ -601,13 +601,20 @@ const App: React.FC = () => {
                 { field: 'howMuch', label: 'QUANTO impacto?', required: false, icon: <LineChart size={12} className="text-[#13aff0]/50" /> },
                 { field: 'how', label: 'COMO percebido?', required: true, icon: <Eye size={12} className="text-[#13aff0]/50" /> },
                 { field: 'phenomenon', label: 'FENÔMENO (O que se observou)?', required: false, icon: <AlertTriangle size={12} className="text-[#13aff0]/50" /> },
-              ].map((item) => (
-                <div key={item.field} className="space-y-1">
+                <div key={item.field} className="space-y-1 relative group">
                   <label className="flex items-center gap-2 text-[9px] font-bold text-slate-500 uppercase tracking-wider">
                     {item.icon}
                     {item.label} {item.required && <span className="text-red-500">*</span>}
+                    <span className="hidden group-focus-within:inline-flex text-[7px] text-[#13aff0] font-black uppercase ml-auto">Modo Leitura Expandida</span>
                   </label>
-                  <textarea value={(analysis as any)[item.field]} onChange={e => updateAnalysis({ [item.field]: e.target.value })} className={`${inputClasses} h-16 md:h-20 resize-none`} />
+                  <textarea 
+                    value={(analysis as any)[item.field]} 
+                    onChange={e => updateAnalysis({ [item.field]: e.target.value })} 
+                    readOnly={item.field === 'phenomenon'}
+                    className={`${inputClasses} h-16 md:h-20 focus:h-40 resize-none transition-all duration-300 shadow-sm focus:shadow-xl focus:border-[#13aff0] focus:ring-4 focus:ring-[#13aff0]/10 ${
+                      item.field === 'phenomenon' ? 'bg-[#e5ebf7]/50 border-blue-200 text-[#171C8F]' : 'bg-white'
+                    }`} 
+                  />
                 </div>
               ))}
             </div>
