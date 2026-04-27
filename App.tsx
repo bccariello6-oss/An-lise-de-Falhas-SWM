@@ -35,7 +35,6 @@ import {
   Trash2,
   FileText,
   Printer,
-  Mail,
   Factory,
   Info,
   Target,
@@ -490,7 +489,15 @@ const App: React.FC = () => {
           .status-concluido { color: #16a34a; font-weight: 900; }
           .status-andamento { color: #d97706; font-weight: 900; }
           .status-atrasado { color: #dc2626; font-weight: 900; }
-          .evidence-img { max-width: 100%; max-height: 250px; object-contain: contain; border-radius: 8px; border: 1px solid #e2e8f0; }
+          .evidence-img { max-width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px; border: 1px solid #e2e8f0; display: block; }
+          .attachment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+          .attachment-card { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #f8fafc; page-break-inside: avoid; }
+          .attachment-card img { width: 100%; height: auto; max-height: 300px; object-fit: contain; display: block; padding: 5px; }
+          .attachment-card .att-label { font-size: 7pt; font-weight: 700; color: #64748b; text-align: center; padding: 4px; background: #f1f5f9; border-top: 1px solid #e2e8f0; text-transform: uppercase; }
+          .checklist-item { display: flex; align-items: center; gap: 6px; font-size: 9pt; margin-bottom: 4px; }
+          .checklist-icon { width: 14px; height: 14px; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; font-size: 8pt; font-weight: 900; color: white; flex-shrink: 0; }
+          .checklist-icon.checked { background: #171C8F; }
+          .checklist-icon.unchecked { background: #cbd5e1; }
           footer { margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
           .signature { border-top: 2px solid #171C8F; width: 200px; text-align: center; padding-top: 5px; }
           @media print {
@@ -655,11 +662,97 @@ const App: React.FC = () => {
                 <div class="value" style="font-size: 14pt;">${analysis.needsTraining ? 'SIM' : 'NÃO'}</div>
               </div>
             </div>
+            <div class="grid-2" style="margin-top: 10px;">
+              <div class="bg-slate" style="padding:10px; border-radius:8px; text-align:center;">
+                <div class="label">Revisão de Procedimento (POP/Manual)?</div>
+                <div class="value" style="font-size: 14pt; color: ${analysis.needsRevision ? '#171C8F' : '#64748b'}">${analysis.needsRevision ? 'SIM' : 'NÃO'}</div>
+              </div>
+            </div>
+
+            ${(analysis.verificationChecklist || []).length > 0 ? `
+              <div style="margin-top: 15px; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px;">
+                <div class="label" style="margin-bottom: 8px;">Checklist de Efetividade</div>
+                ${(analysis.verificationChecklist || []).map(item => `
+                  <div class="checklist-item">
+                    <span class="checklist-icon ${item.checked ? 'checked' : 'unchecked'}">${item.checked ? '✓' : ''}</span>
+                    <span class="value">${item.text || '—'}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
             <div style="margin-top: 15px; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px;">
-              <div class="label">Evidências da Eficácia</div>
+              <div class="label">Evidências da Eficácia (Descrição)</div>
               <div class="value" style="white-space: pre-wrap;">${analysis.effectivenessEvidence || 'Nenhuma evidência registrada.'}</div>
             </div>
+
+            ${(analysis.verificationAttachments || []).length > 0 ? `
+              <div style="margin-top: 15px;">
+                <div class="label" style="margin-bottom: 8px;">Anexos de Verificação (${(analysis.verificationAttachments || []).length} imagens)</div>
+                <div class="attachment-grid">
+                  ${(analysis.verificationAttachments || []).map((att, idx) => `
+                    <div class="attachment-card">
+                      <img src="${att.url}" alt="Evidência ${idx + 1}">
+                      <div class="att-label">${att.name || 'Evidência ' + (idx + 1)}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
           </div>
+
+          ${(() => {
+            const categories = [
+              { key: 'machine', label: 'Máquina' },
+              { key: 'method', label: 'Método' },
+              { key: 'material', label: 'Material' },
+              { key: 'manpower', label: 'Mão de Obra' },
+              { key: 'measurement', label: 'Medição' },
+              { key: 'environment', label: 'Meio Ambiente' }
+            ];
+            const allAttachments = categories.flatMap(cat => {
+              const category = (analysis.ishikawa as any)?.[cat.key];
+              if (!category?.attachments?.length) return [];
+              return category.attachments.map((att: any, idx: number) => ({
+                ...att,
+                categoryLabel: cat.label,
+                index: idx
+              }));
+            });
+            if (allAttachments.length === 0) return '';
+            return `
+              <div style="page-break-before: always;"></div>
+              <div class="section">
+                <div class="section-title">7. Anexos do Diagrama de Ishikawa (6M)</div>
+                <div class="attachment-grid">
+                  ${allAttachments.map((att: any) => `
+                    <div class="attachment-card">
+                      <img src="${att.dataUrl}" alt="${att.categoryLabel} - ${att.name || 'Anexo'}">
+                      <div class="att-label">${att.categoryLabel}: ${att.name || 'Anexo ' + (att.index + 1)}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          })()}
+
+          ${(() => {
+            const actionsWithEvidence = analysis.actions.filter(a => a.evidenceImage);
+            if (actionsWithEvidence.length === 0) return '';
+            return `
+              <div class="section" style="page-break-inside: avoid;">
+                <div class="section-title">8. Evidências das Ações (Kanban)</div>
+                <div class="attachment-grid">
+                  ${actionsWithEvidence.map(a => `
+                    <div class="attachment-card">
+                      <img src="${a.evidenceImage}" alt="Evidência - ${a.what}">
+                      <div class="att-label">${a.type}: ${a.what || 'Ação sem título'}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          })()}
 
           <footer>
             <div style="font-size: 7pt; color: #94a3b8;">
@@ -678,17 +771,6 @@ const App: React.FC = () => {
 
     reportWindow.document.write(html);
     reportWindow.document.close();
-  };
-
-  const handleSendEmail = async () => {
-    handlePrintPDF();
-    setTimeout(() => {
-      const subject = encodeURIComponent(`[SWM] Análise de Falha - ${analysis.area || 'N/A'} (${analysis.id})`);
-      const body = encodeURIComponent(
-        `Prezados,\n\nSegue análise de falha do equipamento ${analysis.equipment || 'N/A'}.\n\n${analysis.description || ''}\n\nAtt.`
-      );
-      window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
-    }, 1000);
   };
 
   const renderStepContent = () => {
