@@ -126,8 +126,19 @@ const App: React.FC = () => {
   }, [session]);
 
   useEffect(() => {
-    if (profile && profile.role !== 'ADMIN' && profile.full_name) {
-      setAnalysis(prev => ({ ...prev, area: profile.full_name }));
+    if (profile) {
+      const getShortAuthorName = (name: string) => {
+        const n = name.toUpperCase();
+        if (n === 'ADMINISTRADOR') return 'ADMIN';
+        if (n === 'MANUTENÇÃO') return 'MANUT';
+        return n;
+      };
+
+      setAnalysis(prev => ({ 
+        ...prev, 
+        authorName: getShortAuthorName(profile.full_name || profile.username || 'Usuário'),
+        ...(profile.role !== 'ADMIN' && profile.full_name ? { area: profile.full_name } : {})
+      }));
     }
   }, [profile]);
 
@@ -232,8 +243,19 @@ const App: React.FC = () => {
       if (!confirm("Deseja iniciar uma NOVA análise? Os dados atuais não salvos serão perdidos.")) return;
     }
     
+    const getShortAuthorName = (name: string) => {
+      const n = name.toUpperCase();
+      if (n === 'ADMINISTRADOR') return 'ADMIN';
+      if (n === 'MANUTENÇÃO') return 'MANUT';
+      return n;
+    };
+
     const preservedArea = (profile?.role !== 'ADMIN' && profile?.full_name) ? profile.full_name : '';
-    setAnalysis({ ...getInitialState(), area: preservedArea });
+    setAnalysis({ 
+      ...getInitialState(), 
+      area: preservedArea,
+      authorName: profile ? getShortAuthorName(profile.full_name || profile.username || 'Usuário') : 'Usuário'
+    });
     setCurrentStep(StepId.IDENTIFICATION);
   };
 

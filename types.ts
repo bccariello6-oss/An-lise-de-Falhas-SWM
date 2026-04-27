@@ -98,6 +98,7 @@ export interface Analysis {
   verificationAttachments: { id: string; url: string; name?: string }[];
   // Meta
   summary?: string;
+  authorName?: string;
   lastUpdated?: string;
 }
 
