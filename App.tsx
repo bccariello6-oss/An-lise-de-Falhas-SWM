@@ -1243,12 +1243,9 @@ const App: React.FC = () => {
                   </button>
                 </div>
                 <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-widest border-t pt-3">Ações Compartilhadas</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={handleViewReport} className="bg-[#171C8F] text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-blue-700 transition-all shadow-sm">
+                <div>
+                  <button onClick={handleViewReport} className="w-full bg-[#171C8F] text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-blue-700 transition-all shadow-sm">
                     <FileText size={14} /> Visualizar Relatório (PDF)
-                  </button>
-                  <button onClick={handleSendEmail} className="bg-emerald-600 text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-emerald-700 transition-all shadow-sm">
-                    <Mail size={14} /> E-mail Outlook
                   </button>
                 </div>
               </div>
