@@ -373,10 +373,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
                 <div className="flex items-center gap-3 w-full">
                   <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center flex-shrink-0 group-hover:border-[#171C8F] transition-all shadow-sm">
                     <span className="text-[9px] font-black text-[#171C8F]">
-                      {mainAuthor.toUpperCase().includes('MANUT') || mainAuthor.toUpperCase().includes('MANUTENÇÃO') ? 'MANUT' : 
-                       mainAuthor.substring(0, 2).toUpperCase() || 
-                       item.area?.substring(0, 2).toUpperCase() || 
-                       'US'}
+                      {(() => {
+                        const name = item.authorName || mainAuthor || item.area || 'US';
+                        const n = name.toUpperCase();
+                        if (n.includes('ADMIN')) return 'ADMIN';
+                        if (n.includes('MANUT')) return 'MANUT';
+                        if (n.includes('MP01')) return 'MP01';
+                        if (n.includes('MP03')) return 'MP03';
+                        if (n.includes('MP06')) return 'MP06';
+                        if (n.includes('SBOB')) return 'SBOB';
+                        return n.substring(0, 2);
+                      })()}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">

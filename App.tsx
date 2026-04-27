@@ -260,8 +260,16 @@ const App: React.FC = () => {
   };
 
   const fillDemoData = () => {
+    const getShortAuthorName = (name: string) => {
+      const n = name.toUpperCase();
+      if (n === 'ADMINISTRADOR') return 'ADMIN';
+      if (n === 'MANUTENÇÃO') return 'MANUT';
+      return n;
+    };
+
     const demoData: Analysis = {
       id: 'AN-DEMO-' + Math.random().toString(36).substr(2, 5).toUpperCase(),
+      authorName: profile ? getShortAuthorName(profile.full_name || profile.username || 'Usuário') : 'Usuário',
       area: 'Utilidades - Caldeiras',
       equipment: 'Bomba de Alimentação B-102',
       team: [{ name: 'Eng. Roberto Silva', role: 'Engenheiro de Manutenção' }],
