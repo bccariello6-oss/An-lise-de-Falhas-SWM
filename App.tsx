@@ -1155,8 +1155,17 @@ const App: React.FC = () => {
                   ))}
                 </div>
               </div>
-            </div>
 
+            <div className="pt-3 border-t">
+              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Causa Raiz Geral Identificada</label>
+              <input 
+                type="text" 
+                value={analysis.rootCause} 
+                onChange={e => updateAnalysis({ rootCause: e.target.value })}
+                className={inputClasses}
+                placeholder="Descreva a causa raiz..."
+              />
+            </div>
           </div>
         );
       }
