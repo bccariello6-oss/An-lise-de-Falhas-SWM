@@ -1155,17 +1155,8 @@ const App: React.FC = () => {
                   ))}
                 </div>
               </div>
-
-            <div className="pt-3 border-t">
-              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Causa Raiz Geral Identificada</label>
-              <input 
-                type="text" 
-                value={analysis.rootCause} 
-                onChange={e => updateAnalysis({ rootCause: e.target.value })}
-                className={inputClasses}
-                placeholder="Descreva a causa raiz..."
-              />
             </div>
+
           </div>
         );
       }
@@ -1219,15 +1210,7 @@ const App: React.FC = () => {
                       <td className="px-2 py-1.5"><input type="date" value={action.when} onChange={e => updateAction(action.id, { when: e.target.value })} className="bg-transparent border-none text-[9px] p-0 focus:ring-0 text-slate-400 font-bold w-[90px]"/></td>
                       <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.where} onChange={e => updateAction(action.id, { where: e.target.value })} className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder="Onde?"/></td>
                       <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.how} onChange={e => updateAction(action.id, { how: e.target.value })} className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder="Como?"/></td>
-                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white">
-                        <input 
-                          type="text" 
-                          value={action.howMuch} 
-                          onChange={e => updateAction(action.id, { howMuch: formatCurrency(e.target.value) })} 
-                          className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium w-24" 
-                          placeholder="R$ 0,00"
-                        />
-                      </td>
+                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.howMuch} onChange={e => updateAction(action.id, { howMuch: e.target.value })} className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium w-16" placeholder="R$ / h"/></td>
                       <td className="px-2 py-1.5">
                         <select 
                           value={action.status} 
@@ -1516,15 +1499,6 @@ const App: React.FC = () => {
       </div>
     </div>
   );
-};
-
-const formatCurrency = (value: string) => {
-  const cleanValue = value.replace(/\D/g, '');
-  if (!cleanValue) return '';
-  const amount = (parseInt(cleanValue, 10) / 100).toFixed(2);
-  const [integers, decimals] = amount.split('.');
-  const formattedIntegers = integers.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return `R$ ${formattedIntegers},${decimals}`;
 };
 
 export default App;
