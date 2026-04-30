@@ -1160,16 +1160,13 @@ const App: React.FC = () => {
 
             <div className="pt-3 border-t">
               <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Causa Raiz Geral Identificada</label>
-              <div className="relative">
-                <input 
-                  type="text" 
-                  value={analysis.rootCause} 
-                  onChange={e => updateAnalysis({ rootCause: e.target.value })} 
-                  className={`${inputClasses} pl-10 bg-[#e5ebf7] border-[#171C8F]/20 border-2 font-bold text-[#171C8F]`} 
-                  placeholder="Resumo ou união da falha final (se precisar complementar a Tabela)" 
-                />
-                <Target size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#171C8F]" />
-              </div>
+              <input 
+                type="text" 
+                value={analysis.rootCause} 
+                onChange={e => updateAnalysis({ rootCause: e.target.value })}
+                className={inputClasses}
+                placeholder="Descreva a causa raiz..."
+              />
             </div>
           </div>
         );
