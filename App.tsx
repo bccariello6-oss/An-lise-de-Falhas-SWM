@@ -185,7 +185,6 @@ const App: React.FC = () => {
     } else if (Array.isArray(analysis.whys)) {
       if (!analysis.whys[0]?.trim()) step4Errors.push("1º Porquê fundamental (Legado)");
     }
-    if (!analysis.rootCause.trim()) step4Errors.push("Causa Raiz Geral");
     if (step4Errors.length > 0) allErrors.push({ step: "4. Tabela Porque Porque", errors: step4Errors });
 
     const step6Errors: string[] = [];
@@ -1158,16 +1157,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-3 border-t">
-              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Causa Raiz Geral Identificada</label>
-              <input 
-                type="text" 
-                value={analysis.rootCause} 
-                onChange={e => updateAnalysis({ rootCause: e.target.value })}
-                className={inputClasses}
-                placeholder="Descreva a causa raiz..."
-              />
-            </div>
           </div>
         );
       }
