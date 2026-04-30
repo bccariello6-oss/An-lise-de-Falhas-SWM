@@ -70,3 +70,31 @@ export async function suggestRootCause(analysis: Analysis): Promise<string> {
     return "Falha na sugestão automática.";
   }
 }
+
+export async function generatePhenomenon(analysis: Partial<Analysis>): Promise<string> {
+  const prompt = `
+    Com base nas respostas do questionário 5W1H abaixo, escreva uma frase técnica única e coesa que descreva o FENÔMENO da falha.
+    Use conectivos para dar sentido à frase. Seja extremamente conciso (máximo 20 palavras).
+    
+    O QUE: ${analysis.what || ''}
+    ONDE: ${analysis.where || ''}
+    QUANDO: ${analysis.when || ''}
+    QUEM: ${analysis.who || ''}
+    COMO: ${analysis.how || ''}
+    QUANTO: ${analysis.howMuch || ''}
+    
+    Responda APENAS com a frase do fenômeno, sem introduções.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: { temperature: 0.4 }
+    });
+    return response.text?.trim() || "";
+  } catch (error) {
+    console.error("Gemini Error (Phenomenon):", error);
+    return "";
+  }
+}

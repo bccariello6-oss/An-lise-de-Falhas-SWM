@@ -8,6 +8,7 @@ import KanbanView from './components/KanbanView';
 import Login from './components/Login';
 import { supabase } from './lib/supabase';
 import * as db from './services/supabaseService';
+import { generatePhenomenon } from './services/geminiService';
 import { notifyNewAnalysis } from './services/notificationService';
 import { 
   LogOut,
@@ -100,6 +101,7 @@ const App: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [analysis, setAnalysis] = useState<Analysis>(getInitialState);
   const [currentStep, setCurrentStep] = useState<StepId>(getSavedStep);
+  const [isGeneratingPhenomenon, setIsGeneratingPhenomenon] = useState(false);
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{step: string, errors: string[]}[]>([]);
   const [newTeamMemberName, setNewTeamMemberName] = useState('');
@@ -147,26 +149,8 @@ const App: React.FC = () => {
   }, [currentStep]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const parts = [
-        analysis.what,
-        analysis.where,
-        analysis.when,
-        analysis.who,
-        analysis.how,
-        analysis.howMuch
-      ].filter(p => p && p.trim() !== '');
-      
-      const newPhenomenon = parts.join(' ').replace(/\s+/g, ' ');
-      setAnalysis(prev => {
-        if (newPhenomenon !== prev.phenomenon && parts.length > 0) {
-          return { ...prev, phenomenon: newPhenomenon };
-        }
-        return prev;
-      });
-    }, 800);
-    return () => clearTimeout(timer);
-  }, [analysis.what, analysis.where, analysis.when, analysis.who, analysis.how, analysis.howMuch]);
+    localStorage.setItem('swm_current_step', currentStep.toString());
+  }, [currentStep]);
 
   const updateAnalysis = (data: Partial<Analysis>) => {
     setAnalysis(prev => ({ ...prev, ...data }));
@@ -214,7 +198,7 @@ const App: React.FC = () => {
     if (step6Errors.length > 0) allErrors.push({ step: "6. Plano de Ação", errors: step6Errors });
 
     const step7Errors: string[] = [];
-    if (analysis.reoccurred === null) step7Errors.push("Informar se a falha voltou a ocorrer");
+    // Removida obrigatoriedade de reincidência conforme solicitação
     if (step7Errors.length > 0) allErrors.push({ step: "7. Verificação e Padronização", errors: step7Errors });
 
     return allErrors;
@@ -895,15 +879,35 @@ const App: React.FC = () => {
                   <label className="flex items-center gap-2 text-[9px] font-bold text-slate-500 uppercase tracking-wider">
                     {item.icon}
                     {item.label} {item.required && <span className="text-red-500">*</span>}
+                    {item.field === 'phenomenon' && (
+                      <button 
+                        onClick={async () => {
+                          const filledFields = [analysis.what, analysis.where, analysis.when, analysis.who, analysis.how, analysis.howMuch].filter(f => f?.trim()).length;
+                          if (filledFields < 3) {
+                            alert("Por favor, preencha pelo menos 3 campos do 5W1H para gerar um fenômeno coeso.");
+                            return;
+                          }
+                          setIsGeneratingPhenomenon(true);
+                          const result = await generatePhenomenon(analysis);
+                          if (result) updateAnalysis({ phenomenon: result });
+                          setIsGeneratingPhenomenon(false);
+                        }}
+                        disabled={isGeneratingPhenomenon}
+                        className="ml-auto bg-[#171C8F] text-white px-2 py-1 rounded text-[8px] font-black uppercase tracking-tighter flex items-center gap-1 hover:bg-black transition-all disabled:opacity-30"
+                      >
+                        {isGeneratingPhenomenon ? <Loader2 size={8} className="animate-spin" /> : <Zap size={8} />}
+                        Gerar com IA
+                      </button>
+                    )}
                     <span className="hidden group-focus-within:inline-flex text-[7px] text-[#13aff0] font-black uppercase ml-auto">Modo Leitura Expandida</span>
                   </label>
                   <textarea 
                     value={(analysis as any)[item.field]} 
                     onChange={e => updateAnalysis({ [item.field]: e.target.value })} 
-                    readOnly={item.field === 'phenomenon'}
                     className={`${inputClasses} h-16 md:h-20 focus:h-40 resize-none transition-all duration-300 shadow-sm focus:shadow-xl focus:border-[#13aff0] focus:ring-4 focus:ring-[#13aff0]/10 ${
-                      item.field === 'phenomenon' ? 'bg-[#e5ebf7]/50 border-blue-200 text-[#171C8F]' : 'bg-white'
+                      item.field === 'phenomenon' ? 'bg-white border-blue-200 text-[#171C8F] font-bold' : 'bg-white'
                     }`} 
+                    placeholder={item.field === 'phenomenon' ? "Descreva o fenômeno ou use o botão 'Gerar com IA'..." : ""}
                   />
                 </div>
               ))}
@@ -1044,6 +1048,11 @@ const App: React.FC = () => {
               </button>
             </header>
 
+            <div className="bg-[#171C8F] p-4 rounded-xl shadow-lg border-l-8 border-[#13aff0] mb-4">
+              <label className="block text-[10px] font-black text-white/60 uppercase tracking-[0.2em] mb-1">Fenômeno Investigado</label>
+              <p className="text-white text-sm font-bold leading-relaxed">{analysis.phenomenon || "Não definido na Aba 2"}</p>
+            </div>
+
             <div className="bg-[#e5ebf7] p-3 rounded-xl border border-blue-100 flex items-start gap-3">
               <Info size={16} className="text-[#171C8F] mt-0.5 shrink-0" />
               <div className="text-[10px] text-[#171C8F] font-medium leading-relaxed">
@@ -1150,7 +1159,7 @@ const App: React.FC = () => {
             </div>
 
             <div className="pt-3 border-t">
-              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Causa Raiz Geral Identificada (Opcional)</label>
+              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Causa Raiz Geral Identificada</label>
               <div className="relative">
                 <input 
                   type="text" 

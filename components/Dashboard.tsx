@@ -371,7 +371,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
               return (
               <div key={item.id} className="bg-white border border-slate-100 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:shadow-sm transition-all group">
                 <div className="flex items-center gap-3 w-full">
-                  <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center flex-shrink-0 group-hover:border-[#171C8F] transition-all shadow-sm">
+                  <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center flex-shrink-0 group-hover:border-[#171C8F] transition-all shadow-sm relative">
                     <span className="text-[9px] font-black text-[#171C8F]">
                       {(() => {
                         const name = item.authorName || mainAuthor || item.area || 'US';
@@ -385,6 +385,36 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
                         return n.substring(0, 2);
                       })()}
                     </span>
+                    
+                    {/* Alerta de Prazo Individualizado */}
+                    {(() => {
+                      const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
+                      const approachingMs = 75 * 24 * 60 * 60 * 1000;
+                      const now = Date.now();
+                      const ageMs = now - new Date(item.failureDate).getTime();
+                      
+                      const noEvidenceText = !item.effectivenessEvidence || item.effectivenessEvidence.trim() === '';
+                      const noAttachments = !item.verificationAttachments || item.verificationAttachments.length === 0;
+                      const noChecklist = !item.verificationChecklist || !item.verificationChecklist.some((c: any) => c.checked);
+                      const noEvidence = noEvidenceText && noAttachments && noChecklist;
+
+                      if (noEvidence) {
+                        if (ageMs >= ninetyDaysMs) {
+                          return (
+                            <div className="absolute -top-1 -right-1 bg-red-500 text-white p-0.5 rounded-full shadow-lg border-2 border-white animate-pulse" title="Atrasado (+90 dias sem evidências)">
+                              <AlertTriangle size={8} strokeWidth={4} />
+                            </div>
+                          );
+                        } else if (ageMs >= approachingMs) {
+                          return (
+                            <div className="absolute -top-1 -right-1 bg-amber-500 text-white p-0.5 rounded-full shadow-lg border-2 border-white" title="Prazo se aproximando (75+ dias sem evidências)">
+                              <AlertTriangle size={8} strokeWidth={4} />
+                            </div>
+                          );
+                        }
+                      }
+                      return null;
+                    })()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">

@@ -41,7 +41,7 @@ const CardItem: React.FC<{ action: KanbanAction; isDragging?: boolean; onAskEvid
       <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{action.analysisArea || 'S/ ÁREA'}</span>
     </div>
     <h4 className="text-[11px] md:text-sm font-semibold text-slate-800 mb-2 md:mb-3 line-clamp-2 md:line-clamp-3 leading-relaxed">
-      {action.description || <span className="italic text-slate-400 font-normal">Sem descrição</span>}
+      {action.what || <span className="italic text-slate-400 font-normal">Sem descrição</span>}
     </h4>
     {action.evidence && (
       <div className="mb-2 p-2 bg-green-50 rounded border border-green-100 text-[10px] text-green-800 font-medium break-words">
@@ -56,11 +56,11 @@ const CardItem: React.FC<{ action: KanbanAction; isDragging?: boolean; onAskEvid
     <div className="flex flex-col gap-1 md:gap-2 pt-2 md:pt-3 border-t border-slate-50">
       <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
         <UserCircle size={12} className="opacity-70" />
-        <span className="font-medium">{action.responsible || 'Não atribuído'}</span>
+        <span className="font-medium">{action.who || 'Não atribuído'}</span>
       </div>
       <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
         <Calendar size={12} className="opacity-70" />
-        <span>{action.dueDate ? new Date(action.dueDate).toLocaleDateString('pt-BR') : 'Sem data'}</span>
+        <span>{action.when ? new Date(action.when).toLocaleDateString('pt-BR') : 'Sem data'}</span>
       </div>
     </div>
   </div>
@@ -205,13 +205,13 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
   const allActions = getAllActions();
 
   const filteredActions = allActions.filter(action => {
-    if (filters.search && !action.description?.toLowerCase().includes(filters.search.toLowerCase()) &&
+    if (filters.search && !action.what?.toLowerCase().includes(filters.search.toLowerCase()) &&
       !action.analysisEquipment?.toLowerCase().includes(filters.search.toLowerCase()) &&
       !action.analysisArea?.toLowerCase().includes(filters.search.toLowerCase())) return false;
     if (filters.type && action.type !== filters.type) return false;
     if (filters.area && action.analysisArea !== filters.area) return false;
     if (filters.equipment && action.analysisEquipment !== filters.equipment) return false;
-    if (filters.responsible && !action.responsible?.toLowerCase().includes(filters.responsible.toLowerCase())) return false;
+    if (filters.responsible && !action.who?.toLowerCase().includes(filters.responsible.toLowerCase())) return false;
     return true;
   });
 
@@ -219,7 +219,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
 
   const uniqueAreas = [...new Set(allActions.map(a => a.analysisArea).filter(Boolean))];
   const uniqueEquipments = [...new Set(allActions.map(a => a.analysisEquipment).filter(Boolean))];
-  const uniqueResponsibles = [...new Set(allActions.map(a => a.responsible).filter(Boolean))];
+  const uniqueResponsibles = [...new Set(allActions.map(a => a.who).filter(Boolean))];
 
   const handleStatusChange = async (id: string, newStatus: Status, promptEvidence: boolean = true) => {
     const action = allActions.find(a => a.id === id);
