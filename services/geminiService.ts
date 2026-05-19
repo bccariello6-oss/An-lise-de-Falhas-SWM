@@ -10,7 +10,13 @@ const serializeWhys = (whys: Analysis['whys']): string => {
   if (isNewWhysMatrix(whys)) {
     return (whys as WhysMatrix).rows
       .filter(r => r.rounds.some(c => c.answer.trim()))
-      .map(r => `[${r.id}: ${r.rounds.filter(c => c.answer.trim() || c.question.trim()).map(c => `${c.question ? `Q: ${c.question} ` : ''}A: ${c.answer}${c.validated ? `(${c.validated})` : ''}`).join(' → ')}${r.improvement ? ` | Melhoria: ${r.improvement}` : ''}]`)
+      .map(r => `[${r.id}: ${r.rounds.filter(c => c.answer.trim() || c.question.trim()).map(c => {
+        const answersStr = [
+          `${c.answer}${c.validated ? `(${c.validated})` : ''}`,
+          ...(c.subAnswers || []).filter(sa => sa.text.trim()).map(sa => `${sa.text}${sa.validated ? `(${sa.validated})` : ''}`)
+        ].filter(Boolean).join('; ');
+        return `${c.question ? `Q: ${c.question} ` : ''}A: ${answersStr}`;
+      }).join(' → ')}${r.improvement ? ` | Melhoria: ${r.improvement}` : ''}]`)
       .join(' | ');
   } else if (Array.isArray(whys)) {
     return whys.filter(w => w).join(' → ');
@@ -29,7 +35,7 @@ export async function generateSummary(analysis: Analysis): Promise<string> {
     Tabela Porque Porque: ${serializeWhys(analysis.whys)}
     Causa Raiz: ${analysis.rootCause}
     Ishikawa (Máquina): ${analysis.ishikawa.machine.causes.join(', ')}
-    Plano de Ação: ${analysis.actions.map(a => a.description).join('; ')}
+    Plano de Ação: ${analysis.actions.map(a => a.what).join('; ')}
   `;
 
   try {

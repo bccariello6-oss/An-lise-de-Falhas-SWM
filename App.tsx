@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Analysis, StepId, Action, Ishikawa, IshikawaCategory, WhysMatrix, WhysRow, WhyCell, isNewWhysMatrix, createEmptyRow, createInitialWhysMatrix, ROW_IDS } from './types';
+import { Analysis, StepId, Action, Ishikawa, IshikawaCategory, WhysMatrix, WhysRow, WhyCell, WhySubAnswer, isNewWhysMatrix, createEmptyRow, createInitialWhysMatrix, ROW_IDS } from './types';
 import { STEPS, TIPS } from './constants';
 import IshikawaComponent from './components/IshikawaComponent';
 import Dashboard from './components/Dashboard';
@@ -44,6 +44,14 @@ import {
   CheckCircle2,
   Upload
 } from 'lucide-react';
+
+export const getAnalysisCode = (analysis: Partial<Analysis>): string => {
+  const dateParts = analysis.failureDate ? analysis.failureDate.split('-') : [];
+  const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : 'DD/MM/AAAA';
+  const area = analysis.area ? analysis.area.trim() : 'Área';
+  const theme = analysis.theme ? analysis.theme.trim() : 'Tema';
+  return `AF - ${formattedDate} - ${area} - ${theme}`;
+};
 
 const INITIAL_ISHIKAWA: Ishikawa = {
   machine: { causes: [], attachments: [] },
@@ -364,7 +372,6 @@ const App: React.FC = () => {
           where: 'Sala de Treinamentos',
           how: 'Apresentação e prova oral',
           howMuch: '0',
-          howMuch: '0',
           status: 'Aberta'
         },
         {
@@ -376,7 +383,7 @@ const App: React.FC = () => {
           where: 'Painel Elétrico',
           how: 'Desmontagem e montagem',
           howMuch: 'R$ 500',
-          status: 'Fechada',
+          status: 'Concluída',
           evidence: 'Substituição realizada com sucesso, equipamento em teste.',
           evidenceImage: 'https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?w=500&q=80'
         }
@@ -535,9 +542,11 @@ const App: React.FC = () => {
               </div>
             </div>
             <div class="protocol-box">
-              <p style="font-size: 7pt; opacity: 0.6;">PROTOCOLO</p>
-              <p style="font-size: 12pt;">${analysis.id}</p>
-              <p style="font-size: 8pt; margin-top: 5px;">Nº SEQ: ${analysis.sequentialNumber || '-'}</p>
+              <p style="font-size: 7pt; opacity: 0.6; margin: 0;">CÓDIGO DA ANÁLISE</p>
+              <p style="font-size: 11pt; font-weight: 900; color: #171C8F; background: #e5ebf7; padding: 2px 8px; border-radius: 4px; display: inline-block; margin: 2px 0 6px 0;">${getAnalysisCode(analysis)}</p>
+              <p style="font-size: 7pt; opacity: 0.6; margin: 0;">PROTOCOLO</p>
+              <p style="font-size: 10pt; margin: 0; font-weight: bold;">${analysis.id}</p>
+              <p style="font-size: 8pt; margin: 2px 0 0 0;">Nº SEQ: ${analysis.sequentialNumber || '-'}</p>
             </div>
           </header>
 
@@ -615,15 +624,28 @@ const App: React.FC = () => {
                 <tbody>
                   ${(analysis.whys as WhysMatrix).rows.filter(r => r.rounds.some(c => c.answer.trim())).map(row => `
                     <tr class="whys-row">
-                      <td style="text-align:center; font-weight:900; background:#f8fafc;">${row.id}</td>
-                      ${row.rounds.map(cell => `
-                        <td style="background: ${cell.validated === 'V' ? '#f0fdf4' : cell.validated === 'F' ? '#fef2f2' : 'transparent'}">
-                          ${cell.question ? `<div class="whys-question">${cell.question}</div>` : ''}
-                          <div style="font-weight: 700;">${cell.answer || '-'}</div>
-                          ${cell.validated ? `<div style="text-align:right; font-weight:900; color: ${cell.validated === 'V' ? '#16a34a' : '#dc2626'}">${cell.validated}</div>` : ''}
-                        </td>
-                      `).join('')}
-                      <td style="font-style: italic; background: #eff6ff;">${row.improvement || '-'}</td>
+                      <td style="text-align:center; font-weight:900; background:#f8fafc; vertical-align:middle;">${row.id}</td>
+                      ${row.rounds.map(cell => {
+                        const allAnswers = [
+                          { text: cell.answer, val: cell.validated },
+                          ...(cell.subAnswers || []).map(sa => ({ text: sa.text, val: sa.validated }))
+                        ].filter(a => Boolean(a.text?.trim()) || Boolean(a.val));
+
+                        if (allAnswers.length === 0) {
+                          return '<td style="background: transparent"><div style="font-weight: 700;">-</div></td>';
+                        }
+
+                        return `<td style="padding: 0; vertical-align: top; background: transparent;">
+                          ${allAnswers.map((item, idx) => `
+                            <div style="padding: 6px; border-bottom: ${idx < allAnswers.length - 1 ? '1px dashed #cbd5e1' : 'none'}; background: ${item.val === 'V' ? '#f0fdf4' : item.val === 'F' ? '#fef2f2' : 'transparent'}">
+                              ${idx === 0 && cell.question ? `<div class="whys-question">${cell.question}</div>` : ''}
+                              <div style="font-weight: 700;">${item.text || '-'}</div>
+                              ${item.val ? `<div style="text-align:right; font-weight:900; font-size: 7pt; color: ${item.val === 'V' ? '#16a34a' : '#dc2626'}">(${item.val})</div>` : ''}
+                            </div>
+                          `).join('')}
+                        </td>`;
+                      }).join('')}
+                      <td style="font-style: italic; background: #eff6ff; vertical-align:middle;">${row.improvement || '-'}</td>
                     </tr>
                   `).join('')}
                 </tbody>
@@ -724,13 +746,17 @@ const App: React.FC = () => {
               { key: 'environment', label: 'Meio Ambiente' }
             ];
             const allAttachments = categories.flatMap(cat => {
-              const category = (analysis.ishikawa as any)?.[cat.key];
-              if (!category?.attachments?.length) return [];
-              return category.attachments.map((att: any, idx: number) => ({
-                ...att,
-                categoryLabel: cat.label,
-                index: idx
-              }));
+              const categoryData = (analysis.ishikawa as any)?.[cat.key];
+              if (!categoryData?.attachments?.length) return [];
+              return categoryData.attachments.map((att: any, idx: number) => {
+                const causeText = att.causeIndex !== undefined ? categoryData.causes[att.causeIndex] : undefined;
+                return {
+                  ...att,
+                  categoryLabel: cat.label,
+                  causeText: causeText,
+                  index: idx
+                };
+              });
             });
             if (allAttachments.length === 0) return '';
             return `
@@ -741,7 +767,7 @@ const App: React.FC = () => {
                   ${allAttachments.map((att: any) => `
                     <div class="attachment-card">
                       <img src="${att.dataUrl}" alt="${att.categoryLabel} - ${att.name || 'Anexo'}">
-                      <div class="att-label">${att.categoryLabel}: ${att.name || 'Anexo ' + (att.index + 1)}</div>
+                      <div class="att-label">${att.categoryLabel}${att.causeText ? ` (${att.causeText})` : ''}: ${att.name || 'Anexo ' + (att.index + 1)}</div>
                     </div>
                   `).join('')}
                 </div>
@@ -1031,6 +1057,65 @@ const App: React.FC = () => {
           updateWhysCell(rowId, roundIdx, 'validated', next);
         };
 
+        const addWhysSubAnswer = (rowId: string, roundIdx: number) => {
+          const newRows = whysMatrix.rows.map(row => {
+            if (row.id !== rowId) return row;
+            const newRounds = row.rounds.map((cell, idx) => {
+              if (idx !== roundIdx) return cell;
+              const subs = cell.subAnswers || [];
+              const newSub: WhySubAnswer = { id: Math.random().toString(36).substr(2, 9), text: '', validated: null };
+              return {
+                ...cell,
+                subAnswers: [...subs, newSub]
+              };
+            });
+            return { ...row, rounds: newRounds };
+          });
+          updateAnalysis({ whys: { rows: newRows } });
+        };
+
+        const updateWhysSubAnswer = (rowId: string, roundIdx: number, subId: string, text: string) => {
+          const newRows = whysMatrix.rows.map(row => {
+            if (row.id !== rowId) return row;
+            const newRounds = row.rounds.map((cell, idx) => {
+              if (idx !== roundIdx) return cell;
+              const subs = (cell.subAnswers || []).map(sa => sa.id === subId ? { ...sa, text } : sa);
+              return { ...cell, subAnswers: subs };
+            });
+            return { ...row, rounds: newRounds };
+          });
+          updateAnalysis({ whys: { rows: newRows } });
+        };
+
+        const toggleWhysSubAnswerValidation = (rowId: string, roundIdx: number, subId: string) => {
+          const newRows = whysMatrix.rows.map(row => {
+            if (row.id !== rowId) return row;
+            const newRounds = row.rounds.map((cell, idx) => {
+              if (idx !== roundIdx) return cell;
+              const subs = (cell.subAnswers || []).map((sa): WhySubAnswer => {
+                if (sa.id !== subId) return sa;
+                const nextVal: 'V' | 'F' | null = sa.validated === null ? 'V' : sa.validated === 'V' ? 'F' : null;
+                return { ...sa, validated: nextVal };
+              });
+              return { ...cell, subAnswers: subs };
+            });
+            return { ...row, rounds: newRounds };
+          });
+          updateAnalysis({ whys: { rows: newRows } });
+        };
+
+        const removeWhysSubAnswer = (rowId: string, roundIdx: number, subId: string) => {
+          const newRows = whysMatrix.rows.map(row => {
+            if (row.id !== rowId) return row;
+            const newRounds = row.rounds.map((cell, idx) => {
+              if (idx !== roundIdx) return cell;
+              return { ...cell, subAnswers: (cell.subAnswers || []).filter(sa => sa.id !== subId) };
+            });
+            return { ...row, rounds: newRounds };
+          });
+          updateAnalysis({ whys: { rows: newRows } });
+        };
+
         return (
           <div className="space-y-4 animate-fadeIn">
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-3">
@@ -1041,7 +1126,7 @@ const App: React.FC = () => {
               <button 
                 onClick={addWhysRow}
                 disabled={whysMatrix.rows.length >= ROW_IDS.length}
-                className="bg-[#171C8F] text-white text-[9px] font-black uppercase tracking-widest px-5 py-2 rounded-lg hover:bg-black transition-all shadow-sm flex items-center gap-2 disabled:opacity-30"
+                className="bg-[#171C8F] text-white text-[9px] font-black uppercase tracking-widest px-5 py-2 rounded-lg hover:bg-black transition-all shadow-sm flex items-center gap-2 disabled:opacity-30 cursor-pointer"
               >
                 <Plus size={12} /> Nova Linha
               </button>
@@ -1113,20 +1198,64 @@ const App: React.FC = () => {
                               placeholder="Resposta..."
                             />
                             {cell.answer.trim() && (
-                              <button
-                                onClick={() => toggleValidation(row.id, roundIdx)}
-                                className={`shrink-0 mt-0.5 text-[8px] font-black w-6 h-6 rounded border transition-all flex items-center justify-center ${
-                                  cell.validated === 'V'
-                                    ? 'bg-green-100 border-green-400 text-green-700 hover:bg-green-200'
-                                    : cell.validated === 'F'
-                                      ? 'bg-red-100 border-red-400 text-red-700 hover:bg-red-200'
-                                      : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
-                                }`}
-                              >
-                                {cell.validated === 'V' ? 'V' : cell.validated === 'F' ? 'F' : '?'}
-                              </button>
+                              <div className="flex flex-col gap-1 items-center shrink-0 mt-0.5">
+                                <button
+                                  onClick={() => toggleValidation(row.id, roundIdx)}
+                                  className={`text-[8px] font-black w-6 h-6 rounded border transition-all flex items-center justify-center cursor-pointer ${
+                                    cell.validated === 'V'
+                                      ? 'bg-green-100 border-green-400 text-green-700 hover:bg-green-200'
+                                      : cell.validated === 'F'
+                                        ? 'bg-red-100 border-red-400 text-red-700 hover:bg-red-200'
+                                        : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
+                                  }`}
+                                  title="Alternar Validação (Verdadeiro/Falso)"
+                                >
+                                  {cell.validated === 'V' ? 'V' : cell.validated === 'F' ? 'F' : '?'}
+                                </button>
+                                <button
+                                  onClick={() => addWhysSubAnswer(row.id, roundIdx)}
+                                  className="w-6 h-6 bg-[#171C8F]/10 hover:bg-[#171C8F]/20 text-[#171C8F] rounded border border-[#171C8F]/30 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
+                                  title="Adicionar outro motivo para esta mesma hipótese"
+                                >
+                                  +
+                                </button>
+                              </div>
                             )}
                           </div>
+                          {/* Sub-respostas */}
+                          {cell.subAnswers?.map(sub => (
+                            <div key={sub.id} className="px-1.5 py-1 flex items-start gap-1 border-t border-dashed border-slate-200 bg-[#e5ebf7]/30">
+                              <textarea
+                                rows={2}
+                                value={sub.text}
+                                onChange={(e) => updateWhysSubAnswer(row.id, roundIdx, sub.id, e.target.value)}
+                                className="flex-1 bg-transparent text-[10px] text-slate-800 outline-none resize-none focus:bg-[#e5ebf7] rounded transition-colors placeholder-slate-300 font-semibold leading-snug"
+                                placeholder="Motivo adicional..."
+                              />
+                              <div className="flex flex-col gap-1 items-center shrink-0 mt-0.5">
+                                <button
+                                  onClick={() => toggleWhysSubAnswerValidation(row.id, roundIdx, sub.id)}
+                                  className={`text-[8px] font-black w-6 h-6 rounded border transition-all flex items-center justify-center cursor-pointer ${
+                                    sub.validated === 'V'
+                                      ? 'bg-green-100 border-green-400 text-green-700 hover:bg-green-200'
+                                      : sub.validated === 'F'
+                                        ? 'bg-red-100 border-red-400 text-red-700 hover:bg-red-200'
+                                        : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
+                                  }`}
+                                  title="Alternar Validação (Verdadeiro/Falso)"
+                                >
+                                  {sub.validated === 'V' ? 'V' : sub.validated === 'F' ? 'F' : '?'}
+                                </button>
+                                <button
+                                  onClick={() => removeWhysSubAnswer(row.id, roundIdx, sub.id)}
+                                  className="w-6 h-6 text-red-400 hover:text-red-600 flex items-center justify-center transition-colors cursor-pointer"
+                                  title="Remover motivo adicional"
+                                >
+                                  &times;
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       ))}
                       
@@ -1179,10 +1308,15 @@ const App: React.FC = () => {
         return (
           <div className="space-y-4 animate-fadeIn">
             <div className="flex justify-between items-center border-b pb-3">
-              <h2 className="text-lg font-bold text-[#171C8F]">6. Plano de Ação</h2>
+              <div>
+                <h2 className="text-lg font-bold text-[#171C8F]">6. Plano de Ação</h2>
+                <div className="mt-1 inline-block text-[11px] font-black text-[#171C8F] bg-[#e5ebf7] px-3 py-1 rounded-md border border-[#dce4f5]">
+                  {getAnalysisCode(analysis)}
+                </div>
+              </div>
               <button 
                 onClick={addAction}
-                className="bg-[#171C8F] text-white text-[9px] font-black uppercase tracking-widest px-6 py-2 rounded-xl hover:bg-black transition-all shadow-md flex items-center gap-2"
+                className="bg-[#171C8F] text-white text-[9px] font-black uppercase tracking-widest px-6 py-2 rounded-xl hover:bg-black transition-all shadow-md flex items-center gap-2 cursor-pointer"
               >
                 <Plus size={14} /> Nova Ação
               </button>

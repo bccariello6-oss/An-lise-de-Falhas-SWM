@@ -16,8 +16,18 @@ interface KanbanAction extends Action {
   analysisId: string;
   analysisEquipment: string;
   analysisArea: string;
+  analysisTheme?: string;
+  analysisFailureDate?: string;
   analysisUserId: string;
 }
+
+const getActionAnalysisCode = (action: KanbanAction) => {
+  const dateParts = action.analysisFailureDate ? action.analysisFailureDate.split('-') : [];
+  const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : 'DD/MM/AAAA';
+  const area = action.analysisArea ? action.analysisArea.trim() : 'Área';
+  const theme = action.analysisTheme ? action.analysisTheme.trim() : 'Tema';
+  return `AF - ${formattedDate} - ${area} - ${theme}`;
+};
 
 const columns: { title: string; status: Status; color: string; icon: React.ReactNode }[] = [
   { title: 'Abertas', status: 'Aberta', color: 'bg-red-50/60 border-red-200', icon: <FolderOpen size={16} className="text-red-600" /> },
@@ -25,46 +35,64 @@ const columns: { title: string; status: Status; color: string; icon: React.React
   { title: 'Concluídas', status: 'Concluída', color: 'bg-emerald-50/60 border-emerald-200', icon: <CheckCircle2 size={16} className="text-emerald-600" /> },
 ];
 
-const CardItem: React.FC<{ action: KanbanAction; isDragging?: boolean; onAskEvidence?: () => void }> = ({ action, isDragging, onAskEvidence }) => (
-  <div onClick={onAskEvidence} className={`cursor-pointer bg-white p-2 md:p-3 rounded-xl shadow-sm border border-slate-100 transition-all group ${isDragging ? 'shadow-xl border-[#171C8F] opacity-90 rotate-2 scale-105 z-50' : 'hover:shadow-lg hover:border-[#171C8F]/30'
+const CardItem: React.FC<{ action: KanbanAction; isDragging?: boolean; onAskEvidence?: () => void }> = ({ action, isDragging, onAskEvidence }) => {
+  const isOverdue = action.status !== 'Concluída' && Boolean(action.when) && new Date(action.when + 'T00:00:00') < new Date(new Date().setHours(0,0,0,0));
+  return (
+    <div onClick={onAskEvidence} className={`cursor-pointer bg-white p-2 md:p-3 rounded-xl shadow-sm border transition-all group relative overflow-hidden ${
+      isDragging 
+        ? 'shadow-xl border-[#171C8F] opacity-90 rotate-2 scale-105 z-50' 
+        : isOverdue 
+          ? 'border-red-400 bg-red-50/20 hover:shadow-lg hover:border-red-500 shadow-red-100' 
+          : 'border-slate-100 hover:shadow-lg hover:border-[#171C8F]/30'
     }`}>
-    <div className="flex justify-between items-start mb-1 md:mb-2">
-      <span className={`text-[8px] md:text-[10px] font-bold px-1.5 md:px-2 py-0.5 rounded-full uppercase ${action.type === 'Corretiva' ? 'bg-red-100 text-red-700' :
-          action.type === 'Preventiva' ? 'bg-[#e5ebf7] text-[#171C8F]' : 'bg-amber-100 text-amber-700'
-        }`}>
-        {action.type}
-      </span>
-      <GripVertical size={12} className="text-slate-400 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity" />
+      {isOverdue && (
+        <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg flex items-center gap-1 uppercase tracking-wider animate-pulse shadow-xs z-10">
+          <AlertTriangle size={10} /> Vencida
+        </div>
+      )}
+      <div className="mb-1.5 p-1 bg-[#171C8F]/5 border border-[#171C8F]/10 rounded-lg">
+        <span className="text-[8px] md:text-[9px] font-extrabold text-[#171C8F] block truncate" title={getActionAnalysisCode(action)}>
+          {getActionAnalysisCode(action)}
+        </span>
+      </div>
+      <div className="flex justify-between items-start mb-1 md:mb-2 pt-1">
+        <span className={`text-[8px] md:text-[10px] font-bold px-1.5 md:px-2 py-0.5 rounded-full uppercase ${action.type === 'Contenção' || action.type as any === 'Corretiva' ? 'bg-red-100 text-red-700' :
+            action.type === 'Definitiva' || action.type as any === 'Preventiva' ? 'bg-[#e5ebf7] text-[#171C8F]' : 'bg-amber-100 text-amber-700'
+          }`}>
+          {action.type}
+        </span>
+        <GripVertical size={12} className="text-slate-400 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+      <div className="mb-2 flex flex-col gap-0.5">
+        <span className="text-[9px] font-black uppercase text-[#171C8F] tracking-widest">{action.analysisEquipment || 'S/ EQUIPAMENTO'}</span>
+        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{action.analysisArea || 'S/ ÁREA'}</span>
+      </div>
+      <h4 className="text-[11px] md:text-sm font-semibold text-slate-800 mb-2 md:mb-3 line-clamp-2 md:line-clamp-3 leading-relaxed">
+        {action.what || <span className="italic text-slate-400 font-normal">Sem descrição</span>}
+      </h4>
+      {action.evidence && (
+        <div className="mb-2 p-2 bg-green-50 rounded border border-green-100 text-[10px] text-green-800 font-medium break-words">
+          <strong>Evidência:</strong> {action.evidence}
+        </div>
+      )}
+      {action.evidenceImage && (
+        <div className="mb-2 rounded overflow-hidden border border-slate-100 flex justify-center bg-slate-50">
+          <img src={action.evidenceImage} alt="Evidência Anexada" className="max-h-24 object-contain" />
+        </div>
+      )}
+      <div className="flex flex-col gap-1 md:gap-2 pt-2 md:pt-3 border-t border-slate-50">
+        <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
+          <UserCircle size={12} className="opacity-70" />
+          <span className="font-medium">{action.who || 'Não atribuído'}</span>
+        </div>
+        <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
+          <Calendar size={12} className="opacity-70" />
+          <span>{action.when ? new Date(action.when).toLocaleDateString('pt-BR') : 'Sem data'}</span>
+        </div>
+      </div>
     </div>
-    <div className="mb-2 flex flex-col gap-0.5">
-      <span className="text-[9px] font-black uppercase text-[#171C8F] tracking-widest">{action.analysisEquipment || 'S/ EQUIPAMENTO'}</span>
-      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{action.analysisArea || 'S/ ÁREA'}</span>
-    </div>
-    <h4 className="text-[11px] md:text-sm font-semibold text-slate-800 mb-2 md:mb-3 line-clamp-2 md:line-clamp-3 leading-relaxed">
-      {action.what || <span className="italic text-slate-400 font-normal">Sem descrição</span>}
-    </h4>
-    {action.evidence && (
-      <div className="mb-2 p-2 bg-green-50 rounded border border-green-100 text-[10px] text-green-800 font-medium break-words">
-        <strong>Evidência:</strong> {action.evidence}
-      </div>
-    )}
-    {action.evidenceImage && (
-      <div className="mb-2 rounded overflow-hidden border border-slate-100 flex justify-center bg-slate-50">
-        <img src={action.evidenceImage} alt="Evidência Anexada" className="max-h-24 object-contain" />
-      </div>
-    )}
-    <div className="flex flex-col gap-1 md:gap-2 pt-2 md:pt-3 border-t border-slate-50">
-      <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
-        <UserCircle size={12} className="opacity-70" />
-        <span className="font-medium">{action.who || 'Não atribuído'}</span>
-      </div>
-      <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-slate-500">
-        <Calendar size={12} className="opacity-70" />
-        <span>{action.when ? new Date(action.when).toLocaleDateString('pt-BR') : 'Sem data'}</span>
-      </div>
-    </div>
-  </div>
-);
+  );
+};
 
 const SortableItem: React.FC<{ action: KanbanAction; onStatusChange: (id: string, newStatus: Status) => void; columnStatus: Status; onAskEvidence: () => void }> = ({ action, onStatusChange, columnStatus, onAskEvidence }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: action.id });
@@ -195,6 +223,8 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
           analysisId: analysis.id,
           analysisEquipment: analysis.equipment,
           analysisArea: analysis.area,
+          analysisTheme: analysis.theme,
+          analysisFailureDate: analysis.failureDate,
           analysisUserId: (analysis as any).user_id
         });
       });

@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Analysis, Attachment } from '../types';
 import { ISHIKAWA_QUESTIONS } from '../constants';
 import { Settings, Book, Users, Box, Ruler, Leaf, XCircle, Paperclip, Plus } from 'lucide-react';
@@ -10,6 +10,7 @@ interface Props {
 }
 
 const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
+  const [activeCauseIndex, setActiveCauseIndex] = useState<{ [cat: string]: number | undefined }>({});
   const fileInputRefs = {
     machine: useRef<HTMLInputElement>(null),
     method: useRef<HTMLInputElement>(null),
@@ -34,6 +35,22 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
   const removeCause = (category: keyof Analysis['ishikawa'], index: number) => {
     const newIshikawa = { ...analysis.ishikawa };
     newIshikawa[category].causes.splice(index, 1);
+    if (newIshikawa[category].attachments) {
+      newIshikawa[category].attachments = newIshikawa[category].attachments
+        .filter(a => a.causeIndex !== index)
+        .map(a => {
+          if (a.causeIndex !== undefined && a.causeIndex > index) {
+            return { ...a, causeIndex: a.causeIndex - 1 };
+          }
+          return a;
+        });
+    }
+    updateAnalysis({ ishikawa: newIshikawa });
+  };
+
+  const removeAttachment = (category: keyof Analysis['ishikawa'], attId: string) => {
+    const newIshikawa = { ...analysis.ishikawa };
+    newIshikawa[category].attachments = (newIshikawa[category].attachments || []).filter(a => a.id !== attId);
     updateAnalysis({ ishikawa: newIshikawa });
   };
 
@@ -41,6 +58,7 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     const file = files[0];
+    const causeIdx = activeCauseIndex[category];
     const reader = new FileReader();
     reader.onload = (event) => {
       const newAttachment: Attachment = {
@@ -49,6 +67,7 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
         type: file.type,
         size: file.size,
         dataUrl: event.target?.result as string,
+        causeIndex: causeIdx,
       };
       const newIshikawa = { ...analysis.ishikawa };
       newIshikawa[category].attachments = [...(newIshikawa[category].attachments || []), newAttachment];
@@ -66,38 +85,70 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
       </div>
       <p className="text-[7px] md:text-[8px] text-slate-400 italic leading-tight px-1 font-medium">{ISHIKAWA_QUESTIONS[category]}</p>
       
-      <div className="space-y-1 md:space-y-2 flex-1">
-        {analysis.ishikawa[category].causes.map((cause, idx) => (
-          <div key={idx} className="flex gap-1 md:gap-2 items-center group animate-fadeIn">
-            <input
-              type="text"
-              value={cause}
-              onChange={(e) => handleCauseChange(category, idx, e.target.value)}
-              className="flex-1 text-[10px] md:text-[11px] bg-[#e5ebf7] border border-[#dce4f5] text-[#171C8F] rounded-lg px-2 md:px-3 py-1 md:py-1.5 focus:ring-1 focus:ring-[#13aff0] outline-none font-medium placeholder:text-[#171C8F]/30 min-h-[28px] md:min-h-[32px] shadow-sm transition-all"
-              placeholder="Digite..."
-            />
-            <button onClick={() => removeCause(category, idx)} className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors bg-white rounded-lg border border-slate-50" aria-label="Remover">
-              <XCircle size={14} />
-            </button>
-          </div>
-        ))}
-        {analysis.ishikawa[category].attachments?.length > 0 && (
-          <div className="pt-2 md:pt-3 flex flex-wrap gap-1 md:gap-2">
-            {analysis.ishikawa[category].attachments.map(file => (
-              <span key={file.id} className="text-[8px] md:text-[9px] font-black bg-[#e5ebf7] text-[#171C8F] px-2 md:px-3 py-1 md:py-1.5 rounded-lg flex items-center gap-1 md:gap-2 border border-[#171C8F]">
-                <Paperclip size={10} /> {file.name.slice(0, 12)}...
-              </span>
-            ))}
-          </div>
-        )}
+      <div className="space-y-2 flex-1 my-1">
+        {analysis.ishikawa[category].causes.map((cause, idx) => {
+          const causeAttachments = (analysis.ishikawa[category].attachments || []).filter(a => a.causeIndex === idx);
+          return (
+            <div key={idx} className="flex flex-col gap-1.5 group animate-fadeIn bg-white p-1.5 md:p-2 rounded-xl border border-slate-100 shadow-sm">
+              <div className="flex gap-1 md:gap-2 items-center">
+                <input
+                  type="text"
+                  value={cause}
+                  onChange={(e) => handleCauseChange(category, idx, e.target.value)}
+                  className="flex-1 text-[10px] md:text-[11px] bg-[#e5ebf7] border border-[#dce4f5] text-[#171C8F] rounded-lg px-2 md:px-3 py-1 md:py-1.5 focus:ring-1 focus:ring-[#13aff0] outline-none font-medium placeholder:text-[#171C8F]/30 min-h-[28px] md:min-h-[32px] shadow-sm transition-all"
+                  placeholder="Digite a causa..."
+                />
+                <button
+                  onClick={() => {
+                    setActiveCauseIndex(prev => ({ ...prev, [category]: idx }));
+                    fileInputRefs[category].current?.click();
+                  }}
+                  title="Anexar evidência para esta causa"
+                  className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-[#171C8F] hover:bg-[#e5ebf7] transition-all bg-slate-50 rounded-lg border border-slate-200 shadow-xs shrink-0 cursor-pointer"
+                >
+                  <Paperclip size={14} />
+                </button>
+                <button onClick={() => removeCause(category, idx)} className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors bg-white rounded-lg border border-slate-50 shrink-0 cursor-pointer" aria-label="Remover">
+                  <XCircle size={14} />
+                </button>
+              </div>
+              {causeAttachments.length > 0 && (
+                <div className="flex flex-wrap gap-1 pt-1 pl-1 border-t border-slate-50">
+                  {causeAttachments.map(file => (
+                    <span key={file.id} className="text-[8px] md:text-[9px] font-black bg-[#e5ebf7] text-[#171C8F] px-2 py-1 rounded-md flex items-center gap-1 border border-[#171C8F]/30 shadow-xs">
+                      <Paperclip size={10} /> {file.name.slice(0, 15)}...
+                      <button onClick={() => removeAttachment(category, file.id)} className="text-red-500 hover:text-red-700 ml-1 cursor-pointer" title="Remover anexo">
+                        &times;
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {(() => {
+          const legacyAttachments = (analysis.ishikawa[category].attachments || []).filter(a => a.causeIndex === undefined);
+          if (legacyAttachments.length === 0) return null;
+          return (
+            <div className="pt-2 md:pt-3 flex flex-wrap gap-1 md:gap-2 border-t border-slate-100 mt-2">
+              <span className="text-[8px] font-bold text-slate-400 block w-full">Anexos da categoria (Geral):</span>
+              {legacyAttachments.map(file => (
+                <span key={file.id} className="text-[8px] md:text-[9px] font-black bg-[#e5ebf7] text-[#171C8F] px-2 md:px-3 py-1 md:py-1.5 rounded-lg flex items-center gap-1 md:gap-2 border border-[#171C8F]">
+                  <Paperclip size={10} /> {file.name.slice(0, 12)}...
+                  <button onClick={() => removeAttachment(category, file.id)} className="text-red-500 hover:text-red-700 ml-1 cursor-pointer" title="Remover anexo">
+                    &times;
+                  </button>
+                </span>
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
-      <div className="grid grid-cols-2 gap-1 md:gap-2 pt-1 md:pt-2 border-t border-white">
-        <button onClick={() => addCause(category)} className="text-[7px] md:text-[8px] text-[#171C8F] font-black bg-white border border-[#dce4f5] py-1.5 md:py-2 rounded-xl hover:bg-[#e5ebf7] transition-all uppercase tracking-widest shadow-sm flex items-center justify-center gap-1">
-          <Plus size={10} /> Causa
-        </button>
-        <button onClick={() => fileInputRefs[category].current?.click()} className="text-[7px] md:text-[8px] text-[#171C8F] font-black bg-white border border-slate-100 py-1.5 md:py-2 rounded-xl hover:bg-slate-50 transition-all uppercase tracking-widest shadow-sm flex items-center justify-center gap-1">
-          <Paperclip size={10} /> Anexar
+      <div className="pt-1 md:pt-2 border-t border-white mt-auto">
+        <button onClick={() => addCause(category)} className="w-full text-[7px] md:text-[8px] text-[#171C8F] font-black bg-white border border-[#dce4f5] py-1.5 md:py-2 rounded-xl hover:bg-[#e5ebf7] transition-all uppercase tracking-widest shadow-sm flex items-center justify-center gap-1 cursor-pointer">
+          <Plus size={10} /> Adicionar Causa
         </button>
         <input type="file" ref={fileInputRefs[category]} onChange={(e) => handleFileUpload(category, e)} className="hidden" />
       </div>

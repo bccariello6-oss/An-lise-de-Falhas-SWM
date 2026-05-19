@@ -215,7 +215,7 @@ export const sendAnalysisNotification = async ({ analysis, authorName }: Notific
             ${analysis.actions.map(action => `
               <div class="action-item">
                 <span class="action-type type-${action.type === 'Corretiva' ? 'corretiva' : action.type === 'Preventiva' ? 'preventiva' : 'melhoria'}">${action.type}</span>
-                <span style="flex: 1; margin: 0 12px; font-size: 13px;">${action.description || '-'}</span>
+                <span style="flex: 1; margin: 0 12px; font-size: 13px;">${action.what || '-'}</span>
                 <span style="font-size: 12px; color: ${action.status === 'Concluída' ? '#166534' : '#b45309'}; font-weight: 600;">${action.status}</span>
               </div>
             `).join('')}

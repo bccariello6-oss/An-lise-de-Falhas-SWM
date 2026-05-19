@@ -1,12 +1,19 @@
 
 export type Status = 'Aberta' | 'Em andamento' | 'Concluída';
 export type FailureFrequency = 'Eventual' | 'Recorrente' | 'Crônica';
-export type ActionType = 'Contenção' | 'Definitiva';
+export type ActionType = 'Contenção' | 'Definitiva' | 'Corretiva' | 'Preventiva';
+
+export interface WhySubAnswer {
+  id: string;
+  text: string;
+  validated: 'V' | 'F' | null;
+}
 
 export interface WhyCell {
   question: string;   // linha 1: "Por que ocorre...?" 
   answer: string;     // linha 2: a hipótese/resposta
   validated: 'V' | 'F' | null; // V = Verdadeiro, F = Falso
+  subAnswers?: WhySubAnswer[];
 }
 
 export interface WhysRow {
@@ -28,6 +35,7 @@ export interface Attachment {
   type: string;
   size: number;
   dataUrl?: string;
+  causeIndex?: number;
 }
 
 export interface Action {
