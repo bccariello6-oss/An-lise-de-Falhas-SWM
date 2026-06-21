@@ -1,0 +1,105 @@
+@page "/"
+@inject NavigationManager NavigationManager
+@inject AnalysisService AnalysisService
+
+<div class="space-y-6 animate-fadeIn">
+    <div class="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div>
+            <h2 class="text-2xl font-black text-[#171C8F] tracking-tight">Dashboard de Análises</h2>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Visão Geral e Histórico</p>
+        </div>
+        <button @onclick='() => NavigationManager.NavigateTo("/analysis/new")' class="bg-[#171C8F] hover:bg-blue-800 text-white px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-blue-200 transition-all flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Nova Análise
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="flex justify-center p-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#171C8F]"></div>
+        </div>
+    }
+    else if (analyses == null || !analyses.Any())
+    {
+        <div class="bg-white p-12 rounded-2xl border border-slate-100 text-center">
+            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </div>
+            <h3 class="text-lg font-black text-slate-700">Nenhuma análise encontrada</h3>
+            <p class="text-sm text-slate-500 mt-2">Comece criando uma nova análise de falha.</p>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @foreach (var analysis in analyses)
+            {
+                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative group" @onclick="() => EditAnalysis(analysis.Id)">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-50 text-blue-700">
+                                AF @analysis.SequentialNumber.ToString("D4")
+                            </span>
+                            <h3 class="text-sm font-black text-slate-800 mt-2 line-clamp-1" title="@analysis.Equipment">
+                                @(string.IsNullOrEmpty(analysis.Equipment) ? "Equipamento não definido" : analysis.Equipment)
+                            </h3>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">
+                            @(analysis.Date?.ToString("dd/MM/yyyy") ?? "Sem data")
+                        </span>
+                    </div>
+                    
+                    <p class="text-xs text-slate-500 line-clamp-2 mb-4 h-8 font-medium">
+                        @(string.IsNullOrEmpty(analysis.Symptom) ? "Nenhum sintoma descrito" : analysis.Symptom)
+                    </p>
+                    
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-50">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[8px] font-black text-slate-600 uppercase">
+                                @(analysis.Operator?.FirstOrDefault().ToString() ?? "?")
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-500 uppercase truncate max-w-[100px]">
+                                @(string.IsNullOrEmpty(analysis.Operator) ? "Não atribuído" : analysis.Operator)
+                            </span>
+                        </div>
+                        <div class="flex gap-1">
+                            <button @onclick="() => DeleteAnalysis(analysis.Id)" @onclick:stopPropagation class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:bg-red-50 hover:text-red-600 transition-colors" title="Excluir">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Models.Analysis>? analyses;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        analyses = await AnalysisService.GetAllAsync();
+        isLoading = false;
+    }
+
+    private void EditAnalysis(Guid id)
+    {
+        NavigationManager.NavigateTo($"/analysis/edit/{id}");
+    }
+
+    private async Task DeleteAnalysis(Guid id)
+    {
+        // Ideally show confirmation dialog here
+        await AnalysisService.DeleteAsync(id);
+        await LoadData();
+    }
+}

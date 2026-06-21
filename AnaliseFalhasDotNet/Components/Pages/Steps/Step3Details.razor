@@ -1,0 +1,94 @@
+@using AnaliseFalhasDotNet.Models
+@using AnaliseFalhasDotNet.Services
+
+<div class="space-y-4">
+    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h2 class="text-lg font-black text-[#171C8F]">3. Detalhamento e Verificação</h2>
+        <span class="text-[9px] font-black text-white bg-[#13aff0] px-3 py-1 rounded-full shadow-sm">AI Powered</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="space-y-4">
+            <div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#13aff0]/20 focus-within:border-[#13aff0] transition-all relative">
+                <label class="flex items-center gap-2 mb-2">
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 px-2 py-1 rounded">Sintoma</span>
+                </label>
+                <textarea @bind="Analysis.Symptom" rows="3" class="w-full bg-transparent resize-none text-[11px] font-medium text-slate-700 outline-none placeholder-slate-300 placeholder-italic" placeholder="Relato inicial de quem percebeu a falha..."></textarea>
+            </div>
+            <div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#13aff0]/20 focus-within:border-[#13aff0] transition-all">
+                <label class="flex items-center gap-2 mb-2">
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 px-2 py-1 rounded">Histórico</span>
+                </label>
+                <textarea @bind="Analysis.History" rows="3" class="w-full bg-transparent resize-none text-[11px] font-medium text-slate-700 outline-none placeholder-slate-300 placeholder-italic" placeholder="Houve intervenções recentes? Qual era a condição antes da falha?"></textarea>
+            </div>
+            <div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#13aff0]/20 focus-within:border-[#13aff0] transition-all">
+                <label class="flex items-center gap-2 mb-2">
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 px-2 py-1 rounded">Estado do Equipamento e Componente</span>
+                </label>
+                <textarea @bind="Analysis.MachineStateBefore" rows="3" class="w-full bg-transparent resize-none text-[11px] font-medium text-slate-700 outline-none placeholder-slate-300 placeholder-italic" placeholder="Descreva o estado físico da máquina/peça logo antes ou no momento da falha..."></textarea>
+            </div>
+        </div>
+
+        <div class="bg-[#e5ebf7]/50 border border-blue-100 p-4 rounded-xl shadow-sm flex flex-col relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-200/20 rounded-full blur-2xl transform translate-x-1/2 -translate-y-1/2"></div>
+            
+            <div class="flex justify-between items-center mb-3 relative z-10">
+                <label class="flex items-center gap-2">
+                    <span class="text-[10px] font-black text-[#171C8F] uppercase tracking-widest bg-blue-100 px-2 py-1 rounded border border-blue-200">Fenômeno</span>
+                    <span class="text-[9px] text-slate-500 font-bold hidden sm:inline">(A falha propriamente dita)</span>
+                </label>
+                <button @onclick="GeneratePhenomenon" disabled="@isGeneratingPhenomenon" class="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest bg-[#171C8F] text-white px-3 py-1.5 rounded-lg hover:bg-black transition-all shadow-sm disabled:opacity-50">
+                    @if (isGeneratingPhenomenon)
+                    {
+                        <span class="animate-spin h-3 w-3 border-2 border-white/30 border-t-white rounded-full"></span>
+                        <span>Gerando...</span>
+                    }
+                    else
+                    {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"></path><path d="M12 18v4"></path><path d="M4.93 4.93l2.83 2.83"></path><path d="M16.24 16.24l2.83 2.83"></path><path d="M2 12h4"></path><path d="M18 12h4"></path><path d="M4.93 19.07l2.83-2.83"></path><path d="M16.24 7.76l2.83-2.83"></path></svg>
+                        <span>Gerar com IA</span>
+                    }
+                </button>
+            </div>
+            
+            <textarea @bind="Analysis.Phenomenon" rows="5" class="w-full flex-1 bg-white border border-blue-100 rounded-xl p-3 resize-none text-[11px] font-medium text-slate-700 outline-none focus:ring-2 focus:ring-[#13aff0]/20 focus:border-[#13aff0] transition-all relative z-10 placeholder-slate-300" placeholder="Use o botão 'Gerar com IA' ou descreva manualmente o fenômeno da falha."></textarea>
+            
+            <div class="mt-3 bg-blue-50/50 p-2 rounded-lg border border-blue-100/50 relative z-10">
+                <p class="text-[9px] text-slate-500 font-medium">A IA do Gemini analisa o Sintoma e Histórico para extrair o Fenômeno técnico com precisão.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Models.Analysis Analysis { get; set; } = default!;
+    
+    [Parameter]
+    public GeminiService GeminiService { get; set; } = default!;
+
+    private bool isGeneratingPhenomenon = false;
+
+    private async Task GeneratePhenomenon()
+    {
+        if (string.IsNullOrWhiteSpace(Analysis.Symptom) || string.IsNullOrWhiteSpace(Analysis.History))
+        {
+            // O ideal é mostrar um toast notification aqui
+            return;
+        }
+
+        isGeneratingPhenomenon = true;
+        try
+        {
+            var result = await GeminiService.GeneratePhenomenonAsync(Analysis.History, Analysis.Symptom);
+            if (!string.IsNullOrEmpty(result))
+            {
+                Analysis.Phenomenon = result;
+            }
+        }
+        finally
+        {
+            isGeneratingPhenomenon = false;
+        }
+    }
+}

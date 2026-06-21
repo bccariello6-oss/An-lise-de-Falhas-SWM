@@ -1,0 +1,77 @@
+@using AnaliseFalhasDotNet.Models
+
+<div class="space-y-4 animate-fadeIn">
+    <div class="flex justify-between items-center border-b pb-3">
+        <div>
+            <h2 class="text-lg font-bold text-[#171C8F]">6. Plano de Ação</h2>
+        </div>
+        <button @onclick="AddAction" class="bg-[#171C8F] text-white text-[9px] font-black uppercase tracking-widest px-6 py-2 rounded-xl hover:bg-black transition-all shadow-md flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 
+            Nova Ação
+        </button>
+    </div>
+
+    <div class="border border-slate-100 rounded-xl overflow-x-auto shadow-sm">
+        <table class="w-full text-left border-collapse min-w-[800px]">
+            <thead class="bg-[#e5ebf7] text-[#171C8F] text-[9px] font-black uppercase tracking-widest">
+                <tr>
+                    <th class="px-2 py-2 border-b border-blue-100">Tipo</th>
+                    <th class="px-2 py-2 border-b border-blue-100">O Quê</th>
+                    <th class="px-2 py-2 border-b border-blue-100">Quem</th>
+                    <th class="px-2 py-2 border-b border-blue-100">Quando</th>
+                    <th class="px-2 py-2 border-b border-blue-100">Onde</th>
+                    <th class="px-2 py-2 border-b border-blue-100">Como</th>
+                    <th class="px-2 py-2 border-b border-blue-100">Quanto</th>
+                    <th class="px-2 py-2 border-b border-blue-100">Status</th>
+                    <th class="px-2 py-2 border-b border-blue-100 w-8"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                @foreach (var action in Analysis.Actions)
+                {
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-2 py-1.5">
+                            <select @bind="action.Type" class="bg-transparent border-none text-[9px] font-bold focus:ring-0 p-0 text-[#171C8F] uppercase">
+                                <option value="Containment">Contenção</option>
+                                <option value="Definitive">Definitiva</option>
+                            </select>
+                        </td>
+                        <td class="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" @bind="action.What" class="w-full min-w-[120px] bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder="O que fazer?"/></td>
+                        <td class="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" @bind="action.Who" class="w-full bg-transparent border-none text-[9px] p-0 focus:ring-0 placeholder:text-slate-300 font-bold text-slate-500 uppercase" placeholder="Quem?"/></td>
+                        <td class="px-2 py-1.5"><input type="date" @bind="action.When" class="bg-transparent border-none text-[9px] p-0 focus:ring-0 text-slate-400 font-bold w-[90px]"/></td>
+                        <td class="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" @bind="action.Where" class="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder="Onde?"/></td>
+                        <td class="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" @bind="action.How" class="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder="Como?"/></td>
+                        <td class="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" @bind="action.HowMuch" class="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium w-16" placeholder="R$ / h"/></td>
+                        <td class="px-2 py-1.5">
+                            <select @bind="action.Status" class="bg-transparent border-none text-[9px] font-bold focus:ring-0 p-0 uppercase @(action.Status == ActionStatus.Open ? "text-red-500" : action.Status == ActionStatus.InProgress ? "text-amber-500" : "text-green-500")">
+                                <option class="text-red-500 bg-white font-bold uppercase" value="Open">Aberta</option>
+                                <option class="text-amber-500 bg-white font-bold uppercase" value="InProgress">Em andamento</option>
+                                <option class="text-green-500 bg-white font-bold uppercase" value="Completed">Concluída</option>
+                            </select>
+                        </td>
+                        <td class="px-2 py-1.5 text-center">
+                            <button @onclick="() => RemoveAction(action)" class="text-slate-300 hover:text-red-500 transition-colors flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Models.Analysis Analysis { get; set; } = default!;
+
+    private void AddAction()
+    {
+        Analysis.Actions.Add(new ActionItem());
+    }
+
+    private void RemoveAction(ActionItem action)
+    {
+        Analysis.Actions.Remove(action);
+    }
+}

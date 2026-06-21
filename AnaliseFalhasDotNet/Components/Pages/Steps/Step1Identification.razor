@@ -1,0 +1,52 @@
+@using AnaliseFalhasDotNet.Models
+
+<div class="space-y-4">
+    <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+        <h2 class="text-lg font-black text-[#171C8F]">1. Identificação</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="space-y-1">
+            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Data</label>
+            <input type="date" @bind="Analysis.Date" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-[11px] font-bold rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-[#13aff0] focus:ring-2 focus:ring-[#13aff0]/20 transition-all uppercase" />
+        </div>
+        <div class="space-y-1">
+            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Hora</label>
+            <input type="time" @bind="Analysis.Time" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-[11px] font-bold rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-[#13aff0] focus:ring-2 focus:ring-[#13aff0]/20 transition-all uppercase" />
+        </div>
+        <div class="space-y-1 lg:col-span-2">
+            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Equipamento</label>
+            <input type="text" @bind="Analysis.Equipment" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-[11px] font-bold rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-[#13aff0] focus:ring-2 focus:ring-[#13aff0]/20 transition-all uppercase placeholder:normal-case placeholder:text-slate-400 placeholder:font-medium" placeholder="Ex: Máquina de Corte" />
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="space-y-1">
+            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Turno</label>
+            <select @bind="Analysis.Shift" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-[11px] font-bold rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-[#13aff0] focus:ring-2 focus:ring-[#13aff0]/20 transition-all uppercase">
+                <option value="">Selecione...</option>
+                <option value="1º Turno">1º Turno</option>
+                <option value="2º Turno">2º Turno</option>
+                <option value="3º Turno">3º Turno</option>
+                <option value="Comercial">Comercial</option>
+            </select>
+        </div>
+        <div class="space-y-1">
+            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Turma/Equipe</label>
+            <input type="text" @bind="Analysis.Team" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-[11px] font-bold rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-[#13aff0] focus:ring-2 focus:ring-[#13aff0]/20 transition-all uppercase" />
+        </div>
+        <div class="space-y-1">
+            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Operador Responsável</label>
+            <input type="text" @bind="Analysis.Operator" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-[11px] font-bold rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-[#13aff0] focus:ring-2 focus:ring-[#13aff0]/20 transition-all uppercase" />
+        </div>
+        <div class="space-y-1">
+            <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Técnico da Manutenção</label>
+            <input type="text" @bind="Analysis.MaintenanceTech" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-[11px] font-bold rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-[#13aff0] focus:ring-2 focus:ring-[#13aff0]/20 transition-all uppercase" />
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Models.Analysis Analysis { get; set; } = default!;
+}

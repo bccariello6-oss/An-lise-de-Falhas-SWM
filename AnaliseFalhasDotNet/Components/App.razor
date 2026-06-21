@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Análise de Falhas SWM</title>
+    <base href="/" />
+    <link href="css/app.css" rel="stylesheet" />
+    <!-- Tailwind via CDN for immediate visual parity (in production, use Tailwind build process) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'swm-blue': '#171C8F',
+              'swm-light-blue': '#13aff0',
+              'swm-bg': '#F9F9F9',
+            },
+            fontFamily: {
+              sans: ['Century Gothic', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <HeadOutlet />
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased overflow-hidden">
+    <Routes />
+    <script src="_framework/blazor.web.js"></script>
+</body>
+</html>

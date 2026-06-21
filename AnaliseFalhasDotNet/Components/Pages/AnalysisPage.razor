@@ -1,0 +1,173 @@
+@page "/analysis/new"
+@page "/analysis/edit/{Id:guid}"
+@inject NavigationManager NavigationManager
+@inject AnalysisService AnalysisService
+@inject GeminiService GeminiService
+@inject NotificationService NotificationService
+
+@if (isLoading)
+{
+    <div class="flex justify-center p-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#171C8F]"></div>
+    </div>
+}
+else if (analysis != null)
+{
+    <!-- Navigation Steps -->
+    <nav class="bg-white border-b flex-shrink-0 z-40 overflow-x-auto no-scrollbar shadow-sm mb-4 rounded-xl" aria-label="Passos da análise">
+        <div class="px-4 py-4 flex items-center justify-between gap-6 min-w-max">
+            @foreach (StepId step in Enum.GetValues(typeof(StepId)))
+            {
+                if (step >= StepId.Kanban) continue; // Not rendered in the wizard flow
+
+                <button @onclick="() => SetStep(step)" class="flex flex-col items-center gap-2 transition-all px-2 @(currentStep == step ? "scale-110 opacity-100" : "opacity-30 hover:opacity-60")">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs transition-all @(currentStep == step ? "bg-[#171C8F] text-white shadow-xl shadow-blue-200" : "bg-slate-100 text-slate-500")">
+                        @if (currentStep > step)
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        }
+                        else
+                        {
+                            <span>@((int)step)</span>
+                        }
+                    </div>
+                    <span class="text-[9px] font-black uppercase tracking-widest @(currentStep == step ? "text-[#171C8F]" : "text-slate-400")">
+                        @GetStepName(step)
+                    </span>
+                </button>
+                @if ((int)step < 7)
+                {
+                    <div class="w-12 h-1 rounded-full @(currentStep > step ? "bg-[#171C8F]" : "bg-slate-100")"></div>
+                }
+            }
+        </div>
+    </nav>
+
+    <!-- Render Current Step Component -->
+    <div class="animate-fadeIn">
+        @switch (currentStep)
+        {
+            case StepId.Identification:
+                <Step1Identification Analysis="analysis" />
+                break;
+            case StepId.W5H1:
+                <Step2W5H1 Analysis="analysis" />
+                break;
+            case StepId.Details:
+                <Step3Details Analysis="analysis" GeminiService="GeminiService" />
+                break;
+            case StepId.Ishikawa:
+                <Step4Ishikawa Analysis="analysis" />
+                break;
+            case StepId.FiveWhys:
+                <Step5FiveWhys Analysis="analysis" />
+                break;
+            case StepId.Actions:
+                <Step6Actions Analysis="analysis" />
+                break;
+            case StepId.Verification:
+                <Step7Verification Analysis="analysis" />
+                break;
+        }
+    </div>
+
+    <!-- Navigation Footer -->
+    <div class="mt-6 flex items-center justify-between gap-4 border-t border-slate-100 pt-4">
+        <button @onclick="HandleBack" disabled="@(currentStep == StepId.Identification)" class="flex items-center justify-center gap-2 text-slate-400 font-black uppercase text-[10px] hover:text-[#171C8F] disabled:opacity-20 transition-all px-4 py-2 min-h-[44px]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Voltar
+        </button>
+        <div class="flex gap-3">
+            <button @onclick="SaveDraft" class="flex items-center justify-center text-slate-600 bg-slate-100 hover:bg-slate-200 px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest border border-slate-200 min-h-[44px]">
+                Salvar Rascunho
+            </button>
+            
+            @if (currentStep < StepId.Verification)
+            {
+                <button @onclick="HandleNext" class="bg-[#171C8F] hover:bg-blue-700 text-white px-10 py-3 rounded-xl font-black uppercase text-[10px] shadow-xl shadow-blue-200/50 transition-all flex items-center justify-center gap-3 min-h-[44px]">
+                    Próximo
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+            }
+            else
+            {
+                <button @onclick="FinalizeAnalysis" class="bg-slate-900 hover:bg-black text-white px-10 py-3 rounded-xl font-black uppercase text-[10px] shadow-xl transition-all min-h-[44px]">
+                    Finalizar Relatório
+                </button>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private Models.Analysis analysis = new();
+    private bool isLoading = true;
+    private StepId currentStep = StepId.Identification;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue && Id.Value != Guid.Empty)
+        {
+            var existing = await AnalysisService.GetByIdAsync(Id.Value);
+            if (existing != null)
+            {
+                analysis = existing;
+            }
+        }
+        else
+        {
+            // Initialize new analysis
+            analysis = new Models.Analysis();
+        }
+        isLoading = false;
+    }
+
+    private void SetStep(StepId step)
+    {
+        currentStep = step;
+    }
+
+    private void HandleNext()
+    {
+        // Validation logic can be added here
+        if ((int)currentStep < 7)
+        {
+            currentStep = (StepId)((int)currentStep + 1);
+        }
+    }
+
+    private void HandleBack()
+    {
+        if ((int)currentStep > 1)
+        {
+            currentStep = (StepId)((int)currentStep - 1);
+        }
+    }
+
+    private async Task SaveDraft()
+    {
+        // For simplicity in UI, we save and stay
+        analysis = await AnalysisService.SaveAsync(analysis);
+    }
+
+    private async Task FinalizeAnalysis()
+    {
+        analysis = await AnalysisService.SaveAsync(analysis);
+        NavigationManager.NavigateTo("/");
+    }
+
+    private string GetStepName(StepId step) => step switch
+    {
+        StepId.Identification => "Identificação",
+        StepId.W5H1 => "5W1H",
+        StepId.Details => "Verificação",
+        StepId.Ishikawa => "Ishikawa",
+        StepId.FiveWhys => "5 Porquês",
+        StepId.Actions => "Ações",
+        StepId.Verification => "Resultados",
+        _ => ""
+    };
+}

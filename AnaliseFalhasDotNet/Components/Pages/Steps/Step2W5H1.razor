@@ -1,0 +1,78 @@
+@using AnaliseFalhasDotNet.Models
+
+<div class="space-y-4">
+    <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+        <h2 class="text-lg font-black text-[#171C8F]">2. Análise 5W1H do Problema</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- What -->
+        <div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#13aff0]/20 focus-within:border-[#13aff0] transition-all">
+            <label class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded bg-[#171C8F] text-white flex items-center justify-center text-[10px] font-black shrink-0">W1</span>
+                <span class="text-xs font-black text-[#171C8F] uppercase tracking-widest">O que ocorreu?</span>
+            </label>
+            <textarea @bind="Analysis.What" rows="2" class="w-full bg-transparent resize-none text-[11px] font-medium text-slate-700 outline-none placeholder-slate-300 placeholder-italic" placeholder="Descreva o problema/falha..."></textarea>
+        </div>
+
+        <!-- Where -->
+        <div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#13aff0]/20 focus-within:border-[#13aff0] transition-all">
+            <label class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded bg-[#13aff0] text-white flex items-center justify-center text-[10px] font-black shrink-0">W2</span>
+                <span class="text-xs font-black text-[#13aff0] uppercase tracking-widest">Onde ocorreu?</span>
+            </label>
+            <textarea @bind="Analysis.Where" rows="2" class="w-full bg-transparent resize-none text-[11px] font-medium text-slate-700 outline-none placeholder-slate-300 placeholder-italic" placeholder="Local/componente exato..."></textarea>
+        </div>
+
+        <!-- When -->
+        <div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#13aff0]/20 focus-within:border-[#13aff0] transition-all">
+            <label class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded bg-indigo-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">W3</span>
+                <span class="text-xs font-black text-indigo-500 uppercase tracking-widest">Quando ocorreu?</span>
+            </label>
+            <textarea @bind="Analysis.When" rows="2" class="w-full bg-transparent resize-none text-[11px] font-medium text-slate-700 outline-none placeholder-slate-300 placeholder-italic" placeholder="Em que momento do processo..."></textarea>
+        </div>
+
+        <!-- Who -->
+        <div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#13aff0]/20 focus-within:border-[#13aff0] transition-all">
+            <label class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded bg-purple-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">W4</span>
+                <span class="text-xs font-black text-purple-500 uppercase tracking-widest">Quem identificou?</span>
+            </label>
+            <textarea @bind="Analysis.Who" rows="2" class="w-full bg-transparent resize-none text-[11px] font-medium text-slate-700 outline-none placeholder-slate-300 placeholder-italic" placeholder="Pessoa ou sistema..."></textarea>
+        </div>
+
+        <!-- How -->
+        <div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#13aff0]/20 focus-within:border-[#13aff0] transition-all">
+            <label class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded bg-orange-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">H1</span>
+                <span class="text-xs font-black text-orange-500 uppercase tracking-widest">Como ocorreu?</span>
+            </label>
+            <textarea @bind="Analysis.How" rows="2" class="w-full bg-transparent resize-none text-[11px] font-medium text-slate-700 outline-none placeholder-slate-300 placeholder-italic" placeholder="A sequência de eventos..."></textarea>
+        </div>
+
+        <!-- How Much / Frequency -->
+        <div class="bg-white border border-slate-100 p-4 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#13aff0]/20 focus-within:border-[#13aff0] transition-all">
+            <div class="flex justify-between items-start mb-2">
+                <label class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded bg-rose-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">H2</span>
+                    <span class="text-xs font-black text-rose-500 uppercase tracking-widest">Qual o custo/impacto?</span>
+                </label>
+            </div>
+            <textarea @bind="Analysis.HowMuch" rows="1" class="w-full bg-transparent resize-none text-[11px] font-medium text-slate-700 outline-none placeholder-slate-300 placeholder-italic mb-3 border-b border-slate-100 pb-2" placeholder="Tempo parado, refugo, valor financeiro..."></textarea>
+            
+            <div>
+                <span class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Frequência da Falha</span>
+                <div class="flex gap-2">
+                    <button @onclick="() => Analysis.Frequency = FailureFrequency.FirstTime" class="flex-1 py-1.5 px-3 rounded-lg border text-[10px] font-bold uppercase transition-all @(Analysis.Frequency == FailureFrequency.FirstTime ? "bg-slate-800 text-white border-slate-800 shadow-sm" : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100")">1ª Vez</button>
+                    <button @onclick="() => Analysis.Frequency = FailureFrequency.Recurring" class="flex-1 py-1.5 px-3 rounded-lg border text-[10px] font-bold uppercase transition-all @(Analysis.Frequency == FailureFrequency.Recurring ? "bg-red-600 text-white border-red-600 shadow-sm" : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100")">Reincidente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Models.Analysis Analysis { get; set; } = default!;
+}

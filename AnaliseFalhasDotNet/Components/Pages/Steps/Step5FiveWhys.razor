@@ -1,0 +1,137 @@
+@using AnaliseFalhasDotNet.Models
+
+<div class="space-y-4 animate-fadeIn">
+    <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+        <h2 class="text-lg font-black text-[#171C8F]">5. Matriz dos 5 Porquês</h2>
+        <button @onclick="AddRow" class="ml-auto bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-lg hover:bg-black transition-all shadow-sm flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 
+            Nova Hipótese
+        </button>
+    </div>
+
+    <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
+        <div class="overflow-x-auto">
+            <div class="min-w-[1000px] flex flex-col">
+                <!-- Header -->
+                <div class="flex bg-slate-100 border-b border-slate-200">
+                    <div class="w-10 p-2 font-black text-slate-500 text-[10px] text-center border-r border-slate-200 flex items-center justify-center">#</div>
+                    <div class="w-48 p-2 font-black text-slate-700 text-[10px] uppercase border-r border-slate-200 flex items-center justify-center tracking-wider">Hipótese Principal</div>
+                    @for (int i = 0; i < 5; i++)
+                    {
+                        <div class="flex-1 p-2 font-black text-[#171C8F] text-[11px] uppercase border-r border-slate-200 text-center">@((i + 1))º Porquê</div>
+                    }
+                    <div class="w-32 p-2 font-black text-emerald-600 text-[10px] uppercase border-r border-slate-200 flex items-center justify-center tracking-wider">Melhoria</div>
+                    <div class="w-10 p-2 font-black text-slate-500 text-[10px] text-center flex items-center justify-center"></div>
+                </div>
+
+                <!-- Rows -->
+                @for (int idx = 0; idx < Analysis.WhysMatrix.Rows.Count; idx++)
+                {
+                    var row = Analysis.WhysMatrix.Rows[idx];
+                    var rowLabel = ((char)('A' + idx)).ToString();
+                    <div class="flex border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                        <div class="w-10 p-2 text-xs font-black text-slate-400 border-r border-slate-100 flex items-center justify-center bg-slate-50/50">@rowLabel</div>
+                        
+                        <!-- Hipótese -->
+                        <div class="w-48 p-1 border-r border-slate-100 bg-white">
+                            <textarea @bind="row.Hypothesis" rows="3" class="w-full h-full bg-transparent resize-none text-[10px] font-bold text-slate-700 outline-none p-1 focus:bg-blue-50 rounded transition-colors placeholder-slate-300"></textarea>
+                        </div>
+
+                        <!-- 5 Porques -->
+                        @for (int wIdx = 0; wIdx < 5; wIdx++)
+                        {
+                            var cell = row.Whys[wIdx];
+                            <div class="flex-1 border-r border-slate-100 flex flex-col bg-white">
+                                <div class="p-1 flex-1 flex items-start gap-1">
+                                    <textarea @bind="cell.Answer" rows="3" class="flex-1 h-full min-h-[40px] bg-transparent resize-none text-[10px] font-bold text-slate-700 outline-none p-1 focus:bg-[#e5ebf7] rounded transition-colors placeholder-slate-300" placeholder="Porquê?"></textarea>
+                                    @if (!string.IsNullOrWhiteSpace(cell.Answer))
+                                    {
+                                        <div class="flex flex-col gap-1 items-center shrink-0 mt-0.5">
+                                            <button @onclick="() => ToggleValidation(cell)" class="text-[8px] font-black w-6 h-6 rounded border transition-all flex items-center justify-center @GetValidationClass(cell.Validated)">
+                                                @(cell.Validated == "V" ? "V" : cell.Validated == "F" ? "F" : "?")
+                                            </button>
+                                            <button @onclick="() => AddSubAnswer(cell)" class="w-6 h-6 bg-[#171C8F]/10 hover:bg-[#171C8F]/20 text-[#171C8F] rounded border border-[#171C8F]/30 flex items-center justify-center font-bold text-xs transition-colors" title="Adicionar outro motivo">+</button>
+                                        </div>
+                                    }
+                                </div>
+                                <!-- Sub-respostas -->
+                                @foreach (var sub in cell.SubAnswers)
+                                {
+                                    <div class="px-1.5 py-1 flex items-start gap-1 border-t border-dashed border-slate-200 bg-[#e5ebf7]/30">
+                                        <textarea @bind="sub.Text" rows="2" class="flex-1 bg-transparent text-[10px] text-slate-800 outline-none resize-none focus:bg-[#e5ebf7] rounded transition-colors placeholder-slate-300 font-semibold leading-snug"></textarea>
+                                        <div class="flex flex-col gap-1 items-center shrink-0 mt-0.5">
+                                            <button @onclick="() => ToggleSubValidation(sub)" class="text-[8px] font-black w-6 h-6 rounded border transition-all flex items-center justify-center @GetValidationClass(sub.Validated)">
+                                                @(sub.Validated == "V" ? "V" : sub.Validated == "F" ? "F" : "?")
+                                            </button>
+                                            <button @onclick="() => RemoveSubAnswer(cell, sub)" class="w-6 h-6 text-red-400 hover:text-red-600 flex items-center justify-center transition-colors">&times;</button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <!-- Melhoria -->
+                        <div class="w-32 p-1 border-r border-slate-100 bg-white flex items-center">
+                            <textarea @bind="row.Improvement" rows="2" class="w-full bg-transparent resize-none text-[10px] font-medium text-emerald-700 outline-none p-1 focus:bg-emerald-50 rounded transition-colors placeholder-slate-300 italic"></textarea>
+                        </div>
+
+                        <!-- Remover -->
+                        <div class="w-10 p-1 flex items-center justify-center">
+                            <button @onclick="() => RemoveRow(row)" disabled="@(Analysis.WhysMatrix.Rows.Count <= 1)" class="text-slate-300 hover:text-red-500 transition-colors disabled:opacity-20">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="pt-3 border-t">
+        <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Causa Raiz Geral Identificada</label>
+        <input type="text" @bind="Analysis.RootCause" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-[11px] font-bold rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-[#13aff0] focus:ring-2 focus:ring-[#13aff0]/20 transition-all uppercase placeholder:normal-case placeholder:text-slate-400 placeholder:font-medium" placeholder="Descreva a causa raiz..." />
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Models.Analysis Analysis { get; set; } = default!;
+
+    private void AddRow()
+    {
+        Analysis.WhysMatrix.Rows.Add(new WhysRow());
+    }
+
+    private void RemoveRow(WhysRow row)
+    {
+        if (Analysis.WhysMatrix.Rows.Count > 1)
+            Analysis.WhysMatrix.Rows.Remove(row);
+    }
+
+    private void ToggleValidation(WhyCell cell)
+    {
+        cell.Validated = cell.Validated == "V" ? "F" : cell.Validated == "F" ? null : "V";
+    }
+
+    private void AddSubAnswer(WhyCell cell)
+    {
+        cell.SubAnswers.Add(new WhySubAnswer());
+    }
+
+    private void RemoveSubAnswer(WhyCell cell, WhySubAnswer sub)
+    {
+        cell.SubAnswers.Remove(sub);
+    }
+
+    private void ToggleSubValidation(WhySubAnswer sub)
+    {
+        sub.Validated = sub.Validated == "V" ? "F" : sub.Validated == "F" ? null : "V";
+    }
+
+    private string GetValidationClass(string? validated)
+    {
+        return validated == "V" ? "bg-green-100 border-green-400 text-green-700 hover:bg-green-200" 
+             : validated == "F" ? "bg-red-100 border-red-400 text-red-700 hover:bg-red-200" 
+             : "bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100";
+    }
+}

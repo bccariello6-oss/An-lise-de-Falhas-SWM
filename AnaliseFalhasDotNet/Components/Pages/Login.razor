@@ -1,0 +1,115 @@
+@page "/login"
+@layout EmptyLayout
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+
+<div class="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute inset-0 z-0">
+        <div class="absolute top-0 left-0 w-full h-96 bg-[#171C8F] skew-y-6 transform -translate-y-32"></div>
+        <div class="absolute top-0 right-0 w-1/2 h-full bg-[#13aff0]/10 mix-blend-multiply blur-3xl rounded-full transform translate-x-1/2 -translate-y-1/2"></div>
+    </div>
+
+    <div class="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+        <div class="flex justify-center flex-col items-center gap-4">
+            <div class="bg-white p-4 rounded-2xl shadow-xl shadow-[#171C8F]/10 border border-slate-100/50">
+                <img class="h-16 w-auto" src="/images/swm-logo.png" alt="SWM Logo" />
+            </div>
+            <h2 class="mt-2 text-center text-3xl font-black tracking-tight text-white drop-shadow-md">
+                Análise de Falha
+            </h2>
+            <p class="text-center text-sm font-bold tracking-widest text-[#13aff0] uppercase">
+                Acesso ao Sistema
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+        <div class="bg-white/80 backdrop-blur-xl py-10 px-4 shadow-2xl sm:rounded-[32px] sm:px-10 border border-white">
+            <form class="space-y-6" @onsubmit="HandleLogin">
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="bg-red-50 border border-red-200 text-red-600 p-4 rounded-2xl text-sm font-medium flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        @errorMessage
+                    </div>
+                }
+
+                <div>
+                    <label for="email" class="block text-xs font-black text-slate-500 uppercase tracking-widest ml-1 mb-2">Email corporativo</label>
+                    <div class="mt-1 relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#171C8F]">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                        </div>
+                        <input id="email" type="email" @bind="email" required class="appearance-none block w-full pl-12 pr-4 py-3.5 border border-slate-200 rounded-2xl placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-[#13aff0] focus:border-transparent sm:text-sm font-medium transition-all bg-white/50 focus:bg-white" placeholder="seu.nome@swm.local" />
+                    </div>
+                </div>
+
+                <div>
+                    <label for="password" class="block text-xs font-black text-slate-500 uppercase tracking-widest ml-1 mb-2">Senha</label>
+                    <div class="mt-1 relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#171C8F]">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </div>
+                        <input id="password" type="password" @bind="password" required class="appearance-none block w-full pl-12 pr-4 py-3.5 border border-slate-200 rounded-2xl placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-[#13aff0] focus:border-transparent sm:text-sm font-medium transition-all bg-white/50 focus:bg-white" placeholder="••••••••" />
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" disabled="@isLoading" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-xl shadow-[#171C8F]/20 text-sm font-black text-white bg-[#171C8F] hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#171C8F] transition-all uppercase tracking-widest disabled:opacity-50">
+                        @if (isLoading)
+                        {
+                            <span>Entrando...</span>
+                        }
+                        else
+                        {
+                            <span>Acessar Sistema</span>
+                        }
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-8 flex justify-center items-center gap-3 text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <span class="text-xs font-bold uppercase tracking-widest">Acesso Restrito</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string email = "";
+    private string password = "";
+    private bool isLoading = false;
+    private string? errorMessage;
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var success = await AuthService.LoginAsync(email, password);
+
+            if (success)
+            {
+                NavigationManager.NavigateTo(ReturnUrl ?? "/", true);
+            }
+            else
+            {
+                errorMessage = "Credenciais inválidas. Tente novamente.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erro de sistema: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

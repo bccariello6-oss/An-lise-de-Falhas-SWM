@@ -1,0 +1,64 @@
+@using AnaliseFalhasDotNet.Models
+
+<div class="space-y-4">
+    <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+        <h2 class="text-lg font-black text-[#171C8F]">4. Ishikawa (6M)</h2>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @RenderCategory("Máquina", Analysis.Ishikawa.Machine, "border-[#13aff0]", "bg-[#13aff0]/10", "text-[#13aff0]")
+        @RenderCategory("Método", Analysis.Ishikawa.Method, "border-[#171C8F]", "bg-[#171C8F]/10", "text-[#171C8F]")
+        @RenderCategory("Material", Analysis.Ishikawa.Material, "border-emerald-500", "bg-emerald-500/10", "text-emerald-500")
+        @RenderCategory("Mão de Obra", Analysis.Ishikawa.Manpower, "border-orange-500", "bg-orange-500/10", "text-orange-500")
+        @RenderCategory("Medição", Analysis.Ishikawa.Measurement, "border-purple-500", "bg-purple-500/10", "text-purple-500")
+        @RenderCategory("Meio Ambiente", Analysis.Ishikawa.Environment, "border-rose-500", "bg-rose-500/10", "text-rose-500")
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Models.Analysis Analysis { get; set; } = default!;
+
+    private void AddCause(List<IshikawaCause> category)
+    {
+        category.Add(new IshikawaCause());
+    }
+
+    private void RemoveCause(List<IshikawaCause> category, IshikawaCause cause)
+    {
+        category.Remove(cause);
+    }
+}
+
+@helper RenderCategory(string title, List<IshikawaCause> causes, string borderColor, string bgColor, string textColor)
+{
+    <div class="bg-white border-t-4 @borderColor rounded-b-xl shadow-sm p-4 flex flex-col">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-black @textColor uppercase text-[11px] tracking-widest">@title</h3>
+            <button @onclick="() => AddCause(causes)" class="w-6 h-6 rounded-full @bgColor @textColor flex items-center justify-center hover:opacity-80 transition-opacity">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+        </div>
+        <div class="space-y-2 flex-1">
+            @if (causes.Count == 0)
+            {
+                <div class="text-[10px] text-slate-400 font-medium italic text-center py-4 border border-dashed border-slate-200 rounded-lg">
+                    Nenhuma causa identificada
+                </div>
+            }
+            else
+            {
+                @foreach (var cause in causes)
+                {
+                    <div class="flex items-start gap-2 group">
+                        <input type="checkbox" @bind="cause.IsSelected" class="mt-1.5 shrink-0 w-3.5 h-3.5 rounded border-slate-300 text-[#171C8F] focus:ring-[#171C8F]" />
+                        <textarea @bind="cause.Text" rows="1" class="flex-1 text-[10px] bg-slate-50 border border-slate-100 rounded px-2 py-1.5 resize-none outline-none focus:bg-white focus:border-slate-300 transition-colors" placeholder="Descreva..."></textarea>
+                        <button @onclick="() => RemoveCause(causes, cause)" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 p-1 shrink-0 transition-opacity">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+}
