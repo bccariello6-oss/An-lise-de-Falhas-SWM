@@ -1,0 +1,51 @@
+[
+  {
+    "id": "7ef4af6a-afe6-4fb9-8805-80a74dc39644",
+    "username": "subagent",
+    "full_name": "Subagent Jetski",
+    "role": "ADMIN",
+    "updated_at": "2026-04-04T02:35:18.035735+00:00"
+  },
+  {
+    "id": "e29ff8a0-73c8-45f8-a01d-3980c8e9c516",
+    "username": "manutencao",
+    "full_name": "Manutenção",
+    "role": "USER",
+    "updated_at": "2026-04-11T22:20:56.08715+00:00"
+  },
+  {
+    "id": "b5f9e2d1-c571-4f99-aa75-c8c3acd7199d",
+    "username": "mp03",
+    "full_name": "MP03",
+    "role": "USER",
+    "updated_at": "2026-04-11T22:20:56.08715+00:00"
+  },
+  {
+    "id": "32d58084-b48e-45d5-a357-52b38a5dbcb3",
+    "username": "admin",
+    "full_name": "Administrador",
+    "role": "ADMIN",
+    "updated_at": "2026-04-11T22:20:56.08715+00:00"
+  },
+  {
+    "id": "83d07ed4-d09d-472e-8bc4-3e0c8aeb9853",
+    "username": "mp01",
+    "full_name": "MP01",
+    "role": "USER",
+    "updated_at": "2026-04-11T22:20:56.08715+00:00"
+  },
+  {
+    "id": "bf363f34-b4fa-40bd-91e7-b9aef41636bd",
+    "username": "mp06",
+    "full_name": "MP06",
+    "role": "USER",
+    "updated_at": "2026-04-11T22:20:56.08715+00:00"
+  },
+  {
+    "id": "43c59205-e46e-487a-b65d-24d0d0bdbef7",
+    "username": "sbob",
+    "full_name": "SBOB",
+    "role": "USER",
+    "updated_at": "2026-04-11T22:20:56.08715+00:00"
+  }
+]
