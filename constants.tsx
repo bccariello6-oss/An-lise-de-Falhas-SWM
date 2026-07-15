@@ -13,32 +13,32 @@ import {
   Columns 
 } from 'lucide-react';
 
-export const STEPS = [
-  { id: StepId.IDENTIFICATION, label: '1. Identificação Geral', icon: <IdCard size={18} /> },
-  { id: StepId.W5H1, label: '2. 5W1H', icon: <HelpCircle size={18} /> },
-  { id: StepId.DETAILS, label: '3. Verificação', icon: <Search size={18} /> },
-  { id: StepId.ISHIKAWA, label: '4. Ishikawa', icon: <Fish size={18} /> },
-  { id: StepId.FIVE_WHYS, label: '5. 5 Porquês', icon: <ListOrdered size={18} /> },
-  { id: StepId.ACTIONS, label: '6. Plano de Ação', icon: <CheckSquare size={18} /> },
-  { id: StepId.VERIFICATION, label: '7. Resultados', icon: <CheckCircle2 size={18} /> },
-  { id: StepId.KANBAN, label: '8. Kanban', icon: <Columns size={18} /> },
-  { id: StepId.DASHBOARD, label: 'Dashboard', icon: <LayoutDashboard size={18} /> }
+export const getSteps = (t: (key: string) => string) => [
+  { id: StepId.IDENTIFICATION, label: t('steps.1'), icon: <IdCard size={18} /> },
+  { id: StepId.W5H1, label: t('steps.2'), icon: <HelpCircle size={18} /> },
+  { id: StepId.DETAILS, label: t('steps.3'), icon: <Search size={18} /> },
+  { id: StepId.ISHIKAWA, label: t('steps.4'), icon: <Fish size={18} /> },
+  { id: StepId.FIVE_WHYS, label: t('steps.5'), icon: <ListOrdered size={18} /> },
+  { id: StepId.ACTIONS, label: t('steps.6'), icon: <CheckSquare size={18} /> },
+  { id: StepId.VERIFICATION, label: t('steps.7'), icon: <CheckCircle2 size={18} /> },
+  { id: StepId.KANBAN, label: t('steps.8'), icon: <Columns size={18} /> },
+  { id: StepId.DASHBOARD, label: t('steps.dashboard'), icon: <LayoutDashboard size={18} /> }
 ];
 
-export const TIPS = {
-  what: "O que aconteceu exatamente? Seja específico sobre a falha técnica.",
-  where: "Onde no equipamento ocorreu a falha? (Ex: Rolamento do motor principal)",
-  when: "Qual o momento exato? Início do turno, durante a rampa de carga?",
-  howMuch: "Qual o impacto em horas paradas, custo de peças ou perda de produção?",
-  how: "Como a falha foi detectada? Alarme, ruído, inspeção visual, parada súbita?",
-  why: "Tente aprofundar a cada nível. Evite respostas como 'quebrou' sem explicar a causa física imediata."
-};
+export const getTips = (t: (key: string) => string) => ({
+  what: t('tips.what'),
+  where: t('tips.where'),
+  when: t('tips.when'),
+  howMuch: t('tips.howMuch'),
+  how: t('tips.how'),
+  why: t('tips.why')
+});
 
-export const ISHIKAWA_QUESTIONS = {
-  machine: "O equipamento estava em dia com a manutenção? Houve desgaste natural?",
-  method: "O procedimento de operação foi seguido? Existe um padrão escrito?",
-  material: "A matéria-prima estava conforme? As peças de reposição eram originais?",
-  manpower: "A equipe está treinada? Houve falta de atenção ou cansaço?",
-  measurement: "Os sensores estão calibrados? A leitura dos instrumentos é confiável?",
-  environment: "A temperatura, umidade ou iluminação afetaram o desempenho?"
-};
+export const getIshikawaQuestions = (t: (key: string) => string) => ({
+  machine: t('ishikawa.machine'),
+  method: t('ishikawa.method'),
+  material: t('ishikawa.material'),
+  manpower: t('ishikawa.manpower'),
+  measurement: t('ishikawa.measurement'),
+  environment: t('ishikawa.environment')
+});

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useI18n } from '../i18n/I18nContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { AlertTriangle, ListChecks, BarChart3, PieChart as PieChartIcon, Search, ChevronDown, FileText, Trash2, FolderOpen, Bell, X } from 'lucide-react';
 import { Analysis } from '../types';
@@ -16,6 +17,8 @@ import * as db from '../services/supabaseService';
 const COLORS = ['#171C8F', '#13aff0', '#10b981', '#5c6eb1'];
 
 const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess, user, profile }) => {
+  const { t } = useI18n();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [areaFilter, setAreaFilter] = useState('Todas');
   const [history, setHistory] = useState<Analysis[]>([]);
@@ -178,14 +181,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
                   style={{ filter: 'invert(11%) sepia(85%) saturate(3755%) hue-rotate(234deg) brightness(88%) contrast(98%)' }}
                 />
              </div>
-             <h2 className="text-xl font-bold text-[#171C8F]">Dashboard</h2>
+             <h2 className="text-xl font-bold text-[#171C8F]">{t('dashboard.title')}</h2>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
               <input 
                 type="text"
-                placeholder="Buscar (Ativo, Autor, ID)..."
+                placeholder={t('dashboard.searchPlaceholder')}
                 className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#13aff0] outline-none shadow-sm font-medium"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
@@ -225,7 +228,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
                  <AlertTriangle size={20} className="text-red-600" />
               </div>
               <div>
-                <h4 className="text-red-800 font-black text-xs uppercase tracking-widest">Atenção: Verificações Atrasadas</h4>
+                <h4 className="text-red-800 font-black text-xs uppercase tracking-widest">{t('dashboard.overdueTitle')}</h4>
                 <p className="text-[10px] text-red-700 font-bold mt-1">Existem {verificationAlerts.overdueCount} análises com mais de 90 dias sem evidências de eficácia registradas.</p>
               </div>
             </div>
@@ -236,7 +239,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
                  <AlertTriangle size={20} className="text-amber-600" />
               </div>
               <div>
-                <h4 className="text-amber-800 font-black text-xs uppercase tracking-widest">Atenção: Prazos se Aproximando</h4>
+                <h4 className="text-amber-800 font-black text-xs uppercase tracking-widest">{t('dashboard.approachingTitle')}</h4>
                 <p className="text-[10px] text-amber-700 font-bold mt-1">Existem {verificationAlerts.approachingCount} análises faltando 15 dias ou menos para o limite de 90 dias (sem evidências de eficácia).</p>
               </div>
             </div>
@@ -254,7 +257,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
                   <Bell size={16} />
                 </div>
                 <div>
-                  <p className="font-black text-xs uppercase">Nova Análise!</p>
+                  <p className="font-black text-xs uppercase">{t('dashboard.newAnalysis')}</p>
                   <p className="text-[10px] opacity-90">{notifications[notifications.length - 1]?.equipment || 'Novo registro'}</p>
                   <p className="text-[9px] opacity-75">{notifications[notifications.length - 1]?.area || ''}</p>
                 </div>
@@ -271,9 +274,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
                 setShowNotification(false);
               }}
               className="w-full mt-3 bg-white text-[#171C8F] py-2 rounded-lg text-[10px] font-black uppercase hover:bg-gray-50 transition-colors"
-            >
-              Ver Análise
-            </button>
+            >{t('dashboard.viewAnalysis')}</button>
           </div>
         </div>
       )}
@@ -308,8 +309,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8">
         <section className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-[10px] font-black text-slate-800 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <BarChart3 size={14} className="text-[#171C8F]" /> Falhas por Área
-          </h3>
+            <BarChart3 size={14} className="text-[#171C8F]" />{t('dashboard.failuresByArea')}</h3>
           <div className="h-[140px] -ml-6">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData.byArea.length > 0 ? chartData.byArea : [{name: 'Sem dados', count: 0}]}>
@@ -325,8 +325,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
 
         <section className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col">
           <h3 className="text-[10px] font-black text-slate-800 uppercase tracking-widest mb-2 flex items-center gap-2">
-            <PieChartIcon size={14} className="text-[#171C8F]" /> Causa Raiz
-          </h3>
+            <PieChartIcon size={14} className="text-[#171C8F]" />{t('dashboard.rootCause')}</h3>
           <div className="h-[120px] flex-1">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -362,8 +361,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
       {/* History Table Section */}
       <section className="space-y-4 pt-4">
         <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2 border-b pb-2">
-          <FileText size={16} className="text-[#171C8F]" /> Histórico de Análises
-        </h3>
+          <FileText size={16} className="text-[#171C8F]" />{t('dashboard.analysisHistory')}</h3>
         <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar pt-2">
           {filteredHistory.length > 0 ? (
             filteredHistory.map((item: any) => {
@@ -432,9 +430,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
                   <button 
                     onClick={() => onLoad(item)}
                     className="flex-1 sm:flex-initial bg-[#171C8F] text-white text-[8px] font-black uppercase tracking-widest px-6 py-2 rounded-lg hover:bg-black transition-all shadow-sm active:scale-95"
-                  >
-                    Abrir Relatório
-                  </button>
+                  >{t('dashboard.openReport')}</button>
                   <button 
                     onClick={async () => {
                       await onDelete(item.id);
@@ -452,7 +448,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLoad, onDelete, onDeleteSuccess
           ) : (
             <div className="py-12 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-100">
               <FolderOpen size={24} className="text-slate-200 mx-auto mb-3" />
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Nenhum registro encontrado</p>
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{t('dashboard.noRecords')}</p>
             </div>
           )}
         </div>

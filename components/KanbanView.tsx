@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useI18n } from '../i18n/I18nContext';
 import { Action, Status, Analysis } from '../types';
 import { Columns, FolderOpen, Loader2, CheckCircle2, Inbox, ArrowLeft, ArrowRight, UserCircle, Calendar, Lightbulb, GripVertical, FileText, AlertTriangle, ChevronUp, Filter, X } from 'lucide-react';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, useDroppable, closestCenter } from '@dnd-kit/core';
@@ -22,6 +23,8 @@ interface KanbanAction extends Action {
 }
 
 const getActionAnalysisCode = (action: KanbanAction) => {
+  const { t } = useI18n();
+
   const dateParts = action.analysisFailureDate ? action.analysisFailureDate.split('-') : [];
   const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : 'DD/MM/AAAA';
   const area = action.analysisArea ? action.analysisArea.trim() : 'Área';
@@ -47,8 +50,7 @@ const CardItem: React.FC<{ action: KanbanAction; isDragging?: boolean; onAskEvid
     }`}>
       {isOverdue && (
         <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg flex items-center gap-1 uppercase tracking-wider animate-pulse shadow-xs z-10">
-          <AlertTriangle size={10} /> Vencida
-        </div>
+          <AlertTriangle size={10} />{t('kanban.overdue')}</div>
       )}
       <div className="mb-1.5 p-1 bg-[#171C8F]/5 border border-[#171C8F]/10 rounded-lg">
         <span className="text-[8px] md:text-[9px] font-extrabold text-[#171C8F] block truncate" title={getActionAnalysisCode(action)}>
@@ -68,11 +70,11 @@ const CardItem: React.FC<{ action: KanbanAction; isDragging?: boolean; onAskEvid
         <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{action.analysisArea || 'S/ ÁREA'}</span>
       </div>
       <h4 className="text-[11px] md:text-sm font-semibold text-slate-800 mb-2 md:mb-3 line-clamp-2 md:line-clamp-3 leading-relaxed">
-        {action.what || <span className="italic text-slate-400 font-normal">Sem descrição</span>}
+        {action.what || <span className="italic text-slate-400 font-normal">{t('kanban.noDescription')}</span>}
       </h4>
       {action.evidence && (
         <div className="mb-2 p-2 bg-green-50 rounded border border-green-100 text-[10px] text-green-800 font-medium break-words">
-          <strong>Evidência:</strong> {action.evidence}
+          <strong>{t('kanban.evidence')}</strong> {action.evidence}
         </div>
       )}
       {action.evidenceImage && (
@@ -149,9 +151,7 @@ const DroppableColumn: React.FC<{ status: Status; title: string; color: string; 
       <div className="flex-1 space-y-2 md:space-y-3 overflow-y-auto pr-1 custom-scrollbar min-h-[180px] md:min-h-[250px]">
         {actions.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-24 md:h-32 border-2 border-dashed border-slate-200 rounded-lg text-slate-400 text-[10px] md:text-sm">
-            <Inbox size={20} className="mb-2 opacity-20" />
-            Solte aqui
-          </div>
+            <Inbox size={20} className="mb-2 opacity-20" />{t('kanban.dropHere')}</div>
         ) : (
           <SortableContext items={actions.map(a => a.id)} strategy={verticalListSortingStrategy}>
             {actions.map((action) => (
@@ -347,9 +347,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
       <div className="mb-2 md:mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
         <div>
           <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
-            <Columns size={18} className="text-[#171C8F]" />
-            Quadro Kanban Corporativo
-          </h2>
+            <Columns size={18} className="text-[#171C8F]" />{t('kanban.title')}</h2>
           <p className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase tracking-wide">
             Visão de {profile?.role === 'ADMIN' ? 'todas as ações registradas' : 'suas ações'} - Arraste para mover
           </p>
@@ -375,7 +373,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
               <div className="w-8 h-8 bg-[#171C8F] rounded-lg flex items-center justify-center">
                 <Filter size={16} className="text-white" />
               </div>
-              <h3 className="text-xs font-black text-[#171C8F] uppercase tracking-wider">Filtros Avançados</h3>
+              <h3 className="text-xs font-black text-[#171C8F] uppercase tracking-wider">{t('kanban.advancedFilters')}</h3>
             </div>
             <span className="text-[9px] font-medium text-slate-400">
               {(filters.search || filters.type || filters.area || filters.equipment || filters.responsible)
@@ -387,7 +385,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
             <div className="flex-1 min-w-[200px]">
               <input
                 type="text"
-                placeholder="Buscar descrição, equipamento ou área..."
+                placeholder={t('kanban.searchPlaceholder')}
                 value={filters.search}
                 onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
                 className="w-full px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-xs font-medium text-slate-700 outline-none focus:border-[#13aff0] focus:bg-blue-50/30 transition-all placeholder:text-slate-400"
@@ -399,17 +397,17 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
                 onChange={(e) => setFilters(f => ({ ...f, type: e.target.value }))}
                 className="px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-[#13aff0] focus:bg-blue-50/30 transition-all appearance-none cursor-pointer min-w-[110px]"
               >
-                <option value="">Tipo</option>
-                <option value="Corretiva">Corretiva</option>
-                <option value="Preventiva">Preventiva</option>
-                <option value="Melhoria">Melhoria</option>
+                <option value="">{t('kanban.type')}</option>
+                <option value="Corretiva">{t('kanban.corrective')}</option>
+                <option value="Preventiva">{t('kanban.preventive')}</option>
+                <option value="Melhoria">{t('kanban.improvement')}</option>
               </select>
               <select
                 value={filters.area}
                 onChange={(e) => setFilters(f => ({ ...f, area: e.target.value }))}
                 className="px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-[#13aff0] focus:bg-blue-50/30 transition-all appearance-none cursor-pointer min-w-[110px]"
               >
-                <option value="">Área</option>
+                <option value="">{t('kanban.area')}</option>
                 {uniqueAreas.map(area => (
                   <option key={area} value={area}>{area}</option>
                 ))}
@@ -419,7 +417,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
                 onChange={(e) => setFilters(f => ({ ...f, equipment: e.target.value }))}
                 className="px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-[#13aff0] focus:bg-blue-50/30 transition-all appearance-none cursor-pointer min-w-[130px]"
               >
-                <option value="">Equipamento</option>
+                <option value="">{t('kanban.equipment')}</option>
                 {uniqueEquipments.map(eq => (
                   <option key={eq} value={eq}>{eq}</option>
                 ))}
@@ -429,7 +427,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
                 onChange={(e) => setFilters(f => ({ ...f, responsible: e.target.value }))}
                 className="px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-[#13aff0] focus:bg-blue-50/30 transition-all appearance-none cursor-pointer min-w-[130px]"
               >
-                <option value="">Responsável</option>
+                <option value="">{t('kanban.responsible')}</option>
                 {uniqueResponsibles.map(resp => (
                   <option key={resp} value={resp}>{resp}</option>
                 ))}
@@ -439,9 +437,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
                   onClick={() => setFilters({ search: '', type: '', area: '', equipment: '', responsible: '' })}
                   className="px-4 py-2.5 bg-red-50 text-red-600 border-2 border-red-100 rounded-xl text-xs font-black uppercase hover:bg-red-100 hover:border-red-200 transition-all flex items-center gap-1.5"
                 >
-                  <X size={14} />
-                  Limpar
-                </button>
+                  <X size={14} />{t('kanban.clear')}</button>
               )}
             </div>
           </div>
@@ -469,10 +465,8 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
       <div className="mt-3 md:mt-4 p-3 md:p-4 bg-[#171C8F] rounded-xl text-white shadow-lg overflow-hidden relative">
         <div className="relative z-10 flex items-center justify-between gap-4">
           <div>
-            <h3 className="text-[10px] md:text-sm font-bold mb-0.5">Dica de Gestão</h3>
-            <p className="text-blue-100 text-[8px] md:text-[10px] max-w-xl">
-              Clique numa task para alterar sua evidência! Evidência é obrigatória para finalizar uma atividade.
-            </p>
+            <h3 className="text-[10px] md:text-sm font-bold mb-0.5">{t('kanban.managementTip')}</h3>
+            <p className="text-blue-100 text-[8px] md:text-[10px] max-w-xl">{t('kanban.managementTipText')}</p>
           </div>
           <Lightbulb size={24} className="text-blue-300/30 rotate-12" />
         </div>
@@ -556,9 +550,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
                 <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
                   <AlertTriangle size={18} className="text-white" />
                 </div>
-                <h2 className="text-white font-black text-sm uppercase tracking-wide">
-                  Atenção
-                </h2>
+                <h2 className="text-white font-black text-sm uppercase tracking-wide">{t('kanban.attention')}</h2>
               </div>
               <button
                 onClick={() => setAlertOpen(false)}
@@ -589,7 +581,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
                   style={{ background: '#13aff0', color: '#171C8F' }}
                 >
                   <FileText size={14} />
-                  <span className="font-black text-[10px] uppercase tracking-wider">Adicionar Evidência</span>
+                  <span className="font-black text-[10px] uppercase tracking-wider">{t('kanban.addEvidence')}</span>
                 </button>
               </div>
             </div>

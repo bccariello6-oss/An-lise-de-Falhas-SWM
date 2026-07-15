@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { LogIn, User, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { useI18n } from '../i18n/I18nContext';
 
 interface LoginProps {
   onSuccess: () => void;
@@ -11,11 +12,12 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t, language, setLanguage } = useI18n();
 
   const PROFILES = [
-    { label: 'Selecione seu Perfil', value: '', email: '' },
-    { label: 'Administrador', value: 'admin', email: 'admin@swm.local' },
-    { label: 'Manutenção', value: 'manutencao', email: 'manutencao@swm.local' },
+    { label: t('login.selectProfile'), value: '', email: '' },
+    { label: t('login.admin'), value: 'admin', email: 'admin@swm.local' },
+    { label: t('login.maintenance'), value: 'manutencao', email: 'manutencao@swm.local' },
     { label: 'MP01', value: 'mp01', email: 'mp01@swm.local' },
     { label: 'MP03', value: 'mp03', email: 'mp03@swm.local' },
     { label: 'MP06', value: 'mp06', email: 'mp06@swm.local' },
@@ -25,7 +27,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      setError('Por favor, selecione um perfil.');
+      setError(t('login.selectProfileError'));
       return;
     }
     setLoading(true);
@@ -40,7 +42,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
       if (error) throw error;
       onSuccess();
     } catch (err: any) {
-      setError(err.message === 'Invalid login credentials' ? 'Senha incorreta para este perfil.' : err.message || 'Erro ao realizar login');
+      setError(err.message === 'Invalid login credentials' ? t('login.wrongPassword') : err.message || t('login.loginError'));
     } finally {
       setLoading(false);
     }
@@ -54,6 +56,31 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
 
       <div className="w-full max-w-md animate-slideUp">
         <div className="bg-white rounded-[40px] shadow-[0_32px_64px_-16px_rgba(23,28,143,0.08)] border border-slate-100 p-8 md:p-12 relative z-10">
+          
+          {/* Flag Selector */}
+          <div className="flex justify-center items-center gap-3 mb-8">
+            {[
+              { code: 'pt', flag: '🇧🇷' },
+              { code: 'en', flag: '🇺🇸' },
+              { code: 'fr', flag: '🇫🇷' },
+              { code: 'pl', flag: '🇵🇱' },
+              { code: 'id', flag: '🇮🇩' },
+            ].map(({ code, flag }) => (
+              <button
+                key={code}
+                onClick={() => setLanguage(code as any)}
+                className={`w-10 h-10 rounded-full text-xl flex items-center justify-center transition-all ${
+                  language === code 
+                    ? 'ring-2 ring-[#13aff0] scale-110 shadow-md bg-slate-50' 
+                    : 'opacity-50 hover:opacity-100 hover:scale-110 hover:bg-slate-50'
+                }`}
+                title={code.toUpperCase()}
+              >
+                {flag}
+              </button>
+            ))}
+          </div>
+
           {/* Logo Section */}
           <div className="flex flex-col items-center mb-10">
             <div className="flex items-center gap-4 mb-6">
@@ -72,10 +99,10 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
             </div>
             <div className="text-center">
               <h1 className="text-2xl font-black text-[#171C8F] uppercase tracking-tighter mb-1">
-                Análise de Falha - AF
+                {t('login.title')}
               </h1>
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2 flex items-center justify-center gap-2">
-                SWM Brasil <span className="w-1 h-1 bg-slate-300 rounded-full" /> Liderança Opex
+                {t('login.subtitle')} <span className="w-1 h-1 bg-slate-300 rounded-full" /> {t('login.subtitleSuffix')}
               </p>
             </div>
           </div>
@@ -89,7 +116,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-1.5">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Perfil de Acesso</label>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('login.profileLabel')}</label>
               <div className="relative group">
                 <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#13aff0] transition-colors" />
                 <select
@@ -106,7 +133,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Senha de Acesso</label>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('login.passwordLabel')}</label>
               <div className="relative group">
                 <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#13aff0] transition-colors" />
                 <input
@@ -115,7 +142,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#13aff0]/10 focus:border-[#13aff0] transition-all"
-                  placeholder="••••••••"
+                  placeholder={t('login.passwordPlaceholder')}
                 />
               </div>
             </div>
@@ -130,7 +157,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
               ) : (
                 <>
                   <LogIn size={18} className="group-hover:translate-x-1 transition-transform" />
-                  Entrar no Sistema
+                  {t('login.submit')}
                 </>
               )}
             </button>
@@ -138,7 +165,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
 
           <div className="mt-10 pt-8 border-t border-slate-50 text-center">
             <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">
-              Desenvolvido por Bruno Cariello
+              {t('login.credit')}
             </p>
           </div>
         </div>

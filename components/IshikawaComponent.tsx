@@ -1,7 +1,8 @@
 
 import React, { useRef, useState } from 'react';
+import { useI18n } from '../i18n/I18nContext';
 import { Analysis, Attachment } from '../types';
-import { ISHIKAWA_QUESTIONS } from '../constants';
+import { getIshikawaQuestions } from '../constants';
 import { Settings, Book, Users, Box, Ruler, Leaf, XCircle, Paperclip, Plus } from 'lucide-react';
 
 interface Props {
@@ -10,6 +11,8 @@ interface Props {
 }
 
 const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
+  const { t } = useI18n();
+
   const [activeCauseIndex, setActiveCauseIndex] = useState<{ [cat: string]: number | undefined }>({});
   const fileInputRefs = {
     machine: useRef<HTMLInputElement>(null),
@@ -83,7 +86,7 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
         <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-[#e5ebf7] flex items-center justify-center text-[#171C8F] shadow-sm"><Icon size={14} /></div>
         <h3 className="font-black text-slate-800 uppercase text-[8px] md:text-[9px] tracking-widest">{label}</h3>
       </div>
-      <p className="text-[7px] md:text-[8px] text-slate-400 italic leading-tight px-1 font-medium">{ISHIKAWA_QUESTIONS[category]}</p>
+      <p className="text-[7px] md:text-[8px] text-slate-400 italic leading-tight px-1 font-medium">{getIshikawaQuestions(t)[category]}</p>
       
       <div className="space-y-2 flex-1 my-1">
         {analysis.ishikawa[category].causes.map((cause, idx) => {
@@ -96,7 +99,7 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
                   value={cause}
                   onChange={(e) => handleCauseChange(category, idx, e.target.value)}
                   className="flex-1 text-[10px] md:text-[11px] bg-[#e5ebf7] border border-[#dce4f5] text-[#171C8F] rounded-lg px-2 md:px-3 py-1 md:py-1.5 focus:ring-1 focus:ring-[#13aff0] outline-none font-medium placeholder:text-[#171C8F]/30 min-h-[28px] md:min-h-[32px] shadow-sm transition-all"
-                  placeholder="Digite a causa..."
+                  placeholder={t('step4.typeCause')}
                 />
                 <button
                   onClick={() => {
@@ -132,7 +135,7 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
           if (legacyAttachments.length === 0) return null;
           return (
             <div className="pt-2 md:pt-3 flex flex-wrap gap-1 md:gap-2 border-t border-slate-100 mt-2">
-              <span className="text-[8px] font-bold text-slate-400 block w-full">Anexos da categoria (Geral):</span>
+              <span className="text-[8px] font-bold text-slate-400 block w-full">{t('step4.categoryAttachments')}</span>
               {legacyAttachments.map(file => (
                 <span key={file.id} className="text-[8px] md:text-[9px] font-black bg-[#e5ebf7] text-[#171C8F] px-2 md:px-3 py-1 md:py-1.5 rounded-lg flex items-center gap-1 md:gap-2 border border-[#171C8F]">
                   <Paperclip size={10} /> {file.name.slice(0, 12)}...
@@ -148,8 +151,7 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
 
       <div className="pt-1 md:pt-2 border-t border-white mt-auto">
         <button onClick={() => addCause(category)} className="w-full text-[7px] md:text-[8px] text-[#171C8F] font-black bg-white border border-[#dce4f5] py-1.5 md:py-2 rounded-xl hover:bg-[#e5ebf7] transition-all uppercase tracking-widest shadow-sm flex items-center justify-center gap-1 cursor-pointer">
-          <Plus size={10} /> Adicionar Causa
-        </button>
+          <Plus size={10} />{t('step4.addCause')}</button>
         <input type="file" ref={fileInputRefs[category]} onChange={(e) => handleFileUpload(category, e)} className="hidden" />
       </div>
     </section>
@@ -157,14 +159,14 @@ const IshikawaComponent: React.FC<Props> = ({ analysis, updateAnalysis }) => {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <h2 className="text-lg md:text-xl font-bold border-b pb-2 md:pb-4 text-[#171C8F]">4. Diagrama de Ishikawa (Causa e Efeito)</h2>
+      <h2 className="text-lg md:text-xl font-bold border-b pb-2 md:pb-4 text-[#171C8F]">{t('step4.title')}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
-        {renderCategory('machine', 'Máquina', Settings)}
-        {renderCategory('method', 'Método', Book)}
-        {renderCategory('manpower', 'Mão de Obra', Users)}
-        {renderCategory('material', 'Material', Box)}
-        {renderCategory('measurement', 'Medição', Ruler)}
-        {renderCategory('environment', 'Meio Ambiente', Leaf)}
+        {renderCategory('machine', t('step4.machine'), Settings)}
+        {renderCategory('method', t('step4.method'), Book)}
+        {renderCategory('manpower', t('step4.manpower'), Users)}
+        {renderCategory('material', t('step4.material'), Box)}
+        {renderCategory('measurement', t('step4.measurement'), Ruler)}
+        {renderCategory('environment', t('step4.environment'), Leaf)}
       </div>
     </div>
   );

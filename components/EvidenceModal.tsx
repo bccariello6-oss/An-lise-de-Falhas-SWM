@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useI18n } from '../i18n/I18nContext';
 import { X, FileText, Save, AlertCircle, Upload } from 'lucide-react';
 
 interface EvidenceModalProps {
@@ -33,6 +34,8 @@ const EvidenceModal: React.FC<EvidenceModalProps> = ({
   }, [isOpen, initialEvidence, initialEvidenceImage]);
 
   const handlePaste = (e: React.ClipboardEvent) => {
+  const { t } = useI18n();
+
     const items = e.clipboardData.items;
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.indexOf('image') !== -1) {
@@ -111,16 +114,12 @@ const EvidenceModal: React.FC<EvidenceModalProps> = ({
           {mode === 'complete' && (
             <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
               <AlertCircle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-[11px] font-medium text-amber-800">
-                Para mover esta tarefa para <strong>Concluídas</strong>, é necessário fornecer a evidência da ação executada.
-              </p>
+              <p className="text-[11px] font-medium text-amber-800">{t('evidence.completeMessagePart1')}<strong>{t('kanban.completed')}</strong>{t('evidence.completeMessagePart2')}</p>
             </div>
           )}
 
           <div className="mb-4">
-            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
-              Evidência da Ação
-            </label>
+            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">{t('evidence.label')}</label>
             <textarea
               value={evidence}
               onChange={(e) => {
@@ -128,7 +127,7 @@ const EvidenceModal: React.FC<EvidenceModalProps> = ({
                 if (error) setError('');
               }}
               onPaste={handlePaste}
-              placeholder="Descreva a evidência ou Cole (Ctrl+V) uma imagem..."
+              placeholder={t('evidence.placeholder')}
               className={`w-full h-32 p-4 rounded-xl border-2 text-sm font-medium text-slate-700 outline-none resize-none transition-all ${
                 error 
                   ? 'border-red-300 bg-red-50 focus:border-red-500' 
@@ -154,8 +153,7 @@ const EvidenceModal: React.FC<EvidenceModalProps> = ({
                     }
                   }} 
                 />
-                <Upload size={14} /> Fazer upload de imagem
-              </label>
+                <Upload size={14} />{t('evidence.upload')}</label>
             </div>
             {evidenceImage && (
                <div className="mt-3 relative inline-block group border border-slate-100 rounded-lg overflow-hidden shadow-sm">
@@ -177,22 +175,18 @@ const EvidenceModal: React.FC<EvidenceModalProps> = ({
             <button
               onClick={onClose}
               className="flex-1 py-3 px-4 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-wider hover:bg-slate-50 transition-colors"
-            >
-              Cancelar
-            </button>
+            >{t('evidence.cancel')}</button>
             <button
               onClick={handleSave}
               className="flex-1 py-3 px-4 rounded-xl flex items-center justify-center gap-2"
               style={{ background: '#13aff0', color: '#171C8F' }}
             >
               <Save size={14} />
-              <span className="font-black text-[10px] uppercase tracking-wider">Salvar</span>
+              <span className="font-black text-[10px] uppercase tracking-wider">{t('evidence.save')}</span>
             </button>
           </div>
 
-          <p className="mt-4 text-[9px] text-slate-400 text-center font-medium">
-            Pressione <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-mono">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-mono">Enter</kbd> para salvar
-          </p>
+          <p className="mt-4 text-[9px] text-slate-400 text-center font-medium">{t('evidence.pressKey')}<kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-mono">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-mono">Enter</kbd>{t('evidence.ctrlEnterSave')}</p>
         </div>
       </div>
 

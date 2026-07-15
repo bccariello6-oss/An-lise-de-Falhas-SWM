@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
+import { useI18n } from './i18n/I18nContext';
 import { Analysis, StepId, Action, Ishikawa, IshikawaCategory, WhysMatrix, WhysRow, WhyCell, WhySubAnswer, isNewWhysMatrix, createEmptyRow, createInitialWhysMatrix, ROW_IDS } from './types';
-import { STEPS, TIPS } from './constants';
+import { getSteps, getTips } from './constants';
 import IshikawaComponent from './components/IshikawaComponent';
 import Dashboard from './components/Dashboard';
 import KanbanView from './components/KanbanView';
@@ -554,17 +555,17 @@ const App: React.FC = () => {
             <div class="section-title">1. Identificação Geral</div>
             <table>
               <tr>
-                <td colspan="2" class="bg-slate"><div class="label">Equipamento</div><div class="value">${analysis.equipment || '—'}</div></td>
-                <td class="bg-slate"><div class="label">Área</div><div class="value">${analysis.area || '—'}</div></td>
+                <td colspan="2" class="bg-slate"><div class="label">{t('step1.equipment')}</div><div class="value">${analysis.equipment || '—'}</div></td>
+                <td class="bg-slate"><div class="label">{t('step1.area')}</div><div class="value">${analysis.area || '—'}</div></td>
                 <td class="bg-slate"><div class="label">Data</div><div class="value">${analysis.failureDate ? new Date(analysis.failureDate).toLocaleDateString('pt-BR') : '—'}</div></td>
               </tr>
               <tr>
-                <td colspan="2"><div class="label">Local da Falha</div><div class="value">${analysis.failureLocation || '—'}</div></td>
+                <td colspan="2"><div class="label">{t('step1.failureLocation')}</div><div class="value">${analysis.failureLocation || '—'}</div></td>
                 <td colspan="2"><div class="label">Tema da Análise</div><div class="value">${analysis.theme || '—'}</div></td>
               </tr>
               <tr>
                 <td colspan="4">
-                  <div class="label">Equipe</div>
+                  <div class="label">{t('step1.team')}</div>
                   <div class="value">${(analysis.team || []).map(m => `${m.name} (${m.role})`).join(', ') || '—'}</div>
                 </td>
               </tr>
@@ -572,19 +573,19 @@ const App: React.FC = () => {
           </div>
 
           <div class="section">
-            <div class="section-title">2. Entendendo o Problema (5W1H)</div>
+            <div class="section-title">{t('step2.title')}</div>
             <table>
               <tr>
-                <td class="bg-slate"><div class="label">O QUE aconteceu?</div><div class="value">${analysis.what || '—'}</div></td>
-                <td class="bg-slate"><div class="label">ONDE ocorreu?</div><div class="value">${analysis.where || '—'}</div></td>
+                <td class="bg-slate"><div class="label">{t('step2.what')}</div><div class="value">${analysis.what || '—'}</div></td>
+                <td class="bg-slate"><div class="label">{t('step2.where')}</div><div class="value">${analysis.where || '—'}</div></td>
               </tr>
               <tr>
-                <td class="bg-slate"><div class="label">QUANDO ocorreu?</div><div class="value">${analysis.when || '—'}</div></td>
+                <td class="bg-slate"><div class="label">{t('step2.when')}</div><div class="value">${analysis.when || '—'}</div></td>
                 <td class="bg-slate"><div class="label">QUEM identificou?</div><div class="value">${analysis.who || '—'}</div></td>
               </tr>
               <tr>
-                <td class="bg-slate"><div class="label">QUANTO impacto?</div><div class="value">${analysis.howMuch || '—'}</div></td>
-                <td class="bg-slate"><div class="label">COMO percebido?</div><div class="value">${analysis.how || '—'}</div></td>
+                <td class="bg-slate"><div class="label">{t('step2.howMuch')}</div><div class="value">${analysis.howMuch || '—'}</div></td>
+                <td class="bg-slate"><div class="label">{t('step2.how')}</div><div class="value">${analysis.how || '—'}</div></td>
               </tr>
               <tr>
                 <td colspan="2" class="bg-blue"><div class="label">FENÔMENO</div><div class="value">${analysis.phenomenon || '—'}</div></td>
@@ -597,7 +598,7 @@ const App: React.FC = () => {
             <div class="grid-2">
               <div style="border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px;">
                 <div class="label">Sintoma</div><div class="value">${analysis.symptom || '—'}</div>
-                <div class="label" style="margin-top:10px">Frequência</div><div class="value">${analysis.frequency || '—'}</div>
+                <div class="label" style="margin-top:10px">{t('step3.frequency')}</div><div class="value">${analysis.frequency || '—'}</div>
                 <div class="label" style="margin-top:10px">Histórico</div><div class="value">${analysis.history || '—'}</div>
               </div>
               <div style="text-align: center; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
@@ -664,11 +665,11 @@ const App: React.FC = () => {
             <table>
               <thead>
                 <tr>
-                  <th style="width: 60px">Tipo</th>
+                  <th style="width: 60px">{t('step6.type')}</th>
                   <th>O que fazer?</th>
                   <th style="width: 80px">Quem?</th>
                   <th style="width: 70px">Prazo</th>
-                  <th>Status</th>
+                  <th>{t('step6.status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -689,7 +690,7 @@ const App: React.FC = () => {
             <div class="section-title">6. Verificação e Eficácia</div>
             <div class="grid-2">
               <div class="bg-slate" style="padding:10px; border-radius:8px; text-align:center;">
-                <div class="label">Reincidência?</div>
+                <div class="label">{t('step7.reoccurrence')}</div>
                 <div class="value" style="font-size: 14pt; color: ${analysis.reoccurred ? '#dc2626' : '#16a34a'}">${analysis.reoccurred ? 'SIM' : 'NÃO'}</div>
               </div>
               <div class="bg-slate" style="padding:10px; border-radius:8px; text-align:center;">
@@ -706,7 +707,7 @@ const App: React.FC = () => {
 
             ${(analysis.verificationChecklist || []).length > 0 ? `
               <div style="margin-top: 15px; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px;">
-                <div class="label" style="margin-bottom: 8px;">Checklist de Efetividade</div>
+                <div class="label" style="margin-bottom: 8px;">{t('step7.effectivenessChecklist')}</div>
                 ${(analysis.verificationChecklist || []).map(item => `
                   <div class="checklist-item">
                     <span class="checklist-icon ${item.checked ? 'checked' : 'unchecked'}">${item.checked ? '✓' : ''}</span>
@@ -821,39 +822,37 @@ const App: React.FC = () => {
           <div className="space-y-4 animate-fadeIn">
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-3">
                <div>
-                  <h2 className="text-lg font-bold text-[#171C8F]">1. Identificação Geral e Seleção do Tema</h2>
+                  <h2 className="text-lg font-bold text-[#171C8F]">{t('step1.title')}</h2>
                </div>
                <div className="flex gap-2 w-full sm:w-auto">
                  <button onClick={fillDemoData} className="flex-1 sm:flex-initial bg-[#e5ebf7] hover:bg-blue-100 text-[#171C8F] text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-lg border border-blue-100 transition-all shadow-sm flex items-center justify-center gap-2">
-                    <Zap size={12} /> Preencher Demo
-                 </button>
+                    <Zap size={12} />{t('step1.fillDemo')}</button>
                  <button onClick={() => setAnalysis(getInitialState())} className="flex-1 sm:flex-initial bg-slate-50 hover:bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-lg border border-slate-200 transition-all shadow-sm flex items-center justify-center gap-2">
-                    <Eraser size={12} /> Limpar
-                 </button>
+                    <Eraser size={12} />{t('step1.clear')}</button>
                </div>
             </header>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Área <span className="text-red-500" aria-hidden="true">*</span></label>
-                <input type="text" value={analysis.area} onChange={e => updateAnalysis({ area: e.target.value })} className={inputClasses} placeholder="Ex: Produção" aria-required="true" />
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">{t('step1.area')}<span className="text-red-500" aria-hidden="true">*</span></label>
+                <input type="text" value={analysis.area} onChange={e => updateAnalysis({ area: e.target.value })} className={inputClasses} placeholder={t('step1.areaPlaceholder')} aria-required="true" />
               </div>
               <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Equipamento <span className="text-red-500" aria-hidden="true">*</span></label>
-                <input type="text" value={analysis.equipment} onChange={e => updateAnalysis({ equipment: e.target.value })} className={inputClasses} placeholder="Ex: Bomba de recalque" aria-required="true" />
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">{t('step1.equipment')}<span className="text-red-500" aria-hidden="true">*</span></label>
+                <input type="text" value={analysis.equipment} onChange={e => updateAnalysis({ equipment: e.target.value })} className={inputClasses} placeholder={t('step1.equipmentPlaceholder')} aria-required="true" />
               </div>
               <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Local da Falha</label>
-                <input type="text" value={analysis.failureLocation || ''} onChange={e => updateAnalysis({ failureLocation: e.target.value })} className={inputClasses} placeholder="Ex: Linha 1, Setor B" />
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">{t('step1.failureLocation')}</label>
+                <input type="text" value={analysis.failureLocation || ''} onChange={e => updateAnalysis({ failureLocation: e.target.value })} className={inputClasses} placeholder={t('step1.failureLocationPlaceholder')} />
               </div>
               <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Data da Falha <span className="text-red-500" aria-hidden="true">*</span></label>
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">{t('step1.failureDate')}<span className="text-red-500" aria-hidden="true">*</span></label>
                 <div className="relative">
                   <input type="date" value={analysis.failureDate} onChange={e => updateAnalysis({ failureDate: e.target.value })} className={`${inputClasses} pl-10`} aria-required="true" />
                   <Calendar size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#13aff0] pointer-events-none" />
                 </div>
               </div>
               <div className="col-span-1 sm:col-span-2 lg:col-span-3 space-y-2 mt-2">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Equipe <span className="text-red-500" aria-hidden="true">*</span></label>
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">{t('step1.team')}<span className="text-red-500" aria-hidden="true">*</span></label>
                 <div className="flex flex-wrap gap-2 mb-2 empty:hidden">
                   {analysis.team.map((member, idx) => (
                     <div key={idx} className="bg-[#171C8F] text-white text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
@@ -871,17 +870,17 @@ const App: React.FC = () => {
                       setNewTeamMemberName('');
                       setNewTeamMemberRole('');
                     }
-                  }} className="bg-[#e5ebf7] hover:bg-blue-100 text-[#171C8F] px-4 py-2 sm:py-0 rounded-xl font-bold transition-all shadow-sm flex items-center justify-center min-h-[48px]"><Plus size={16}/> Adicionar</button>
+                  }} className="bg-[#e5ebf7] hover:bg-blue-100 text-[#171C8F] px-4 py-2 sm:py-0 rounded-xl font-bold transition-all shadow-sm flex items-center justify-center min-h-[48px]"><Plus size={16}/>{t('step1.addMember')}</button>
                 </div>
               </div>
             </div>
             <div className="space-y-1">
-              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Descrição do Problema <span className="text-red-500" aria-hidden="true">*</span></label>
-              <textarea value={analysis.description} onChange={e => updateAnalysis({ description: e.target.value })} className={`${inputClasses} h-20 md:h-24 resize-none`} placeholder="Relate o ocorrido tecnicamente..." aria-required="true" />
+              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">{t('step1.description')}<span className="text-red-500" aria-hidden="true">*</span></label>
+              <textarea value={analysis.description} onChange={e => updateAnalysis({ description: e.target.value })} className={`${inputClasses} h-20 md:h-24 resize-none`} placeholder={t('step1.descriptionPlaceholder')} aria-required="true" />
             </div>
             <div className="space-y-1">
-              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Tema <span className="text-red-500" aria-hidden="true">*</span></label>
-              <input type="text" value={analysis.theme} onChange={e => updateAnalysis({ theme: e.target.value })} className={inputClasses} placeholder="Frase breve que resume o assunto da análise" aria-required="true" />
+              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">{t('step1.theme')}<span className="text-red-500" aria-hidden="true">*</span></label>
+              <input type="text" value={analysis.theme} onChange={e => updateAnalysis({ theme: e.target.value })} className={inputClasses} placeholder={t('step1.themePlaceholder')} aria-required="true" />
             </div>
           </div>
         );
@@ -889,7 +888,7 @@ const App: React.FC = () => {
       case StepId.W5H1:
         return (
           <div className="space-y-4 animate-fadeIn">
-            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">2. Entendendo o Problema (5W1H)</h2>
+            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">{t('step2.title')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
                 { field: 'what', label: 'O QUE aconteceu?', required: true, icon: <HelpCircle size={12} className="text-[#13aff0]/50" /> },
@@ -924,7 +923,7 @@ const App: React.FC = () => {
                         Gerar com IA
                       </button>
                     )}
-                    <span className="hidden group-focus-within:inline-flex text-[7px] text-[#13aff0] font-black uppercase ml-auto">Modo Leitura Expandida</span>
+                    <span className="hidden group-focus-within:inline-flex text-[7px] text-[#13aff0] font-black uppercase ml-auto">{t('step2.expandedReadMode')}</span>
                   </label>
                   <textarea 
                     value={(analysis as any)[item.field]} 
@@ -943,20 +942,20 @@ const App: React.FC = () => {
       case StepId.DETAILS:
         return (
           <div className="space-y-4 animate-fadeIn flex flex-col relative pb-8">
-            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">3. Verificação da Situação Atual</h2>
+            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">{t('step3.title')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Sintoma Observado <span className="text-red-500">*</span></label>
-                <input type="text" value={analysis.symptom} onChange={e => updateAnalysis({ symptom: e.target.value })} className={inputClasses + " h-9"} placeholder="Ex: Vibração acima de 5mm/s" />
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">{t('step3.symptom')}<span className="text-red-500">*</span></label>
+                <input type="text" value={analysis.symptom} onChange={e => updateAnalysis({ symptom: e.target.value })} className={inputClasses + " h-9"} placeholder={t('step3.symptomPlaceholder')} />
               </div>
               <div className="space-y-1">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Histórico Recente</label>
-                <input type="text" value={analysis.history} onChange={e => updateAnalysis({ history: e.target.value })} className={inputClasses + " h-9"} placeholder="Intervenções anteriores?" />
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">{t('step3.history')}</label>
+                <input type="text" value={analysis.history} onChange={e => updateAnalysis({ history: e.target.value })} className={inputClasses + " h-9"} placeholder={t('step3.historyPlaceholder')} />
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
               <div className="space-y-1">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Frequência</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">{t('step3.frequency')}</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { f: 'Eventual', tooltip: 'Ocorre raramente ou pela primeira vez' },
@@ -987,13 +986,11 @@ const App: React.FC = () => {
                         }
                       }} 
                     />
-                    <Plus size={14} /> Anexar Imagem
-                  </label>
+                    <Plus size={14} />{t('step3.attachImage')}</label>
                 </div>
                 {analysis.attachmentUrl && (
                   <div className="mt-2 text-xs text-slate-500 flex items-center gap-2 font-medium">
-                    <CheckCircle2 size={14} className="text-green-500" /> Imagem anexada com sucesso
-                    <button onClick={() => updateAnalysis({ attachmentUrl: '' })} className="ml-2 text-red-500 hover:text-red-700 underline text-[10px]">Remover</button>
+                    <CheckCircle2 size={14} className="text-green-500" />{t('step3.imageAttached')}<button onClick={() => updateAnalysis({ attachmentUrl: '' })} className="ml-2 text-red-500 hover:text-red-700 underline text-[10px]">{t('step3.remove')}</button>
                   </div>
                 )}
               </div>
@@ -1120,20 +1117,19 @@ const App: React.FC = () => {
           <div className="space-y-4 animate-fadeIn">
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-3">
               <div>
-                <h2 className="text-lg font-bold text-[#171C8F]">5. Tabela de Análise Porque Porque</h2>
-                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Análise de causa raiz por hipóteses</p>
+                <h2 className="text-lg font-bold text-[#171C8F]">{t('step5.title')}</h2>
+                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-0.5">{t('step5.subtitle')}</p>
               </div>
               <button 
                 onClick={addWhysRow}
                 disabled={whysMatrix.rows.length >= ROW_IDS.length}
                 className="bg-[#171C8F] text-white text-[9px] font-black uppercase tracking-widest px-5 py-2 rounded-lg hover:bg-black transition-all shadow-sm flex items-center gap-2 disabled:opacity-30 cursor-pointer"
               >
-                <Plus size={12} /> Nova Linha
-              </button>
+                <Plus size={12} />{t('step5.newRow')}</button>
             </header>
 
             <div className="bg-[#171C8F] p-4 rounded-xl shadow-lg border-l-8 border-[#13aff0] mb-4">
-              <label className="block text-[10px] font-black text-white/60 uppercase tracking-[0.2em] mb-1">Fenômeno Investigado</label>
+              <label className="block text-[10px] font-black text-white/60 uppercase tracking-[0.2em] mb-1">{t('step5.investigatedPhenomenon')}</label>
               <p className="text-white text-sm font-bold leading-relaxed">{analysis.phenomenon || "Não definido na Aba 2"}</p>
             </div>
 
@@ -1155,7 +1151,7 @@ const App: React.FC = () => {
                   <div className="p-2.5 flex items-center justify-center">3º Round</div>
                   <div className="p-2.5 flex items-center justify-center">4º Round</div>
                   <div className="p-2.5 flex items-center justify-center">5º Round</div>
-                  <div className="p-2.5 flex items-center justify-center text-[8px]">Ideias de Melhorias</div>
+                  <div className="p-2.5 flex items-center justify-center text-[8px]">{t('step5.improvementIdeas')}</div>
                   <div className="p-2.5"></div>
                 </div>
                 
@@ -1185,7 +1181,7 @@ const App: React.FC = () => {
                               value={cell.question}
                               onChange={(e) => updateWhysCell(row.id, roundIdx, 'question', e.target.value)}
                               className="w-full bg-transparent text-[9px] text-slate-500 outline-none resize-none focus:bg-blue-50/60 rounded transition-colors placeholder-slate-300 font-medium italic leading-snug"
-                              placeholder="Por que ocorre...?"
+                              placeholder={t('step5.questionPlaceholder')}
                             />
                           </div>
                           {/* Linha 2: Resposta + Badge V/F */}
@@ -1195,7 +1191,7 @@ const App: React.FC = () => {
                               value={cell.answer}
                               onChange={(e) => updateWhysCell(row.id, roundIdx, 'answer', e.target.value)}
                               className="flex-1 bg-transparent text-[10px] text-slate-800 outline-none resize-none focus:bg-[#e5ebf7] rounded transition-colors placeholder-slate-300 font-semibold leading-snug"
-                              placeholder="Resposta..."
+                              placeholder={t('step5.answerPlaceholder')}
                             />
                             {cell.answer.trim() && (
                               <div className="flex flex-col gap-1 items-center shrink-0 mt-0.5">
@@ -1266,7 +1262,7 @@ const App: React.FC = () => {
                           value={row.improvement}
                           onChange={(e) => updateWhysImprovement(row.id, e.target.value)}
                           className="w-full min-h-[32px] bg-transparent text-[10px] text-slate-600 outline-none px-1.5 py-1 focus:bg-blue-50 rounded transition-colors placeholder-slate-300 font-medium italic"
-                          placeholder="Melhoria..."
+                          placeholder={t('step5.improvementPlaceholder')}
                         />
                       </div>
                       
@@ -1286,13 +1282,13 @@ const App: React.FC = () => {
               </div>
 
               <div className="pt-3 border-t">
-                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Causa Raiz Geral Identificada</label>
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">{t('step5.rootCause')}</label>
                 <input 
                   type="text" 
                   value={analysis.rootCause} 
                   onChange={e => updateAnalysis({ rootCause: e.target.value })}
                   className={inputClasses}
-                  placeholder="Descreva a causa raiz..."
+                  placeholder={t('step5.rootCausePlaceholder')}
                 />
               </div>
             </div>
@@ -1309,7 +1305,7 @@ const App: React.FC = () => {
           <div className="space-y-4 animate-fadeIn">
             <div className="flex justify-between items-center border-b pb-3">
               <div>
-                <h2 className="text-lg font-bold text-[#171C8F]">6. Plano de Ação</h2>
+                <h2 className="text-lg font-bold text-[#171C8F]">{t('step6.title')}</h2>
                 <div className="mt-1 inline-block text-[11px] font-black text-[#171C8F] bg-[#e5ebf7] px-3 py-1 rounded-md border border-[#dce4f5]">
                   {getAnalysisCode(analysis)}
                 </div>
@@ -1318,22 +1314,21 @@ const App: React.FC = () => {
                 onClick={addAction}
                 className="bg-[#171C8F] text-white text-[9px] font-black uppercase tracking-widest px-6 py-2 rounded-xl hover:bg-black transition-all shadow-md flex items-center gap-2 cursor-pointer"
               >
-                <Plus size={14} /> Nova Ação
-              </button>
+                <Plus size={14} />{t('step6.newAction')}</button>
             </div>
 
             <div className="border border-slate-100 rounded-xl overflow-x-auto shadow-sm">
               <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead className="bg-[#e5ebf7] text-[#171C8F] text-[9px] font-black uppercase tracking-widest">
                   <tr>
-                    <th className="px-2 py-2 border-b border-blue-100">Tipo</th>
-                    <th className="px-2 py-2 border-b border-blue-100">O Quê</th>
-                    <th className="px-2 py-2 border-b border-blue-100">Quem</th>
-                    <th className="px-2 py-2 border-b border-blue-100">Quando</th>
-                    <th className="px-2 py-2 border-b border-blue-100">Onde</th>
-                    <th className="px-2 py-2 border-b border-blue-100">Como</th>
-                    <th className="px-2 py-2 border-b border-blue-100">Quanto</th>
-                    <th className="px-2 py-2 border-b border-blue-100">Status</th>
+                    <th className="px-2 py-2 border-b border-blue-100">{t('step6.type')}</th>
+                    <th className="px-2 py-2 border-b border-blue-100">{t('step6.what')}</th>
+                    <th className="px-2 py-2 border-b border-blue-100">{t('step6.who')}</th>
+                    <th className="px-2 py-2 border-b border-blue-100">{t('step6.when')}</th>
+                    <th className="px-2 py-2 border-b border-blue-100">{t('step6.where')}</th>
+                    <th className="px-2 py-2 border-b border-blue-100">{t('step6.how')}</th>
+                    <th className="px-2 py-2 border-b border-blue-100">{t('step6.howMuch')}</th>
+                    <th className="px-2 py-2 border-b border-blue-100">{t('step6.status')}</th>
                     <th className="px-2 py-2 border-b border-blue-100 w-8"></th>
                   </tr>
                 </thead>
@@ -1346,25 +1341,25 @@ const App: React.FC = () => {
                           onChange={e => updateAction(action.id, { type: e.target.value as any })}
                           className="bg-transparent border-none text-[9px] font-bold focus:ring-0 p-0 text-[#171C8F] uppercase"
                         >
-                          <option>Contenção</option>
-                          <option>Definitiva</option>
+                          <option>{t('step6.containment')}</option>
+                          <option>{t('step6.definitive')}</option>
                         </select>
                       </td>
-                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.what} onChange={e => updateAction(action.id, { what: e.target.value })} className="w-full min-w-[120px] bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder="O que fazer?"/></td>
-                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.who} onChange={e => updateAction(action.id, { who: e.target.value })} className="w-full bg-transparent border-none text-[9px] p-0 focus:ring-0 placeholder:text-slate-300 font-bold text-slate-500 uppercase" placeholder="Quem?"/></td>
+                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.what} onChange={e => updateAction(action.id, { what: e.target.value })} className="w-full min-w-[120px] bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder={t('step6.whatPlaceholder')}/></td>
+                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.who} onChange={e => updateAction(action.id, { who: e.target.value })} className="w-full bg-transparent border-none text-[9px] p-0 focus:ring-0 placeholder:text-slate-300 font-bold text-slate-500 uppercase" placeholder={t('step6.whoPlaceholder')}/></td>
                       <td className="px-2 py-1.5"><input type="date" value={action.when} onChange={e => updateAction(action.id, { when: e.target.value })} className="bg-transparent border-none text-[9px] p-0 focus:ring-0 text-slate-400 font-bold w-[90px]"/></td>
-                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.where} onChange={e => updateAction(action.id, { where: e.target.value })} className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder="Onde?"/></td>
-                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.how} onChange={e => updateAction(action.id, { how: e.target.value })} className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder="Como?"/></td>
-                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.howMuch} onChange={e => updateAction(action.id, { howMuch: e.target.value })} className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium w-16" placeholder="R$ / h"/></td>
+                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.where} onChange={e => updateAction(action.id, { where: e.target.value })} className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder={t('step6.wherePlaceholder')}/></td>
+                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.how} onChange={e => updateAction(action.id, { how: e.target.value })} className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium" placeholder={t('step6.howPlaceholder')}/></td>
+                      <td className="px-2 py-1.5 cursor-text focus-within:bg-white"><input type="text" value={action.howMuch} onChange={e => updateAction(action.id, { howMuch: e.target.value })} className="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 placeholder:text-slate-300 font-medium w-16" placeholder={t('step6.howMuchPlaceholder')}/></td>
                       <td className="px-2 py-1.5">
                         <select 
                           value={action.status} 
                           onChange={e => updateAction(action.id, { status: e.target.value as any })}
                           className={`bg-transparent border-none text-[9px] font-bold focus:ring-0 p-0 uppercase ${action.status === 'Aberta' ? 'text-red-500' : action.status === 'Em andamento' ? 'text-amber-500' : 'text-green-500'}`}
                         >
-                          <option className="text-red-500 bg-white font-bold uppercase" value="Aberta">Aberta</option>
-                          <option className="text-amber-500 bg-white font-bold uppercase" value="Em andamento">Em andamento</option>
-                          <option className="text-green-500 bg-white font-bold uppercase" value="Concluída">Concluída</option>
+                          <option className="text-red-500 bg-white font-bold uppercase" value="Aberta">{t('step6.open')}</option>
+                          <option className="text-amber-500 bg-white font-bold uppercase" value="Em andamento">{t('step6.inProgress')}</option>
+                          <option className="text-green-500 bg-white font-bold uppercase" value="Concluída">{t('step6.completed')}</option>
                         </select>
                       </td>
                       <td className="px-2 py-1.5 text-center">
@@ -1383,11 +1378,11 @@ const App: React.FC = () => {
       case StepId.VERIFICATION:
         return (
           <div className="space-y-4 animate-fadeIn flex flex-col relative">
-            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">7. Verificação dos Resultados</h2>
+            <h2 className="text-lg font-bold border-b pb-3 text-[#171C8F]">{t('step7.title')}</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="bg-[#e5ebf7] p-4 rounded-xl border border-blue-100 flex flex-col gap-4">
                 <div className="flex justify-between items-center">
-                   <h3 className="font-black text-[#171C8F] uppercase text-[10px] tracking-widest">Reincidência? <span className="text-red-500" aria-hidden="true">*</span></h3>
+                   <h3 className="font-black text-[#171C8F] uppercase text-[10px] tracking-widest">{t('step7.reoccurrence')}<span className="text-red-500" aria-hidden="true">*</span></h3>
                    <div className="flex gap-2">
                     <button onClick={() => updateAnalysis({ reoccurred: true })} className={`px-4 py-1.5 border rounded-lg font-black text-[10px] transition-all flex items-center gap-2 ${analysis.reoccurred === true ? 'bg-red-600 border-red-600 text-white shadow-sm' : 'bg-white text-slate-300 border-slate-50'}`}>
                       <ThumbsDown size={14} /> SIM
@@ -1399,7 +1394,7 @@ const App: React.FC = () => {
                 </div>
                 
                 <div className="space-y-3 pt-2 border-t border-blue-200">
-                  <h3 className="font-black text-[#171C8F] uppercase text-[10px] tracking-widest">Checklist de Efetividade</h3>
+                  <h3 className="font-black text-[#171C8F] uppercase text-[10px] tracking-widest">{t('step7.effectivenessChecklist')}</h3>
                   <div className="space-y-2">
                     {(analysis.verificationChecklist || []).map((item, idx) => (
                       <div key={item.id} className="flex items-center gap-2">
@@ -1425,14 +1420,13 @@ const App: React.FC = () => {
                       const newList = [...(analysis.verificationChecklist || []), { id: Date.now().toString(), text: '', checked: false }];
                       updateAnalysis({ verificationChecklist: newList });
                     }} className="flex items-center gap-2 text-[#13aff0] hover:text-[#171C8F] text-[10px] font-black uppercase transition-colors pt-1">
-                      <Plus size={12} /> Adicionar Item
-                    </button>
+                      <Plus size={12} />{t('step7.addItem')}</button>
                   </div>
                 </div>
 
                 <div className="space-y-2 pt-2 border-t border-blue-200">
-                  <h3 className="font-black text-[#171C8F] uppercase text-[10px] tracking-widest">Evidências e Anexos</h3>
-                  <textarea value={analysis.effectivenessEvidence} onChange={e => updateAnalysis({ effectivenessEvidence: e.target.value })} className={inputClasses + " h-16 resize-none bg-white"} placeholder="Descreva os indicadores ou resultados alcançados..." />
+                  <h3 className="font-black text-[#171C8F] uppercase text-[10px] tracking-widest">{t('step7.evidenceAndAttachments')}</h3>
+                  <textarea value={analysis.effectivenessEvidence} onChange={e => updateAnalysis({ effectivenessEvidence: e.target.value })} className={inputClasses + " h-16 resize-none bg-white"} placeholder={t('step7.describeResults')} />
                   
                   <div className="flex flex-col gap-2 mt-2">
                     <label className="inline-flex w-fit items-center gap-2 cursor-pointer bg-[#13aff0] hover:bg-[#171C8F] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors shadow-sm">
@@ -1452,8 +1446,7 @@ const App: React.FC = () => {
                           }
                         }} 
                       />
-                      <Upload size={14} /> Anexar Gráfico ou Imagem
-                    </label>
+                      <Upload size={14} />{t('step7.attachChart')}</label>
 
                     {(analysis.verificationAttachments || []).length > 0 && (
                       <div className="grid grid-cols-2 gap-2 mt-2">
@@ -1474,31 +1467,30 @@ const App: React.FC = () => {
 
                 <div className="bg-amber-50 border border-amber-200 p-2 rounded-lg flex items-start gap-2 mt-2 shadow-sm">
                   <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-[9px] text-amber-700 font-bold uppercase">As evidências definitivas devem ser informadas no prazo máximo de 3 meses para encerramento adequado da análise.</p>
+                  <p className="text-[9px] text-amber-700 font-bold uppercase">{t('step7.evidenceDeadline')}</p>
                 </div>
               </div>
 
               <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3">
-                <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-widest leading-tight">Ações contra recorrência do problema</h3>
+                <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-widest leading-tight">{t('step7.actionsAgainstRecurrence')}</h3>
                 <div className="space-y-2 pb-2">
                   <button onClick={() => updateAnalysis({ needsRevision: !analysis.needsRevision })} className={`w-full flex items-center gap-3 p-2 rounded-lg border transition-all ${analysis.needsRevision ? 'bg-[#e5ebf7] border-blue-200' : 'bg-white border-slate-50 hover:bg-slate-50'}`}>
                     <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-all ${analysis.needsRevision ? 'bg-[#171C8F] border-[#171C8F] text-white' : 'border-slate-200'}`}>
                       {analysis.needsRevision && <Check size={8} />}
                     </div>
-                    <span className="text-[11px] font-bold text-slate-700">Revisar procedimento técnico (POP / Manual)</span>
+                    <span className="text-[11px] font-bold text-slate-700">{t('step7.reviewProcedure')}</span>
                   </button>
                   <button onClick={() => updateAnalysis({ needsTraining: !analysis.needsTraining })} className={`w-full flex items-center gap-3 p-2 rounded-lg border transition-all ${analysis.needsTraining ? 'bg-[#e5ebf7] border-blue-200' : 'bg-white border-slate-50 hover:bg-slate-50'}`}>
                     <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-all ${analysis.needsTraining ? 'bg-[#171C8F] border-[#171C8F] text-white' : 'border-slate-200'}`}>
                       {analysis.needsTraining && <Check size={8} />}
                     </div>
-                    <span className="text-[11px] font-bold text-slate-700">Necessita treinamento para equipe / OPL</span>
+                    <span className="text-[11px] font-bold text-slate-700">{t('step7.needsTraining')}</span>
                   </button>
                 </div>
-                <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-widest border-t pt-3">Ações Compartilhadas</h3>
+                <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-widest border-t pt-3">{t('step7.sharedActions')}</h3>
                 <div>
                   <button onClick={handleViewReport} className="w-full bg-[#171C8F] text-white font-black py-3 rounded-lg flex items-center justify-center gap-2 text-[10px] uppercase tracking-tighter hover:bg-blue-700 transition-all shadow-sm">
-                    <FileText size={14} /> Visualizar Relatório (PDF)
-                  </button>
+                    <FileText size={14} />{t('step7.viewReport')}</button>
                 </div>
               </div>
             </div>
@@ -1577,9 +1569,9 @@ const App: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 sm:gap-6">
               <nav className="flex gap-1 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-                <button onClick={startNewAnalysis} className={`px-4 md:px-6 py-3 rounded-xl transition-all font-black uppercase text-[10px] tracking-wider ${(currentStep !== StepId.DASHBOARD && currentStep !== StepId.KANBAN) ? 'bg-[#171C8F] text-white shadow-lg' : 'text-[#171C8F]/50 hover:text-[#171C8F] hover:bg-white'}`}>Novo</button>
-                <button onClick={() => setCurrentStep(StepId.DASHBOARD)} className={`px-4 md:px-6 py-3 rounded-xl transition-all font-black uppercase text-[10px] tracking-wider ${currentStep === StepId.DASHBOARD ? 'bg-[#171C8F] text-white shadow-lg' : 'text-[#171C8F]/50 hover:text-[#171C8F] hover:bg-white'}`}>Dashboard</button>
-                <button onClick={() => setCurrentStep(StepId.KANBAN)} className={`px-4 md:px-6 py-3 rounded-xl transition-all font-black uppercase text-[10px] tracking-wider ${currentStep === StepId.KANBAN ? 'bg-[#171C8F] text-white shadow-lg' : 'text-[#171C8F]/50 hover:text-[#171C8F] hover:bg-white'}`}>Kanban</button>
+                <button onClick={startNewAnalysis} className={`px-4 md:px-6 py-3 rounded-xl transition-all font-black uppercase text-[10px] tracking-wider ${(currentStep !== StepId.DASHBOARD && currentStep !== StepId.KANBAN) ? 'bg-[#171C8F] text-white shadow-lg' : 'text-[#171C8F]/50 hover:text-[#171C8F] hover:bg-white'}`}>{t('nav.new')}</button>
+                <button onClick={() => setCurrentStep(StepId.DASHBOARD)} className={`px-4 md:px-6 py-3 rounded-xl transition-all font-black uppercase text-[10px] tracking-wider ${currentStep === StepId.DASHBOARD ? 'bg-[#171C8F] text-white shadow-lg' : 'text-[#171C8F]/50 hover:text-[#171C8F] hover:bg-white'}`}>{t('nav.dashboard')}</button>
+                <button onClick={() => setCurrentStep(StepId.KANBAN)} className={`px-4 md:px-6 py-3 rounded-xl transition-all font-black uppercase text-[10px] tracking-wider ${currentStep === StepId.KANBAN ? 'bg-[#171C8F] text-white shadow-lg' : 'text-[#171C8F]/50 hover:text-[#171C8F] hover:bg-white'}`}>{t('nav.kanban')}</button>
               </nav>
               <div className="hidden md:flex items-center gap-3 pl-6 border-l border-slate-100">
                 <div className="text-right">
@@ -1597,7 +1589,7 @@ const App: React.FC = () => {
         {currentStep < StepId.DASHBOARD && (
           <nav className="bg-white border-b flex-shrink-0 z-40 overflow-x-auto no-scrollbar shadow-sm" aria-label="Passos da análise">
             <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-6 min-w-max">
-              {STEPS.map((step, idx) => (
+              {getSteps(t).map((step, idx) => (
                 <React.Fragment key={step.id}>
                   <button onClick={() => setCurrentStep(step.id)} className={`flex flex-col items-center gap-2 transition-all px-2 ${currentStep === step.id ? 'scale-110 opacity-100' : 'opacity-30 hover:opacity-60'}`} aria-current={currentStep === step.id ? 'step' : undefined}>
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs transition-all ${currentStep === step.id ? 'bg-[#171C8F] text-white shadow-xl shadow-blue-200' : 'bg-slate-100 text-slate-500'}`}>
@@ -1605,7 +1597,7 @@ const App: React.FC = () => {
                     </div>
                     <span className={`text-[9px] font-black uppercase tracking-widest ${currentStep === step.id ? 'text-[#171C8F]' : 'text-slate-400'}`}>{step.label}</span>
                   </button>
-                  {idx < STEPS.length - 1 && <div className={`w-12 h-1 rounded-full ${(currentStep > idx && currentStep !== StepId.KANBAN) ? 'bg-[#171C8F]' : 'bg-slate-100'}`} aria-hidden="true"></div>}
+                  {idx < getSteps(t).length - 1 && <div className={`w-12 h-1 rounded-full ${(currentStep > idx && currentStep !== StepId.KANBAN) ? 'bg-[#171C8F]' : 'bg-slate-100'}`} aria-hidden="true"></div>}
                 </React.Fragment>
               ))}
             </div>
@@ -1625,16 +1617,14 @@ const App: React.FC = () => {
             <div className="bg-white/90 backdrop-blur-xl border-t border-slate-100 p-3 md:p-4 z-50">
               <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
                 <button onClick={handleBack} disabled={currentStep === StepId.IDENTIFICATION} className="flex items-center justify-center gap-2 text-slate-400 font-black uppercase text-[10px] hover:text-[#171C8F] disabled:opacity-20 transition-all px-4 py-2 min-h-[44px]">
-                  <ArrowLeft size={14} /> Voltar
-                </button>
+                  <ArrowLeft size={14} />{t('nav.back')}</button>
                 <div className="flex gap-3 flex-1 sm:flex-initial">
-                  <button onClick={saveDraft} className="hidden sm:flex items-center justify-center text-slate-600 bg-slate-100 hover:bg-slate-200 px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest border border-slate-200 min-h-[44px]">Salvar Rascunho</button>
+                  <button onClick={saveDraft} className="hidden sm:flex items-center justify-center text-slate-600 bg-slate-100 hover:bg-slate-200 px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest border border-slate-200 min-h-[44px]">{t('nav.saveDraft')}</button>
                   {currentStep < StepId.VERIFICATION ? (
-                    <button onClick={handleNext} className="flex-1 sm:flex-initial bg-[#171C8F] hover:bg-blue-700 text-white px-10 py-3 rounded-xl font-black uppercase text-[10px] shadow-xl shadow-blue-200/50 transition-all flex items-center justify-center gap-3 min-h-[44px]">
-                      Próximo <ArrowRight size={14} />
+                    <button onClick={handleNext} className="flex-1 sm:flex-initial bg-[#171C8F] hover:bg-blue-700 text-white px-10 py-3 rounded-xl font-black uppercase text-[10px] shadow-xl shadow-blue-200/50 transition-all flex items-center justify-center gap-3 min-h-[44px]">{t('nav.next')}<ArrowRight size={14} />
                     </button>
                   ) : (
-                    <button onClick={finalizeAnalysis} className="flex-1 sm:flex-initial bg-slate-900 hover:bg-black text-white px-10 py-3 rounded-xl font-black uppercase text-[10px] shadow-xl transition-all min-h-[44px]">Finalizar Relatório</button>
+                    <button onClick={finalizeAnalysis} className="flex-1 sm:flex-initial bg-slate-900 hover:bg-black text-white px-10 py-3 rounded-xl font-black uppercase text-[10px] shadow-xl transition-all min-h-[44px]">{t('nav.finalizeReport')}</button>
                   )}
                 </div>
               </div>
