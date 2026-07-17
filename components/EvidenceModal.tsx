@@ -21,6 +21,7 @@ const EvidenceModal: React.FC<EvidenceModalProps> = ({
   title = 'Adicionar Evidência',
   mode = 'add'
 }) => {
+  const { t } = useI18n();
   const [evidence, setEvidence] = useState(initialEvidence);
   const [evidenceImage, setEvidenceImage] = useState(initialEvidenceImage);
   const [error, setError] = useState('');
@@ -34,8 +35,6 @@ const EvidenceModal: React.FC<EvidenceModalProps> = ({
   }, [isOpen, initialEvidence, initialEvidenceImage]);
 
   const handlePaste = (e: React.ClipboardEvent) => {
-  const { t } = useI18n();
-
     const items = e.clipboardData.items;
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.indexOf('image') !== -1) {

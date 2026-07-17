@@ -23,8 +23,6 @@ interface KanbanAction extends Action {
 }
 
 const getActionAnalysisCode = (action: KanbanAction) => {
-  const { t } = useI18n();
-
   const dateParts = action.analysisFailureDate ? action.analysisFailureDate.split('-') : [];
   const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : 'DD/MM/AAAA';
   const area = action.analysisArea ? action.analysisArea.trim() : 'Área';
@@ -39,6 +37,7 @@ const columns: { title: string; status: Status; color: string; icon: React.React
 ];
 
 const CardItem: React.FC<{ action: KanbanAction; isDragging?: boolean; onAskEvidence?: () => void }> = ({ action, isDragging, onAskEvidence }) => {
+  const { t } = useI18n();
   const isOverdue = action.status !== 'Concluída' && Boolean(action.when) && new Date(action.when + 'T00:00:00') < new Date(new Date().setHours(0,0,0,0));
   return (
     <div onClick={onAskEvidence} className={`cursor-pointer bg-white p-2 md:p-3 rounded-xl shadow-sm border transition-all group relative overflow-hidden ${
@@ -131,6 +130,7 @@ const SortableItem: React.FC<{ action: KanbanAction; onStatusChange: (id: string
 };
 
 const DroppableColumn: React.FC<{ status: Status; title: string; color: string; icon: React.ReactNode; actions: KanbanAction[]; onStatusChange: (id: string, newStatus: Status) => void; onAskEvidence: (id: string) => void }> = ({ status, title, color, icon, actions, onStatusChange, onAskEvidence }) => {
+  const { t } = useI18n();
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
@@ -167,6 +167,7 @@ const DroppableColumn: React.FC<{ status: Status; title: string; color: string; 
 };
 
 const KanbanView: React.FC<KanbanViewProps> = ({ user, profile }) => {
+  const { t } = useI18n();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);

@@ -106,6 +106,7 @@ const getSavedStep = (): StepId => {
 };
 
 const App: React.FC = () => {
+  const { t } = useI18n();
   const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [analysis, setAnalysis] = useState<Analysis>(getInitialState);
@@ -152,10 +153,6 @@ const App: React.FC = () => {
       }));
     }
   }, [profile]);
-
-  useEffect(() => {
-    localStorage.setItem('swm_current_step', currentStep.toString());
-  }, [currentStep]);
 
   useEffect(() => {
     localStorage.setItem('swm_current_step', currentStep.toString());
